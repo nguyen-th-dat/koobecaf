@@ -2,6 +2,9 @@
 /vendor/
 /node_modules/
 
+# Environment (chứa thông tin kết nối database)
+.env
+
 # IDE and editor
 /.vscode/
 
@@ -16,3 +19,17 @@
 
 /.agents
 /.aider-desk
+PROMT.md
+
+# Log ứng dụng
+/storage/logs/*.log
+
+# File người dùng tải lên (giữ lại .htaccess và cấu trúc thư mục)
+/public/uploads/*
+!/public/uploads/.htaccess
+!/public/uploads/avatars/
+!/public/uploads/covers/
+!/public/uploads/posts/
+/public/uploads/avatars/*
+/public/uploads/covers/*
+/public/uploads/posts/*

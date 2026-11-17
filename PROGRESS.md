@@ -1,0 +1,223 @@
+# PROGRESS — Koobecaf
+
+Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, để có thể tiếp tục công việc trong phiên sau mà không cần phân tích lại toàn bộ dự án.
+
+**Trạng thái hiện tại: Phase 1 – Phase 8 đã hoàn tất.** Tất cả bộ kiểm thử đều đạt 0 lỗi.
+
+---
+
+## Tổng quan
+
+| Phase | Nội dung | Trạng thái |
+|---|---|---|
+| 1 | Analysis & Design (kiến trúc, DB, ERD) | ✅ Hoàn thành |
+| 2 | Project Foundation (Composer, .env, PDO, Router, MVC, Layout) | ✅ Hoàn thành |
+| 3 | Authentication & Profile (+ upload avatar/cover) | ✅ Hoàn thành |
+| 4 | Social Features (Feed, Post, Like, Comment, Share, Friend, Follow) | ✅ Hoàn thành |
+| 5 | Communication (Chat + Notifications + AJAX polling) | ✅ Hoàn thành |
+| 6 | Search & Notifications (search user/post, unread count) | ✅ Hoàn thành |
+| 7 | UI/UX & Responsive + Light/Dark mode | ✅ Hoàn thành |
+| 8 | Testing, Optimization, README, PROGRESS | ✅ Hoàn thành |
+
+---
+
+## Phase 1 — Analysis & Design
+
+### Đã triển khai
+- Phân tích 14 nhóm yêu cầu, xác định 12 module chức năng.
+- Thiết kế kiến trúc MVC thuần: `Core` (Router, Request, Response, Database, Session, Csrf, Validator, View, Config, Env, Logger), `Middleware`, `Models`, `Controllers`, `Services`, `Views`.
+- Thiết kế database 12 bảng InnoDB `utf8mb4_unicode_ci`.
+- Vẽ ERD bằng Mermaid tại `database/erd/erd.md` (sơ đồ + bảng ràng buộc).
+- Xác định luồng nghiệp vụ: feed → tương tác → notification → chat.
+
+### Ràng buộc dữ liệu thiết kế
+- UNIQUE `(post_id, user_id)` trên `likes`, `(post_id, user_id)` trên `shares`.
+- UNIQUE `(user_id, friend_id)` trên `friendships`, `(follower_id, following_id)` trên `follows`.
+- UNIQUE `(conversation_id, user_id)` trên `conversation_members`.
+- CHECK tại tầng ứng dụng: cấm tự follow, cấm tự kết bạn.
+- FK ON DELETE CASCADE cho dữ liệu phụ thuộc (post_images, likes, comments, shares, messages…).
+
+---
+
+## Phase 2 — Project Foundation
+
+### Đã triển khai
+- `composer.json` với PSR-4 autoload (`App\` → `app/`) + `files: app/Helpers/helpers.php`.
+- `.env` / `.env.example` với parser tự viết (`app/Core/Env.php`).
+- `app/Core/Database.php`: PDO singleton, `ATTR_ERRMODE=EXCEPTION`, `ATTR_DEFAULT_FETCH_MODE=ASSOC`, `ATTR_EMULATE_PREPARES=false`, hỗ trợ transaction.
+- `app/Core/Router.php`: khớp regex, hỗ trợ tham số động `{id}` / `{username}`, group middleware.
+- `app/Core/Request.php`: đọc `$_GET`, `$_POST`, JSON body (`php://input`), file upload, header (bao gồm `X-CSRF-TOKEN`).
+- `app/Core/Response.php`: JSON thống nhất `{success, message, data}` + redirect + HTTP status code đúng.
+- `app/Core/Session.php`: lifecycle, flash message, regenerate ID.
+- `app/Core/Csrf.php`: sinh token, validate qua form field / JSON body / header.
+- `app/Core/Validator.php`: required, email, username regex, min/max, matches.
+- `app/Core/View.php`: render view + layout lồng nhau.
+- `app/Helpers/helpers.php`: `e()`, `url()`, `asset()`, `upload_url()`, `old()`, `flash()`, `auth_user()`, `auth_id()`, `is_auth()`, `time_ago()`, `format_date()`, `post_view_data()`, `initials()`, `excerpt()`.
+- `app/Middleware/`: `AuthMiddleware`, `GuestMiddleware`.
+- Layout dùng chung: `layouts/main.php` (3 cột + topbar + mobile nav), `layouts/auth.php`.
+
+---
+
+## Phase 3 — Authentication & Profile
+
+### Đã triển khai
+- Đăng ký: validate username (3–30 ký tự, chữ/số/gạch dưới), email, mật khẩu ≥ 8 ký tự, xác nhận mật khẩu, kiểm tra email trùng.
+- `password_hash()` / `password_verify()` — không lưu mật khẩu dạng rõ.
+- Đăng nhập / đăng xuất, regenerate session ID sau đăng nhập và đăng ký.
+- Trang hồ sơ `/u/{username}` với 6 tab (bài viết, bình luận, đã chia sẻ, bạn bè, người theo dõi, đang theo dõi).
+- Sửa hồ sơ: tên hiển thị, tiểu sử, avatar, ảnh bìa.
+- Đổi mật khẩu: yêu cầu mật khẩu hiện tại.
+- Upload an toàn (`app/Services/UploadService.php`): MIME thực qua `finfo`, allowlist extension, giới hạn 5MB, tên file ngẫu nhiên, thư mục riêng `avatars/`, `covers/`, `posts/`.
+- `public/uploads/.htaccess` chặn thực thi PHP + chặn autoindex.
+- Xóa file cũ khi thay avatar/cover mới.
+
+---
+
+## Phase 4 — Social Features
+
+### Đã triển khai
+- **Feed**: bài của mình + người được theo dõi + bạn bè; sắp xếp mới nhất; phân trang; khách chưa đăng nhập xem bài công khai.
+- **Bài viết**: tạo (chữ / ảnh 1-n / ảnh + link), sửa, xóa (có confirm), xem chi tiết `/post/{id}`, permalink `/p/{id}`.
+- **Quyền riêng tư**: `public` / `followers` / `private`, thực thi bằng SQL trong `Post::visibilitySql()` + `Post::canView()`.
+- **Like**: toggle AJAX, cập nhật số lượt + trạng thái nút; trang `/posts/{id}/likes`.
+- **Bình luận**: thêm/sửa/xóa AJAX, reply lồng nhau, chỉ tác giả được sửa/xóa.
+- **Chia sẻ nội bộ**: tạo bài viết mới với `shared_post_id` + `share_content`; hiển thị thẻ bài gốc.
+- **Chia sẻ liên kết**: nút "Sao chép link" copy permalink.
+- **Bạn bè**: gửi / chấp nhận / từ chối / hủy lời mời / hủy kết bạn; cấm tự kết bạn, cấm trùng lặp.
+- **Follow**: toggle AJAX; cấm tự follow.
+- Tự động lấy URL đầu tiên trong nội dung bài viết và lưu vào `posts.shared_url`.
+
+---
+
+## Phase 5 — Communication
+
+### Đã triển khai
+- Chat 1-1: tạo/lấy conversation, danh sách hội thoại, lịch sử tin nhắn.
+- Gửi tin nhắn qua AJAX, không tải lại trang.
+- Polling `/chat/{id}/messages?after_id=` mỗi 5 giây, tự cuộn xuống tin nhắn mới nhất.
+- Trạng thái đã đọc: `messages.read_at`, icon ✓ (đã gửi) / ✓✓ (đã xem), `Message::markRead()` khi mở hội thoại và khi polling.
+- Badge số tin nhắn chưa đọc cập nhật định kỳ (15s) qua `/api/messages/unread`.
+- Kiểm tra thành viên hội thoại ở backend trước mọi thao tác đọc/gửi.
+- 8 loại thông báo: like, comment, reply, share, friend_request, friend_accepted, message, follow.
+- Đánh dấu đã đọc / đánh dấu tất cả đã đọc bằng AJAX, badge `/api/notifications/unread`.
+
+---
+
+## Phase 6 — Search & Notifications
+
+### Đã triển khai
+- Tìm người dùng theo tên / username: gợi ý tức thì AJAX (`/api/search/users`), có debounce.
+- Tìm bài viết công khai theo từ khóa: `/search`, có phân trang, chỉ trả về bài `privacy = 'public'`.
+- Escape `%` và `_` trong từ khóa LIKE để tránh khớp sai.
+- Click thông báo điều hướng tới nội dung liên quan (`NotificationController::targetUrl()`).
+
+---
+
+## Phase 7 — UI/UX & Responsive
+
+### Đã triển khai
+- Design system: màu chủ đạo `#4f46e5`, nền trắng/xám trung tính, bo góc 14px, shadow nhẹ; Bootstrap 5.3 CSS variable + dark mode.
+- Desktop 3 cột: sidebar trái (menu) · khu vực chính · sidebar phải (gợi ý, người đang theo dõi).
+- Tablet: sidebar ẩn, dùng offcanvas.
+- Mobile: bottom navigation cố định 5 mục, offcanvas menu, bài viết full-width, nút hành động chỉ còn icon, chat bubble max-width 85%.
+- Trang chat dùng layout rộng (`wide`) — chiếm `col-lg-10` thay vì cột hẹp.
+- Light/Dark mode: lưu vào `users.theme` + session; chuyển tức thì bằng AJAX không reload; nút trạng thái active đúng theo lựa chọn hiện tại.
+- Icon trạng thái đọc trong chat bubble (✓ / ✓✓).
+- Lint CSS bám Bootstrap 5.3 (`text-primary`, `btn-primary`, `btn-outline-primary` dùng biến `--kb-primary`).
+- Thẻ bài viết dùng grid ảnh: 1 ảnh full, 2 ảnh cạnh nhau, 3 ảnh lưới 2-1, 4 ảnh 2x2.
+- Hover/transition nhẹ, không lạm dụng hiệu ứng.
+
+---
+
+## Phase 8 — Testing, Optimization, Documentation
+
+### Bộ kiểm thử
+
+| File | Phạm vi | Kết quả |
+|---|---|---|
+| `tests/smoke.php` | 49 kiểm tra end-to-end: đăng ký, đăng nhập, đăng xuất, post CRUD, like/unlike, comment/reply, share nội bộ, copy link, friend request/accept/decline/cancel, follow/unfollow, chat send/read, notifications, search, theme, profile | **PASS: 49 / FAIL: 0** |
+| `tests/extended.php` | 40 kiểm tra biên: upload ảnh thật, MIME/extension sai bị từ chối, bài private/followers/public, sửa-xóa bài của người khác bị chặn, sửa bình luận người khác bị chặn, đổi mật khẩu, đổi theme, truy cập hội thoại không thuộc về mình, CSRF thiếu token bị từ chối, **regression**: reply lồng nhau, link thông báo reply, số bài viết thống kê khớp tab, các trang chính không lỗi PHP | **PASS: 40 / FAIL: 0** |
+| `tests/pages.php` | Render toàn bộ route (khách + đã đăng nhập) và toàn bộ endpoint API; bắt lỗi/warning PHP | **FAIL: 0** |
+
+Tổng: **89 kiểm tra tự động — 0 lỗi.**
+
+### Tối ưu & bảo trì
+- Prepared statement cho toàn bộ truy vấn có dữ liệu người dùng.
+- Index cho các cột truy vấn thường xuyên: `idx_posts_user_created(user_id, created_at)`, `idx_posts_created_at`, `idx_posts_privacy`, `idx_likes_user`, `idx_comments_post_created(post_id, created_at)`, `idx_messages_conversation(conversation_id, created_at)`, `idx_notifications_user_read(user_id, is_read, created_at)`.
+- `Database::transaction()` cho thao tác nhiều bước (tạo bài viết + ảnh).
+- `Post::visibilitySql()` gom điều kiện quyền xem vào một nơi, tránh lặp logic.
+- Tái sử dụng partial `post-card.php` / `comment-item.php` cho feed, trang cá nhân, trang chi tiết.
+- Partial được render qua `view_partial()` (phạm vi biến riêng) để tránh xung đột tên biến khi lồng nhau.
+- Xóa file cũ khi thay avatar/cover; cascade xóa ảnh bài khi xóa bài.
+
+### Tài liệu
+- `README.md` (tiếng Việt): giới thiệu, mục tiêu, công nghệ, danh sách chức năng, cấu trúc thư mục, yêu cầu hệ thống, hướng dẫn XAMPP, tạo & import database, cấu hình `.env`, Composer, chạy dự án, tài khoản mẫu, kiến trúc request, bảng bảo mật, hướng phát triển tương lai.
+- `PROGRESS.md` (file này).
+- `database/erd/erd.md`: ERD Mermaid + bảng ràng buộc.
+
+---
+
+## Lỗi đã phát hiện & khắc phục
+
+| # | Lỗi | Nguyên nhân | Cách khắc phục |
+|---|---|---|---|
+| 1 | Import SQL bằng PowerShell thất bại | PowerShell không hỗ trợ `mysql < file.sql` (stream redirection) | Dùng `cmd /c "mysql ... < file.sql"` hoặc `Get-Content -Raw \| mysql` |
+| 2 | Controller nhận sai tham số | `Router::callHandler` truyền `($request, $params)` trong khi method nhận `($params)` | Sửa `Router.php` chỉ truyền `$params` |
+| 3 | AJAX JSON bị báo "CSRF token không hợp lệ" | `Csrf::validate` chỉ kiểm tra `$_POST['_token']` | Thêm `Request::header()` + đọc `HTTP_X_CSRF_TOKEN` |
+| 4 | JSON body request bị coi là rỗng | `Request::input()` chỉ đọc `$_POST`/`$_GET` | Decode và merge `php://input` trong `Request::__construct` |
+| 5 | SQL error `Unknown column u.user_id` | Bảng `users` dùng cột `id` | Sửa thành `u.id AS author_id` trong `Post::find` |
+| 6 | TypeError khi gọi `Friendship::requests()` | Type hint `$status` là `int` thay vì `string` | Sửa thành `string $status = self::PENDING` |
+| 7 | Trang chat chiếm cột hẹp giữa layout | Layout chỉ có 1 biến thể cột | Thêm cờ `wide` cho layout → `col-lg-10`, bỏ sidebar phải |
+| 8 | Feed hiển thị sai ảnh đại diện trong tab "Bình luận" | Query thiếu join `users` | Bổ sung `JOIN users u ON u.id = c.user_id` + hiển thị tên/username |
+| 9 | Tab "Đã chia sẻ" chỉ hiện mã bài viết | Query thiếu thông tin bài gốc & tác giả | Bổ sung join `posts` + `users`, hiển thị nội dung & tác giả gốc |
+| 10 | `shared_url` không được lưu | Cột tồn tại nhưng không có code ghi | Thêm `Post::extractUrl()` và ghi khi tạo/sửa bài viết |
+| 11 | Reply bình luận không hiển thị trên trang bài viết | `comment-item.php` được `require` trực tiếp nên dùng chung biến với view cha; vòng lặp gán `$reply` nhưng partial lại đọc `$comment` → đệ quy vô hạn, hết bộ nhớ | Thêm helper `view_partial()` render trong phạm vi biến riêng; đổi toàn bộ nơi `require` partial sang `view_partial()` |
+| 12 | Trang bài viết chỉ hiện `/p/{id}` thay vì nội dung | Vòng lặp meta Open Graph trong `layouts/main.php` dùng biến `$content`, ghi đè nội dung đã render của view | Đổi tên biến lặp thành `$metaContent` |
+| 13 | Reply bình luận biến mất khỏi API | `Comment::forPost()` gán `$grouped[$parentId]['replies'][]` — copy-on-write của PHP nên sửa bản sao local, không sửa `$grouped[$parentId]` | Dựng cây reply bằng hàm đệ quy trên mảng `children` |
+| 14 | Thông báo "trả lời" trỏ tới `/post/{commentId}` | `NotificationService::replied()` lưu `parentId` vào `entity_id`, còn `targetUrl()` lại coi `entity_id` là post id | Lưu `post_id` vào cột `data`, `targetUrl()` đọc từ `data` |
+| 15 | Số bài viết ở hồ sơ lệch với tab "Bài viết" | `User::stats()` và `PostController` lọc `shared_post_id IS NULL` còn tab "Bài viết" thì không lọc | Tách `Post::countByUser()` và thống nhất dùng chung cho cả thống kê lẫn tab |
+| 16 | Test "bài viết công khai của user khác vẫn thấy" fail khi dữ liệu tích tụ | Assertion phụ thuộc vào nội dung seed cố định (`Chào mừng đến với Koobecaf`) bị đẩy khỏi trang 1 của feed | Test tự tạo một bài public riêng rồi kiểm tra bài đó xuất hiện |
+
+---
+
+## Việc cần tiếp tục (không bắt buộc, ngoài phạm vi MVP)
+
+| Hạng mục | Mô tả |
+|---|---|
+| WebSocket chat | Nâng cấp từ AJAX polling (5s) sang realtime; giữ polling làm fallback |
+| Like bình luận | Thêm bảng `comment_likes` + UI toggle |
+| Hashtag / mention | Bảng `hashtags`, `mentions`; trang `/tag/{hashtag}` |
+| Chat nhóm | Cho phép conversation nhiều thành viên |
+| Báo cáo nội dung | Bảng `reports` + quy trình xử lý |
+| FULLTEXT search | Thay `LIKE` bằng MySQL FULLTEXT index khi dữ liệu lớn |
+| Cache | Redis cho session, unread count, feed |
+| PHPUnit | Viết lại bộ test dưới dạng unit test chuẩn PHPUnit + CI |
+| Cron dọn file mồ côi | Xóa file trong `public/uploads/` không còn tham chiếu trong `post_images` |
+| Rate limit API | Chống spam like/comment/post bằng token bucket |
+
+---
+
+## Quy trình chạy lại kiểm thử
+
+```bash
+# Terminal 1 — khởi động server
+php -S localhost:8000 -t public public/router.php
+
+# Terminal 2
+php tests/smoke.php    http://localhost:8000
+php tests/extended.php http://localhost:8000
+php tests/pages.php    http://localhost:8000
+```
+
+Kết quả mong đợi: `PASS: 49 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
+
+## Quy trình cài đặt nhanh (từ đầu)
+
+```bash
+composer install
+cp .env.example .env          # Windows: copy .env.example .env
+# import database/schema.sql + database/seed.sql vào MySQL
+php -S localhost:8000 -t public public/router.php
+```
+
+Đăng nhập: `an` / `Password@123` (hoặc `binh`, `chi`, `dung`, `em` — cùng mật khẩu).

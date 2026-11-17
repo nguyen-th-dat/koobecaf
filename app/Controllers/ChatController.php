@@ -1,0 +1,160 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use App\Core\Controller;
+use App\Core\Response;
+use App\Core\Session;
+use App\Models\Conversation;
+use App\Models\Message;
+use App\Models\User;
+use App\Services\NotificationService;
+
+final class ChatController extends Controller
+{
+    public function index(): void
+    {
+        $userId = auth_id();
+        if ($userId === null) {
+            Response::redirect('/login');
+        }
+
+        $this->view('chat/index', [
+            'title'         => 'Tin nhắn',
+            'wide'          => true,
+            'conversations' => Conversation::forUser($userId),
+            'user'          => auth_user(),
+        ]);
+    }
+
+    public function show(array $params): void
+    {
+        $userId = auth_id();
+        $conversationId = (int) $params['id'];
+        if ($userId === null) {
+            Response::redirect('/login');
+        }
+
+        if (!Conversation::isMember($conversationId, $userId)) {
+            http_response_code(403);
+            $this->view('errors/403', ['title' => 'Bạn không có quyền truy cập cuộc trò chuyện này']);
+
+            return;
+        }
+
+        Message::markRead($conversationId, $userId);
+
+        $memberIds = Conversation::memberIds($conversationId);
+        $otherId = null;
+        foreach ($memberIds as $memberId) {
+            if ($memberId !== $userId) {
+                $otherId = $memberId;
+            }
+        }
+
+        $messages = Message::forConversation($conversationId, 100);
+        $messages = array_reverse($messages);
+
+        $this->view('chat/show', [
+            'title'         => 'Trò chuyện',
+            'wide'          => true,
+            'conversationId' => $conversationId,
+            'other'         => $otherId !== null ? User::find($otherId) : null,
+            'messages'      => $messages,
+            'conversations' => Conversation::forUser($userId),
+            'user'          => auth_user(),
+        ]);
+    }
+
+    public function messages(array $params): void
+    {
+        $userId = auth_id();
+        $conversationId = (int) $params['id'];
+        if ($userId === null) {
+            Response::error('Cần đăng nhập.', 401);
+        }
+        if (!Conversation::isMember($conversationId, $userId)) {
+            Response::error('Bạn không có quyền truy cập cuộc trò chuyện này.', 403);
+        }
+
+        $afterId = $this->request->int('after_id', 0);
+        $rows = Message::forConversation($conversationId, 100);
+        $rows = array_reverse($rows);
+
+        $items = [];
+        foreach ($rows as $row) {
+            if ((int) $row['id'] <= $afterId) {
+                continue;
+            }
+            $items[] = [
+                'id'         => (int) $row['id'],
+                'sender_id'  => (int) $row['sender_id'],
+                'body'       => $row['body'],
+                'created_at' => $row['created_at'],
+                'is_mine'    => (int) $row['sender_id'] === $userId,
+            ];
+        }
+
+        $count = Message::markRead($conversationId, $userId);
+
+        Response::success([
+            'messages'    => $items,
+            'new_count'   => $count,
+            'total_unread' => Conversation::totalUnread($userId),
+        ]);
+    }
+
+    public function send(array $params): void
+    {
+        $userId = auth_id();
+        $conversationId = (int) $params['id'];
+        if ($userId === null) {
+            Response::error('Cần đăng nhập.', 401);
+        }
+        if (!Conversation::isMember($conversationId, $userId)) {
+            Response::error('Bạn không có quyền truy cập cuộc trò chuyện này.', 403);
+        }
+
+        $body = trim((string) $this->request->input('body', ''));
+        if ($body === '') {
+            Response::error('Nội dung tin nhắn không được để trống.', 422);
+        }
+        if (mb_strlen($body) > 5000) {
+            Response::error('Nội dung tin nhắn quá dài.', 422);
+        }
+
+        $messageId = Message::create($conversationId, $userId, $body);
+
+        foreach (Conversation::memberIds($conversationId) as $memberId) {
+            NotificationService::message($memberId, $userId, $conversationId);
+        }
+
+        Response::success([
+            'id'         => $messageId,
+            'body'       => $body,
+            'created_at' => date('Y-m-d H:i:s'),
+            'is_mine'    => true,
+        ], 201);
+    }
+
+    public function start(array $params): void
+    {
+        $userId = auth_id();
+        $otherId = (int) $params['id'];
+        if ($userId === null) {
+            Response::error('Cần đăng nhập.', 401);
+        }
+        if ($otherId === $userId) {
+            Response::error('Bạn không thể nhắn tin cho chính mình.', 422);
+        }
+        if (User::find($otherId) === null) {
+            Response::error('Người dùng không tồn tại.', 404);
+        }
+
+        $conversationId = Conversation::between($userId, $otherId);
+
+        Response::redirect('/chat/' . $conversationId);
+    }
+}
