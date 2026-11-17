@@ -22,6 +22,3 @@ DirectoryIndex index.php
     ExpiresByType application/javascript "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
 </IfModule>
-
-# Không cho lộ phiên bản Apache
-ServerTokens Prod

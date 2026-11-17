@@ -16,6 +16,23 @@ require BASE_PATH . '/app/bootstrap.php';
 Env::load(BASE_PATH . '/.env');
 Config::load(BASE_PATH . '/config');
 
+/**
+ * Tự nhận diện base path khi APP_BASE_PATH chưa được khai báo.
+ *
+ * Ứng dụng có thể nằm ở nhiều vị trí khác nhau:
+ *   - PHP built-in server: SCRIPT_NAME = /index.php          → base rỗng
+ *   - Apache trong htdocs: SCRIPT_NAME = /koobecaf/public/index.php → base = /koobecaf/public
+ *
+ * dirname() của SCRIPT_NAME chính là thư mục chứa entrypoint, tức phần
+ * tiền tố URL mà mọi route của ứng dụng sẽ nằm sau.
+ */
+if (rtrim((string) Env::get('APP_BASE_PATH', ''), '/') === '') {
+    $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $detected = rtrim(dirname($scriptName), '/');
+
+    Env::set('APP_BASE_PATH', $detected === '/' ? '' : $detected);
+}
+
 date_default_timezone_set((string) Config::get('app.timezone', 'Asia/Ho_Chi_Minh'));
 
 Session::start();

@@ -1,0 +1,22 @@
+# Chặn truy cập trực tiếp vào mã nguồn, cấu hình và dữ liệu.
+#
+# File này chỉ có tác dụng khi thư mục dự án nằm TRONG Document root của
+# Apache (ví dụ http://localhost/koobecaf/public/). Nếu bạn đã trỏ
+# Document root thẳng vào thư mục public/ thì không cần file này.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Mọi request không nằm trong /public/ đều bị từ chối.
+    # Điều kiện trừ /public/ giúp các rule kế thừa từ thư mục cha không
+    # chặn nhầm request hợp lệ của chính ứng dụng.
+    RewriteCond %{REQUEST_URI} !/public/ [NC]
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+<FilesMatch "^(composer\.json|\.env.*|PROMT\.md|PROGRESS\.md|README\.md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>

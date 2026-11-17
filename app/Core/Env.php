@@ -49,6 +49,11 @@ final class Env
         return self::$vars[$key] ?? $default;
     }
 
+    public static function set(string $key, string $value): void
+    {
+        self::$vars[$key] = $value;
+    }
+
     public static function bool(string $key, bool $default = false): bool
     {
         $value = self::get($key);
