@@ -1,0 +1,16 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# IDE and editor
+/.vscode/
+
+# AI tools
+/.claude/
+/.cursor/
+
+# Project directories
+/tools/
+/test/
+/temp/
+
