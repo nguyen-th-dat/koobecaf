@@ -65,6 +65,7 @@ final class ApiController extends Controller
                 'display_name' => $user['display_name'],
                 'avatar_url'   => upload_url($user['avatar_path'] ?? null),
                 'profile_url'  => url('/u/' . $user['username']),
+                'chat_url'     => url('/chat/start/' . (int) $user['id']),
             ];
         }
 

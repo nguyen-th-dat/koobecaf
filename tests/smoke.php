@@ -281,6 +281,24 @@ check('Polling lay tin nhan', ($msgJson['success'] ?? false) === true && count($
 $res = request('GET', $base . '/chat/999999');
 check('Truy cap cuoc tro chuyen khong thuoc ve bi chan', $res['status'] === 403, 'status=' . $res['status']);
 
+// Nut "Nhan tin" dung phuong thuc GET nen phai chuyen huong toi cuoc tro chuyen
+$res = request('GET', $base . '/chat/start/2');
+check('GET /chat/start chuyen huong toi cuoc tro chuyen', $res['status'] === 302 && str_contains((string) $res['location'], '/chat/'), 'status=' . $res['status'] . ' loc=' . (string) $res['location']);
+
+// Trang tin nhan co o tim kiem de bat dau cuoc tro chuyen moi
+$res = request('GET', $base . '/chat');
+check('Trang tin nhan co o tim kiem nguoi dung', str_contains($res['body'], 'id="chatUserSearch"'), 'status=' . $res['status']);
+
+$res = request('GET', $base . '/api/search/users?q=' . rawurlencode('chi'));
+$searchJson = json_decode($res['body'], true);
+$chatUrl = $searchJson['data']['users'][0]['chat_url'] ?? '';
+check('API tim kiem nguoi dung tra ve link bat dau chat', str_contains((string) $chatUrl, '/chat/start/'), json_encode($searchJson, JSON_UNESCAPED_UNICODE));
+
+$res = request('GET', $base . $chatUrl);
+check('Link bat dau chat tu ket qua tim kiem hoat dong', $res['status'] === 302, 'status=' . $res['status'] . ' url=' . (string) $chatUrl);
+$res = request('POST', $base . '/chat/start/' . $selfId, ['headers' => ajaxHeaders()]);
+check('Khong the nham tin cho chinh minh', $res['status'] === 422, 'status=' . $res['status']);
+
 // ------------------------------------------------------------------
 // 13. Thong bao
 // ------------------------------------------------------------------

@@ -81,7 +81,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Cấm tự kết bạn / tự follow, cấm quan hệ trùng lặp (unique constraint).
 
 ### 2.9. Nhắn tin (Chat)
-- Danh sách cuộc trò chuyện 1-1, bắt đầu cuộc trò chuyện mới.
+- Danh sách cuộc trò chuyện 1-1, **bắt đầu cuộc trò chuyện mới** (ô tìm kiếm người dùng ngay trên trang `/chat`, gợi ý AJAX).
 - Gửi/nhận tin nhắn, lịch sử tin nhắn, thời gian gửi, trạng thái đã đọc/chưa đọc (icon ✓ / ✓✓).
 - AJAX polling mỗi 5 giây, badge số tin nhắn chưa đọc cập nhật tự động.
 - Chỉ thành viên cuộc trò chuyện mới đọc được tin nhắn (kiểm tra backend).
@@ -181,7 +181,7 @@ koobecaf/
 │   └── logs/                       # Log lỗi
 │
 ├── tests/
-│   ├── smoke.php                   # 49 kiểm tra tích hợp end-to-end
+│   ├── smoke.php                   # 54 kiểm tra tích hợp end-to-end
 │   ├── extended.php                # 40 kiểm tra biên (upload, quyền, riêng tư, mật khẩu, theme, regression)
 │   └── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
 │
@@ -365,7 +365,7 @@ Bộ test là script PHP thuần, gọi HTTP tới ứng dụng đang chạy. Kh
 php -S localhost:8000 -t public public/router.php
 
 # Terminal 2
-php tests/smoke.php     http://localhost:8000   # 49 kiểm tra end-to-end
+php tests/smoke.php     http://localhost:8000   # 54 kiểm tra end-to-end
 php tests/extended.php  http://localhost:8000   # 40 kiểm tra biên
 php tests/pages.php     http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
@@ -373,7 +373,7 @@ php tests/pages.php     http://localhost:8000   # render toàn bộ route, bắt
 Kết quả mong đợi:
 
 ```
-PASS: 49 | FAIL: 0     (smoke.php)
+PASS: 54 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
@@ -431,7 +431,7 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 | Hồ sơ | `GET/POST /settings/profile`, `POST /settings/password`, `POST /settings/theme` |
 | Bạn bè | `GET /friends`, `GET /friends/requests`, `POST /friends/request/{id}`, `POST /friends/{id}/accept|decline|cancel|remove` |
 | Theo dõi | `POST /follow/{id}` |
-| Chat | `GET /chat`, `GET /chat/{id}`, `GET /chat/{id}/messages`, `POST /chat/{id}/send`, `POST /chat/start/{id}` |
+| Chat | `GET /chat`, `GET /chat/{id}`, `GET /chat/{id}/messages`, `POST /chat/{id}/send`, `GET|POST /chat/start/{id}` |
 | Thông báo | `GET /notifications`, `POST /notifications/{id}/read`, `POST /notifications/read-all` |
 | API AJAX | `GET /api/feed`, `/api/search/users`, `/api/search/posts`, `/api/posts/{id}/comments`, `/api/notifications/unread`, `/api/messages/unread` |
 

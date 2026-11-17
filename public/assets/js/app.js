@@ -521,6 +521,52 @@
         });
     }
 
+    /* ---------- Tìm kiếm người dùng để bắt đầu chat mới ---------- */
+    const chatSearchInput = document.getElementById('chatUserSearch');
+    const chatSearchResults = document.getElementById('chatSearchResults');
+
+    if (chatSearchInput && chatSearchResults) {
+        let chatSearchTimer = null;
+
+        chatSearchInput.addEventListener('input', () => {
+            clearTimeout(chatSearchTimer);
+            const keyword = chatSearchInput.value.trim();
+            if (keyword.length < 2) {
+                chatSearchResults.classList.add('d-none');
+                chatSearchResults.innerHTML = '';
+                return;
+            }
+            chatSearchTimer = setTimeout(async () => {
+                const payload = await request(apiUrl('/api/search/users?q=' + encodeURIComponent(keyword)));
+                if (!payload.success) return;
+                const users = payload.data.users ?? [];
+                if (!users.length) {
+                    chatSearchResults.classList.add('d-none');
+                    chatSearchResults.innerHTML = '';
+                    return;
+                }
+                chatSearchResults.innerHTML = '<ul class="list-unified">' + users.map(user => `
+                    <li>
+                        <a class="d-flex align-items-center gap-2 p-2 text-body text-decoration-none" href="${user.chat_url}">
+                            <img src="${user.avatar_url || apiUrl('/assets/images/default.svg')}" alt="" class="avatar avatar-sm">
+                            <div class="min-w-0 flex-grow-1">
+                                <div class="fw-semibold text-truncate">${escapeHtml(user.display_name)}</div>
+                                <small class="text-secondary">@${escapeHtml(user.username)}</small>
+                            </div>
+                            <i class="bi bi-chat-dots text-secondary"></i>
+                        </a>
+                    </li>`).join('') + '</ul>';
+                chatSearchResults.classList.remove('d-none');
+            }, 300);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#chatSearchWrap')) {
+                chatSearchResults.classList.add('d-none');
+            }
+        });
+    }
+
     /* ---------- Đánh dấu thông báo đã đọc ---------- */
     const markAllBtn = document.getElementById('markAllRead');
     if (markAllBtn) {

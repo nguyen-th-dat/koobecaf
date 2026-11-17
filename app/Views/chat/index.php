@@ -5,12 +5,23 @@
 ?>
 <h1 class="h5 mb-3"><i class="bi bi-chat-dots me-2"></i>Tin nhắn</h1>
 
+<div class="card surface-card mb-3">
+    <div class="card-body">
+        <label class="form-label" for="chatUserSearch"><i class="bi bi-person-plus me-1"></i>Bắt đầu cuộc trò chuyện mới</label>
+        <div class="position-relative" id="chatSearchWrap">
+            <input type="search" id="chatUserSearch" class="form-control" placeholder="Nhập tên hoặc username..." autocomplete="off"
+                   aria-label="Tìm người dùng để nhắn tin">
+            <div class="search-results card surface-card d-none" id="chatSearchResults" role="listbox"></div>
+        </div>
+    </div>
+</div>
+
 <div class="card surface-card">
     <div class="card-body">
         <?php if ($conversations === []): ?>
             <div class="text-center text-secondary py-4">
                 <i class="bi bi-chat-square-dots display-6 d-block mb-2"></i>
-                Chưa có cuộc trò chuyện nào. Hãy bắt đầu từ trang cá nhân của một người bạn.
+                Chưa có cuộc trò chuyện nào. Hãy tìm một người ở ô bên trên để bắt đầu.
             </div>
         <?php else: ?>
             <ul class="list-unified">

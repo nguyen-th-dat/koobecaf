@@ -61,7 +61,8 @@ return static function (Router $router): void {
         $router->get('/chat/{id}', [\App\Controllers\ChatController::class, 'show'], 'chat.show');
         $router->post('/chat/{id}/send', [\App\Controllers\ChatController::class, 'send'], 'chat.send');
         $router->get('/chat/{id}/messages', [\App\Controllers\ChatController::class, 'messages'], 'chat.messages');
-        $router->post('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start');
+        $router->get('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start');
+        $router->post('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start.post');
 
         // Thông báo
         $router->get('/notifications', [\App\Controllers\NotificationController::class, 'index'], 'notifications');

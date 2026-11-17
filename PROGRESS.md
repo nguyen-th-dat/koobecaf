@@ -93,6 +93,7 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 
 ### Đã triển khai
 - Chat 1-1: tạo/lấy conversation, danh sách hội thoại, lịch sử tin nhắn.
+- Bắt đầu cuộc trò chuyện mới: ô tìm kiếm người dùng trên trang `/chat`, gợi ý AJAX (`/api/search/users`) kèm link `chat_url` tới `/chat/start/{id}`.
 - Gửi tin nhắn qua AJAX, không tải lại trang.
 - Polling `/chat/{id}/messages?after_id=` mỗi 5 giây, tự cuộn xuống tin nhắn mới nhất.
 - Trạng thái đã đọc: `messages.read_at`, icon ✓ (đã gửi) / ✓✓ (đã xem), `Message::markRead()` khi mở hội thoại và khi polling.
@@ -135,11 +136,11 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 
 | File | Phạm vi | Kết quả |
 |---|---|---|
-| `tests/smoke.php` | 49 kiểm tra end-to-end: đăng ký, đăng nhập, đăng xuất, post CRUD, like/unlike, comment/reply, share nội bộ, copy link, friend request/accept/decline/cancel, follow/unfollow, chat send/read, notifications, search, theme, profile | **PASS: 49 / FAIL: 0** |
+| `tests/smoke.php` | 54 kiểm tra end-to-end: đăng ký, đăng nhập, đăng xuất, post CRUD, like/unlike, comment/reply, share nội bộ, copy link, friend request/accept/decline/cancel, follow/unfollow, chat send/read, **bắt đầu chat mới (tìm kiếm người dùng + `/chat/start` bằng GET)**, notifications, search, theme, profile | **PASS: 54 / FAIL: 0** |
 | `tests/extended.php` | 40 kiểm tra biên: upload ảnh thật, MIME/extension sai bị từ chối, bài private/followers/public, sửa-xóa bài của người khác bị chặn, sửa bình luận người khác bị chặn, đổi mật khẩu, đổi theme, truy cập hội thoại không thuộc về mình, CSRF thiếu token bị từ chối, **regression**: reply lồng nhau, link thông báo reply, số bài viết thống kê khớp tab, các trang chính không lỗi PHP | **PASS: 40 / FAIL: 0** |
 | `tests/pages.php` | Render toàn bộ route (khách + đã đăng nhập) và toàn bộ endpoint API; bắt lỗi/warning PHP | **FAIL: 0** |
 
-Tổng: **89 kiểm tra tự động — 0 lỗi.**
+Tổng: **94 kiểm tra tự động — 0 lỗi.**
 
 ### Tối ưu & bảo trì
 - Prepared statement cho toàn bộ truy vấn có dữ liệu người dùng.
@@ -177,6 +178,8 @@ Tổng: **89 kiểm tra tự động — 0 lỗi.**
 | 14 | Thông báo "trả lời" trỏ tới `/post/{commentId}` | `NotificationService::replied()` lưu `parentId` vào `entity_id`, còn `targetUrl()` lại coi `entity_id` là post id | Lưu `post_id` vào cột `data`, `targetUrl()` đọc từ `data` |
 | 15 | Số bài viết ở hồ sơ lệch với tab "Bài viết" | `User::stats()` và `PostController` lọc `shared_post_id IS NULL` còn tab "Bài viết" thì không lọc | Tách `Post::countByUser()` và thống nhất dùng chung cho cả thống kê lẫn tab |
 | 16 | Test "bài viết công khai của user khác vẫn thấy" fail khi dữ liệu tích tụ | Assertion phụ thuộc vào nội dung seed cố định (`Chào mừng đến với Koobecaf`) bị đẩy khỏi trang 1 của feed | Test tự tạo một bài public riêng rồi kiểm tra bài đó xuất hiện |
+| 17 | Nút "Nhắn tin" ở hồ sơ / bạn bè / tìm kiếm trả về 404 | Link dùng phương thức `GET` nhưng route `/chat/start/{id}` chỉ đăng ký `POST` | Đăng ký thêm route `GET /chat/start/{id}` (giữ `POST` cho AJAX) |
+| 18 | Trang `/chat` không có cách bắt đầu cuộc trò chuyện mới | Thiếu ô tìm kiếm người dùng trong trang chat, chỉ có danh sách hội thoại | Thêm panel "Bắt đầu cuộc trò chuyện mới" + gợi ý AJAX; API `/api/search/users` trả thêm `chat_url` |
 
 ---
 
@@ -209,7 +212,7 @@ php tests/extended.php http://localhost:8000
 php tests/pages.php    http://localhost:8000
 ```
 
-Kết quả mong đợi: `PASS: 49 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
+Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
 
 ## Quy trình cài đặt nhanh (từ đầu)
 
