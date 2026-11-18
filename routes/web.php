@@ -37,6 +37,7 @@ return static function (Router $router): void {
     $router->group(['AuthMiddleware'], static function (Router $router): void {
         // Feed & bài viết
         $router->get('/feed', [\App\Controllers\FeedController::class, 'index'], 'feed');
+        $router->get('/posts/create', [\App\Controllers\PostController::class, 'create'], 'posts.create');
         $router->post('/posts', [\App\Controllers\PostController::class, 'store'], 'posts.store');
         $router->get('/posts/{id}/edit', [\App\Controllers\PostController::class, 'edit'], 'posts.edit');
         $router->post('/posts/{id}/update', [\App\Controllers\PostController::class, 'update'], 'posts.update');
