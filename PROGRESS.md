@@ -136,6 +136,18 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 - Thẻ bài viết dùng grid ảnh: 1 ảnh full, 2 ảnh cạnh nhau, 3 ảnh lưới 2-1, 4 ảnh 2x2.
 - Hover/transition nhẹ, không lạm dụng hiệu ứng.
 
+### Đợt nâng cấp giao diện (UI polish)
+
+- **Hệ thống chuyển động**: token `--kb-dur-fast/base/slow` + `--kb-ease`; nút có phản hồi `translateY(1px)` khi nhấn, menu dropdown fade-in, icon like "pop", thanh cuộn tối giản, `focus-visible` thống nhất, hỗ trợ `prefers-reduced-motion`.
+- **Thanh trên cùng**: nền `backdrop-filter` blur, đổ bóng khi cuộn (`.is-scrolled`), thêm 2 nút tròn Thông báo / Tin nhắn kèm badge số (ẩn ở ≤992px vì đã có trong bottom nav), ô tìm kiếm đổi màu icon khi focus.
+- **Thẻ bài viết**: nội dung dài được kẹp 5 dòng kèm nút "Xem thêm / Thu gọn" (JS đo `scrollHeight`), avatar có vòng nhẹ, ảnh bo góc lớn hơn, nhãn quyền riêng tư hiển thị ở chân thẻ.
+- **Trạng thái rỗng thống nhất** (`.empty-state`): icon tròn, tiêu đề, mô tả, nút hành động — áp dụng cho feed, thông báo, bạn bè, lời mời, tìm kiếm, chat, hồ sơ, trang 404/403.
+- **Hồ sơ**: lớp chuyển sắc ở đáy ảnh bìa, avatar viền 4px, số liệu dạng chip nền mềm, tab chuyển sang gạch chân dưới.
+- **Thông báo**: biểu tượng riêng cho 8 loại tương tác, chấm "chưa đọc", hàng hover đổi nền.
+- **Chat**: bubble có đổ bóng nhẹ, ô nhập dính đáy có nền mờ, nút trở lại hồ sơ trong header.
+- **Trang đăng nhập / đăng ký**: bố cục 2 cột — panel tối giới thiệu bên trái (desktop ≥992px), biểu mẫu bên phải; mobile hiện logo thu gọn.
+- **Chi tiết nhỏ**: nút chọn tệp tự dựng, phân trang dùng class `.pagination`, chip `.chip`, nút tài khoản dạng pill.
+
 ---
 
 ## Phase 8 — Testing, Optimization, Documentation
