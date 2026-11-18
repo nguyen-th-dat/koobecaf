@@ -13,7 +13,7 @@
 <div class="card surface-card" id="composer">
     <div class="card-body">
         <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm"
-              data-draft="composer" data-leave="keep" data-guard="Bài viết đang soạn"
+              data-draft="composer" data-leave="keep"
               data-lose-fields="images[]" data-lose-label="Ảnh đã chọn"
               data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
             <?= \App\Core\Csrf::field() ?>
