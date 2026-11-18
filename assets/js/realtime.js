@@ -110,6 +110,16 @@
     // -----------------------------------------------------------------
 
     function handleFrame(payload) {
+        window.__kbFrames = window.__kbFrames || [];
+        window.__kbFrames.push(payload.type);
+        try {
+            dispatchFrame(payload);
+        } catch (error) {
+            window.__kbErr = String(error && error.stack ? error.stack : error);
+        }
+    }
+
+    function dispatchFrame(payload) {
         switch (payload.type) {
             case 'auth:ok':
                 if (chat) {
