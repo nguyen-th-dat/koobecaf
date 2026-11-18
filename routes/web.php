@@ -14,6 +14,10 @@ return static function (Router $router): void {
         $router->post('/login', [\App\Controllers\AuthController::class, 'login'], 'login.post');
         $router->get('/register', [\App\Controllers\AuthController::class, 'showRegister'], 'register');
         $router->post('/register', [\App\Controllers\AuthController::class, 'register'], 'register.post');
+        $router->get('/forgot-password', [\App\Controllers\PasswordController::class, 'showForgotForm'], 'password.forgot');
+        $router->post('/forgot-password', [\App\Controllers\PasswordController::class, 'sendResetLink'], 'password.forgot.post');
+        $router->get('/reset-password', [\App\Controllers\PasswordController::class, 'showResetForm'], 'password.reset');
+        $router->post('/reset-password', [\App\Controllers\PasswordController::class, 'reset'], 'password.reset.post');
     });
 
     $router->post('/logout', [\App\Controllers\AuthController::class, 'logout'], 'logout');
