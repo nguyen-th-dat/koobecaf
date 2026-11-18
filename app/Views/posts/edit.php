@@ -5,8 +5,8 @@
  */
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h5 mb-0"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa bài viết</h1>
-    <a class="btn btn-sm btn-outline-secondary" href="<?= url('/post/' . (int) $post['id']) ?>"><i class="bi bi-arrow-left"></i> Trở lại</a>
+    <h1 class="h3 mb-0"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa bài viết</h1>
+    <a class="btn btn-outline btn-sm" href="<?= url('/post/' . (int) $post['id']) ?>"><i class="bi bi-arrow-left"></i> Trở lại</a>
 </div>
 
 <div class="card surface-card">
@@ -21,7 +21,7 @@
 
             <div class="mb-3">
                 <label class="form-label" for="privacy">Quyền riêng tư</label>
-                <select class="form-select" id="privacy" name="privacy">
+                <select class="form-control" id="privacy" name="privacy">
                     <option value="public" <?= $post['privacy'] === 'public' ? 'selected' : '' ?>>Công khai</option>
                     <option value="followers" <?= $post['privacy'] === 'followers' ? 'selected' : '' ?>>Người theo dõi</option>
                     <option value="private" <?= $post['privacy'] === 'private' ? 'selected' : '' ?>>Riêng tư</option>
@@ -33,12 +33,12 @@
                     <label class="form-label">Hình ảnh hiện tại</label>
                     <div class="row g-2">
                         <?php foreach ($images as $image): ?>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 md:col-3">
                                 <div class="position-relative">
                                     <img src="<?= e(upload_url($image['path'])) ?>" alt="" class="img-fluid rounded border w-100">
-                                    <div class="form-check position-absolute top-0 end-0 m-1 bg-white rounded px-1">
-                                        <input class="form-check-input" type="checkbox" name="remove_images[]" value="<?= (int) $image['id'] ?>" id="rm<?= (int) $image['id'] ?>">
-                                        <label class="form-check-label small" for="rm<?= (int) $image['id'] ?>">Xóa</label>
+                                    <div class="position-absolute top-0 end-0 m-1 bg-body rounded px-1">
+                                        <input class="check" type="checkbox" name="remove_images[]" value="<?= (int) $image['id'] ?>" id="rm<?= (int) $image['id'] ?>">
+                                        <label class="small" for="rm<?= (int) $image['id'] ?>">Xóa</label>
                                     </div>
                                 </div>
                             </div>
@@ -52,7 +52,7 @@
                 <input class="form-control" type="file" id="images" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
             </div>
 
-            <button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+            <button class="btn btn-solid" type="submit">Lưu thay đổi</button>
         </form>
     </div>
 </div>
