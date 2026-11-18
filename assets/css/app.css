@@ -490,10 +490,12 @@
         border-radius: var(--kb-radius-lg);
         box-shadow: var(--kb-shadow-pop);
         display: none;
+        visibility: hidden;
     }
 
     .menu.is-open {
         display: block;
+        visibility: visible;
     }
 
     .menu-header {
@@ -547,6 +549,14 @@
         transform: translateX(-100%);
         visibility: hidden;
         transition: transform .28s ease, visibility .28s ease;
+    }
+
+    .drawer-start {
+        left: 0;
+        right: auto;
+        border-right: 1px solid var(--kb-hairline);
+        border-left: 0;
+        transform: translateX(-100%);
     }
 
     .drawer-end {
