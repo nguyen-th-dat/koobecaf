@@ -86,7 +86,7 @@ final class PasswordController extends Controller
             ->matches('password_confirmation', 'password', 'Mật khẩu xác nhận');
 
         if ($validator->fails()) {
-            $this->fail($validator->firstError(), '/reset-password', ['token' => $token]);
+            $this->fail($validator->firstError(), '/reset-password?token=' . urlencode($token));
         }
 
         $reset = PasswordReset::findValid($token);
