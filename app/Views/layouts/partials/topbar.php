@@ -36,12 +36,12 @@ $navActive = static function (string $prefix) use ($path): string {
                 </nav>
             <?php endif; ?>
 
-            <form class="search-form" action="<?= url('/search') ?>" method="get" role="search">
-                <i class="bi bi-search"></i>
-                <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
-            </form>
+            <div class="topbar-actions ms-auto">
+                <form class="search-form" action="<?= url('/search') ?>" method="get" role="search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
+                </form>
 
-            <div class="d-flex align-items-center gap-2 ms-auto">
                 <?php if (is_auth()): ?>
                     <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/') ?>#composer">
                         <i class="bi bi-pencil-square"></i><span>Đăng bài</span>
