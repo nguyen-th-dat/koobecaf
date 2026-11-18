@@ -9,6 +9,7 @@ use App\Core\Response;
 use App\Models\Like;
 use App\Models\Post;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 
 final class LikeController extends Controller
 {
@@ -26,6 +27,8 @@ final class LikeController extends Controller
         if ($liked) {
             NotificationService::liked((int) $post['id'], $userId, (int) $post['user_id']);
         }
+
+        RealtimeService::postLiked((int) $post['id'], (int) $userId, $liked);
 
         Response::success([
             'liked'      => $liked,
