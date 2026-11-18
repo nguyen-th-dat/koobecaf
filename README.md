@@ -320,21 +320,21 @@ SESSION_SECURE=false
 
 Đảm bảo Apache có quyền ghi vào:
 
-- `public/uploads/` (và các thư mục con `avatars/`, `covers/`, `posts/`)
+- `uploads/` (và các thư mục con `avatars/`, `covers/`, `posts/`)
 - `storage/logs/`
 
-Trên Windows, mặc định Apache chạy bằng tài khoản nên đã có quyền. Trên Linux/macOS: `chmod -R 775 storage/logs public/uploads`.
+Trên Windows, mặc định Apache chạy bằng tài khoản nên đã có quyền. Trên Linux/macOS: `chmod -R 775 storage/logs uploads`.
 
 ### 5.7. Chạy dự án
 
-**Cách A — Apache (XAMPP):** mở `http://localhost/koobecaf/public/` (Cách A) hoặc `http://koobecaf.local` (Cách B).
+**Cách A — Apache (XAMPP):** mở `http://localhost/koobecaf/` (Cách A) hoặc `http://koobecaf.local` (Cách B).
 
 **Cách B — PHP built-in server:**
 
 ```bash
 composer serve
 # hoặc
-php -S localhost:8000 -t public public/router.php
+php -S localhost:8000 -t . router.php
 ```
 
 Truy cập `http://localhost:8000`.
@@ -363,7 +363,7 @@ Bộ test là script PHP thuần, gọi HTTP tới ứng dụng đang chạy. Kh
 
 ```bash
 # Terminal 1
-php -S localhost:8000 -t public public/router.php
+php -S localhost:8000 -t . router.php
 
 # Terminal 2
 php tests/smoke.php     http://localhost:8000   # 54 kiểm tra end-to-end
@@ -389,7 +389,7 @@ Xem `PROGRESS.md` để biết chi tiết từng hạng mục đã kiểm thử.
 Browser
   │
   ▼
-public/index.php
+index.php
   │  → app/bootstrap.php
   │      • spl_autoload_register (PSR-4: App\ → app/)
   │      • Env::load('.env')
@@ -472,7 +472,7 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 | Phân quyền | Kiểm tra ở backend cho mọi thao tác: sở hữu bài viết/bình luận, quyền xem theo `privacy`, thành viên cuộc trò chuyện, quyền xóa bài viết đã bị xóa |
 | SQL integrity | FK + UNIQUE + CHECK logic ở tầng ứng dụng: cấm tự follow, cấm tự kết bạn, cấm Like trùng |
 | Rò rỉ thông tin | `APP_DEBUG=false` ở production, lỗi ghi vào `storage/logs/`, không hiển thị stack trace cho người dùng |
-| Cấu hình | `.env` nằm ngoài Git (`.gitignore`), `public/.htaccess` chặn autoindex + lộ phiên bản Apache |
+| Cấu hình | `.env` nằm ngoài Git (`.gitignore`), `.htaccess` chặn autoindex + lộ phiên bản Apache |
 
 ---
 
@@ -481,7 +481,7 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 - **Dữ liệu mẫu**: `seed.sql` chỉ dùng cho demo/kiểm thử. Production chỉ import `schema.sql`.
 - **`APP_DEBUG`**: đặt `false` khi triển khai thật.
 - **HTTPS**: bật `SESSION_SECURE=true` khi dùng HTTPS.
-- **Upload**: cần đảm bảo quyền ghi cho `public/uploads/` và `storage/logs/`.
+- **Upload**: cần đảm bảo quyền ghi cho `uploads/` và `storage/logs/`.
 - **Cron dọn file rác**: nên thêm tác vụ định kỳ xóa file upload mồ côi (không còn tham chiếu trong `post_images`).
 
 ---
