@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Core\OldInput;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\Validator;
@@ -83,8 +84,7 @@ final class PostController extends Controller
         }
 
         if ($validator->fails()) {
-            Session::flash('error', $validator->firstError());
-            Response::back('/');
+            $this->failBack($validator->firstError(), '/', ['content', 'privacy']);
         }
 
         $imagePaths = [];
@@ -92,8 +92,7 @@ final class PostController extends Controller
             try {
                 $imagePaths[] = UploadService::image($file, 'posts');
             } catch (\RuntimeException $e) {
-                Session::flash('error', $e->getMessage());
-                Response::back('/');
+                $this->failBack($e->getMessage(), '/', ['content', 'privacy']);
             }
         }
 
@@ -105,6 +104,7 @@ final class PostController extends Controller
         });
 
         Session::flash('success', 'Đã đăng bài viết.');
+        OldInput::clearDraft('composer');
         Response::redirect('/');
     }
 
@@ -144,8 +144,7 @@ final class PostController extends Controller
             ->in('privacy', [Post::PRIVACY_PUBLIC, Post::PRIVACY_FOLLOWERS, Post::PRIVACY_PRIVATE], 'Quyền riêng tư');
 
         if ($validator->fails()) {
-            Session::flash('error', $validator->firstError());
-            Response::redirect('/posts/' . (int) $post['id'] . '/edit');
+            $this->fail($validator->firstError(), '/posts/' . (int) $post['id'] . '/edit', ['content', 'privacy']);
         }
 
         Post::update((int) $post['id'], $content, $privacy);
@@ -171,6 +170,7 @@ final class PostController extends Controller
         }
 
         Session::flash('success', 'Đã cập nhật bài viết.');
+        OldInput::clearDraft('post-edit-' . (int) $post['id']);
         Response::redirect('/post/' . (int) $post['id']);
     }
 
