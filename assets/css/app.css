@@ -2330,6 +2330,24 @@
         border-color: var(--kb-primary);
     }
 
+    /* Chỉ báo "đang gõ" */
+    .chat-typing {
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        background-color: color-mix(in srgb, var(--kb-canvas) 60%, transparent);
+    }
+
+    .chat-typing .typing-dots {
+        display: inline-flex;
+        animation: kb-typing-bounce 1.2s infinite ease-in-out;
+    }
+
+    @keyframes kb-typing-bounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: .7; }
+        30% { transform: translateY(-3px); opacity: 1; }
+    }
+
     /* ---------------- Menu thả xuống ---------------- */
     .menu {
         animation: kb-menu-in var(--kb-dur) var(--kb-ease-out);
