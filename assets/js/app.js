@@ -655,7 +655,12 @@ document.addEventListener('click', async (event) => {
 });
 
 /* =============================================================
-   Chat polling
+   Chat — gửi tin nhắn + nền tảng realtime
+
+   `window.KBChat` là hợp đồng giữa app.js và assets/js/realtime.js:
+   - realtime.js dùng KBChat.appendMessage() để đẩy tin nhắn mới vào DOM
+   - realtime.js dùng KBChat.send() để gửi tin nhắn qua WebSocket
+   - realtime.js đặt KBChat.realtime = true khi kết nối thành công để tắt polling
    ============================================================= */
 const chatMessages = document.querySelector('.chat-messages');
 const chatForm = document.getElementById('chatForm');
@@ -665,53 +670,112 @@ if (chatMessages) {
 }
 
 if (chatForm && chatMessages) {
-    const conversationId = chatForm.dataset.conversationId;
-    let lastMessageId = Number(chatMessages.querySelector('[data-message-id]')?.dataset.messageId ?? 0);
+    const conversationId = Number(chatForm.dataset.conversationId);
+    const chatState = {
+        conversationId,
+        lastMessageId: Number(chatMessages.querySelector('[data-message-id]')?.dataset.messageId ?? 0),
+        realtime: false,
+        sending: false,
+    };
 
-    chatForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const input = chatForm.querySelector('input[name="body"]');
-        const body = input.value.trim();
-        if (!body) return;
-
-        const payload = await request(apiUrl(`/chat/${conversationId}/send`), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ body: body }),
-        });
-
-        if (!payload.success) {
-            toast(payload.message ?? 'Không thể gửi tin nhắn.', 'danger');
-            return;
-        }
-
-        input.value = '';
-        clearFormDraft(chatForm);
-        appendMessage(payload.data);
-    });
-
-    function appendMessage(message) {
-        if (message.id <= lastMessageId) return;
-        lastMessageId = message.id;
-
-        const row = document.createElement('div');
-        row.className = 'chat-bubble-row' + (message.is_mine ? ' mine' : '');
-        row.dataset.messageId = message.id;
-        const time = new Date(message.created_at.replace(' ', 'T'));
-        const label = Number.isNaN(time.getTime())
+    function formatMessageTime(value) {
+        const time = new Date(String(value).replace(' ', 'T'));
+        return Number.isNaN(time.getTime())
             ? ''
             : time.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(message) {
+        const id = Number(message.id) || 0;
+        if (id && id <= chatState.lastMessageId) return;
+        if (id) chatState.lastMessageId = id;
+
+        const isMine = message.is_mine !== undefined
+            ? Boolean(message.is_mine)
+            : Number(message.sender_id) === window.KB_USER_ID;
+
+        const row = document.createElement('div');
+        row.className = 'chat-bubble-row' + (isMine ? ' mine' : '');
+        row.dataset.messageId = id;
         row.innerHTML = `
             <div class="chat-bubble">
                 <div class="chat-text">${escapeHtml(message.body).replace(/\n/g, '<br>')}</div>
-                <small class="chat-time">${label}</small>
+                <small class="chat-time">${formatMessageTime(message.created_at)}${
+                    isMine ? ' <i class="bi bi-check2" data-read-mark="1"></i>' : ''
+                }</small>
             </div>`;
         chatMessages.appendChild(row);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    /** Đánh dấu tin nhắn của mình đã được người kia đọc. */
+    function markMessagesRead(ids) {
+        const list = Array.isArray(ids) ? ids : [ids];
+        list.forEach((id) => {
+            const row = chatMessages.querySelector(`[data-message-id="${id}"]`);
+            const icon = row?.querySelector('[data-read-mark]');
+            if (icon) {
+                icon.classList.remove('bi-check2');
+                icon.classList.add('bi-check2-all', 'fg-primary');
+                icon.title = 'Đã xem';
+            }
+        });
+    }
+
+    /** Gửi tin nhắn qua HTTP (fallback khi WebSocket không khả dụng). */
+    async function sendViaHttp(body) {
+        const payload = await request(apiUrl(`/chat/${conversationId}/send`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ body }),
+        });
+
+        if (!payload.success) {
+            throw new Error(payload.message ?? 'Không thể gửi tin nhắn.');
+        }
+
+        appendMessage(payload.data);
+    }
+
+    chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const input = chatForm.querySelector('input[name="body"]');
+        const body = input.value.trim();
+        if (!body || chatState.sending) return;
+
+        chatState.sending = true;
+        try {
+            // Ưu tiên WebSocket, chỉ dùng HTTP khi chưa kết nối được.
+            if (chatState.realtime && typeof window.KBChatSend === 'function') {
+                window.KBChatSend(body);
+            } else {
+                await sendViaHttp(body);
+            }
+
+            input.value = '';
+            clearFormDraft(chatForm);
+        } catch (error) {
+            toast(error.message || 'Không thể gửi tin nhắn.', 'danger');
+        } finally {
+            chatState.sending = false;
+        }
+    });
+
+    window.KBChat = {
+        state: chatState,
+        conversationId,
+        appendMessage,
+        markMessagesRead,
+        formatMessageTime,
+        sendViaHttp,
+        chatMessages,
+    };
+
+    // Polling dự phòng: chỉ chạy khi WebSocket chưa kết nối thành công.
     setInterval(async () => {
-        const payload = await request(apiUrl(`/chat/${conversationId}/messages?after_id=${lastMessageId}`));
+        if (chatState.realtime) return;
+
+        const payload = await request(apiUrl(`/chat/${conversationId}/messages?after_id=${chatState.lastMessageId}`));
         if (!payload.success) return;
         payload.data.messages.forEach(appendMessage);
         refreshBadges();
