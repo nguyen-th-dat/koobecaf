@@ -156,6 +156,13 @@ Tổng: **94 kiểm tra tự động — 0 lỗi.**
 - `PROGRESS.md` (file này).
 - `database/erd/erd.md`: ERD Mermaid + bảng ràng buộc.
 
+### Script cài đặt database
+- `database/install.php`: script cài đặt gốc — tạo database `utf8mb4_unicode_ci`, nạp `schema.sql` + `seed.sql` qua PDO (byte-safe, không qua console).
+  - `php database/install.php` — tạo (nếu chưa có) + nạp schema & dữ liệu mẫu.
+  - `php database/install.php --fresh` — xóa database cũ rồi tạo lại từ đầu.
+  - `php database/install.php --schema` — chỉ nạp schema, không có dữ liệu mẫu.
+- `schema.sql` và `seed.sql` có `SET NAMES utf8mb4;` ở đầu để import bằng `mysql --default-character-set=utf8mb4` không bị vỡ tiếng Việt.
+
 ---
 
 ## Lỗi đã phát hiện & khắc phục
@@ -180,6 +187,8 @@ Tổng: **94 kiểm tra tự động — 0 lỗi.**
 | 16 | Test "bài viết công khai của user khác vẫn thấy" fail khi dữ liệu tích tụ | Assertion phụ thuộc vào nội dung seed cố định (`Chào mừng đến với Koobecaf`) bị đẩy khỏi trang 1 của feed | Test tự tạo một bài public riêng rồi kiểm tra bài đó xuất hiện |
 | 17 | Nút "Nhắn tin" ở hồ sơ / bạn bè / tìm kiếm trả về 404 | Link dùng phương thức `GET` nhưng route `/chat/start/{id}` chỉ đăng ký `POST` | Đăng ký thêm route `GET /chat/start/{id}` (giữ `POST` cho AJAX) |
 | 18 | Trang `/chat` không có cách bắt đầu cuộc trò chuyện mới | Thiếu ô tìm kiếm người dùng trong trang chat, chỉ có danh sách hội thoại | Thêm panel "Bắt đầu cuộc trò chuyện mới" + gợi ý AJAX; API `/api/search/users` trả thêm `chat_url` |
+| 19 | Dữ liệu tiếng Việt trong DB bị vỡ ký tự (`Ch├áo mß╗½ng` thay vì `Chào mừng`) | Import bằng `Get-Content -Raw \| mysql` trên PowerShell: file UTF-8 bị giải mã lại theo bảng mã console (CP437/CP1252) trước khi gửi tới MySQL | Thêm `SET NAMES utf8mb4;` vào `schema.sql`/`seed.sql`; tạo `database/install.php` gửi SQL qua PDO (byte-safe); không dùng pipe của PowerShell khi import |
+| 20 | `database/install.php` cắt dòng sai làm mất ký tự `ễ` | Dùng `preg_split('/\R/')` — `\R` khớp cả byte `0x85` (NEL) trong khi `ễ` = `E1 BB 85` nên bị cắt đôi | Tách dòng bằng `explode("\n", str_replace(["\r\n","\r"], "\n", $sql))` |
 
 ---
 
@@ -218,8 +227,8 @@ Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
 
 ```bash
 composer install
-cp .env.example .env          # Windows: copy .env.example .env
-# import database/schema.sql + database/seed.sql vào MySQL
+copy .env.example .env          # Windows: copy .env.example .env
+php database/install.php         # tạo database + schema + dữ liệu mẫu
 php -S localhost:8000 -t . router.php
 ```
 

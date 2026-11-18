@@ -159,9 +159,10 @@ koobecaf/
 │   └── database.php                # Thông tin kết nối MySQL
 │
 ├── database/
-│   ├── schema.sql                  # Toàn bộ cấu trúc bảng + FK + index + unique
-│   ├── seed.sql                    # Dữ liệu mẫu (5 users, bài viết, bình luận, chat...)
-│   └── erd/erd.md                  # Sơ đồ quan hệ thực thể (Mermaid)
+│   ├── install.php                # Script cài đặt gốc: tạo DB + nạp schema & dữ liệu mẫu
+│   ├── schema.sql                 # Toàn bộ cấu trúc bảng + FK + index + unique
+│   ├── seed.sql                   # Dữ liệu mẫu (5 users, bài viết, bình luận, chat...)
+│   └── erd/erd.md                 # Sơ đồ quan hệ thực thể (Mermaid)
 │
 ├── index.php                      # Entry point (chạy tại thư mục gốc)
 ├── router.php                     # Router script cho `php -S`
@@ -268,23 +269,34 @@ Composer chỉ dùng để sinh file autoload PSR-4 (`vendor/autoload.php`). Kh�
 
 ### 5.4. Tạo database
 
-**Cách A — dùng phpMyAdmin:**
+**Cách A — script cài đặt gốc (khuyến nghị):**
+
+```bash
+php database/install.php            # tạo database + schema + dữ liệu mẫu
+php database/install.php --fresh    # xóa database cũ rồi tạo lại từ đầu
+php database/install.php --schema   # chỉ tạo schema, không nạp dữ liệu mẫu
+```
+
+Script đọc cấu hình kết nối từ `.env` (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`), gửi nội dung `.sql` thẳng qua PDO nên byte tiếng Việt giữ nguyên — không bị mã hoá lại theo bảng mã console của Windows.
+
+**Cách B — dùng phpMyAdmin:**
 
 1. Mở `http://localhost/phpmyadmin`.
 2. Tab **Databases** → tạo database tên `koobecaf`, collation `utf8mb4_unicode_ci`.
 3. Chọn database `koobecaf` → tab **Import** → chọn `database/schema.sql` → **Import**.
 4. Lặp lại với `database/seed.sql` (nếu muốn có dữ liệu mẫu).
 
-**Cách B — dùng command line:**
+**Cách C — dùng command line:**
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE koobecaf CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p koobecaf < database/schema.sql
-mysql -u root -p koobecaf < database/seed.sql
+mysql -u root -p --default-character-set=utf8mb4 koobecaf < database/schema.sql
+mysql -u root -p --default-character-set=utf8mb4 koobecaf < database/seed.sql
 ```
 
-> Trên PowerShell, `mysql < file.sql` không hoạt động do stream redirection. Dùng:
-> `cmd /c "mysql -u root -p koobecaf < database\schema.sql"` hoặc `Get-Content database\schema.sql -Raw | mysql -u root -p koobecaf`.
+> **Lưu ý về encoding trên Windows:** không dùng `Get-Content file.sql -Raw | mysql ...`. PowerShell đọc file theo bảng mã console (CP437/CP1252) rồi pipe lại, khiến UTF-8 bị giải mã sai và lưu vào DB thành ký tự vỡ (`Ch├áo mß╗½ng` thay vì `Chào mừng`). Nếu buộc phải dùng pipe, hãy thêm `| Out-String` kèm `$OutputEncoding = [System.Text.Encoding]::UTF8`, hoặc dùng `cmd /c "mysql -u root -p koobecaf < database\seed.sql"`.
+>
+> Cả `schema.sql` và `seed.sql` đều có `SET NAMES utf8mb4;` ở đầu file để client MySQL dùng đúng bảng mã khi import.
 
 ### 5.5. Cấu hình `.env`
 
