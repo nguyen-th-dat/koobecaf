@@ -3,7 +3,7 @@
     <p class="fg-secondary mb-0">Chào mừng trở lại với Koobecaf.</p>
 </div>
 
-<form action="<?= url('/login') ?>" method="post" novalidate data-draft="login" data-leave="clear" data-lose-fields="password" data-lose-label="Mật khẩu đăng nhập" data-old-fields="<?= e(old_fields(['email'])) ?>">
+<form action="<?= url('/login') ?>" method="post" novalidate data-draft="login" data-guard="Thông tin đăng nhập" data-leave="clear" data-lose-fields="password" data-lose-label="Mật khẩu đăng nhập" data-old-fields="<?= e(old_fields(['email'])) ?>">
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
