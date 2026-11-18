@@ -1,5 +1,7 @@
 # Koobecaf — Nền tảng mạng xã hội (PHP thuần + MySQL)
 
+>Tôi thấy có trend tạo một mạng xã hội để thay thế các mạng xã hội lớn. Dù nó là bất khả thi nhưng tôi vẫn muốn tự tạo ra trang mạng xã hội theo cá nhân hóa của mình.
+
 Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ bản, được xây dựng bằng **PHP 8.2 thuần** (không dùng Laravel), **MySQL/MariaDB (InnoDB)** và **CSS tự viết theo design system**. Toàn bộ Backend, Frontend và Database đều là mã nguồn thật, có thể triển khai và chạy trực tiếp trên XAMPP.
 
 ---
