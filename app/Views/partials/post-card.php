@@ -24,7 +24,7 @@ $originalImages = $meta['originalImages'];
     <div class="post-body d-flex gap-3 p-3">
         <?php if (!$meta['isShared'] || $original === null): ?>
             <a href="<?= url('/u/' . $post['username']) ?>">
-                <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-md">
+                <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-md avatar-ring">
             </a>
         <?php endif; ?>
 
@@ -64,14 +64,14 @@ $originalImages = $meta['originalImages'];
             <?php if ($meta['isShared'] && $original !== null): ?>
                 <div class="shared-original p-3 mt-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
+                        <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm avatar-ring">
                         <div class="min-w-0">
                             <a class="post-author" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
                             <small class="post-meta d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
                         </div>
                     </div>
                     <?php if (trim((string) $original['content']) !== ''): ?>
-                        <p class="mb-2 post-text"><?= nl2br(e($original['content'])) ?></p>
+                        <p class="mb-2 post-text" data-clampable><?= nl2br(e($original['content'])) ?></p>
                     <?php endif; ?>
                     <?php if ($originalImages !== []): ?>
                         <div class="post-images count-<?= count($originalImages) ?>">
@@ -82,7 +82,7 @@ $originalImages = $meta['originalImages'];
                     <?php endif; ?>
                 </div>
             <?php elseif (trim((string) $post['content']) !== ''): ?>
-                <p class="post-text mb-2 mt-2"><?= nl2br(e($post['content'])) ?></p>
+                <p class="post-text mb-2 mt-2" data-clampable><?= nl2br(e($post['content'])) ?></p>
             <?php endif; ?>
 
             <?php if ($images !== []): ?>
@@ -103,6 +103,11 @@ $originalImages = $meta['originalImages'];
         <span data-like-count><i class="bi bi-hand-thumbs-up me-1"></i><?= (int) $meta['likeCount'] ?></span>
         <span data-comment-count><i class="bi bi-chat me-1"></i><?= (int) $meta['commentCount'] ?></span>
         <span data-share-count><i class="bi bi-share me-1"></i><?= (int) $meta['shareCount'] ?></span>
+        <?php if ($post['privacy'] !== 'public'): ?>
+            <span class="ms-auto fg-muted">
+                <i class="bi bi-<?= $post['privacy'] === 'private' ? 'lock' : 'people' ?>" me-1"></i><?= $post['privacy'] === 'private' ? 'Riêng tư' : 'Người theo dõi' ?>
+            </span>
+        <?php endif; ?>
     </div>
 
     <div class="post-actions d-flex border-top">
