@@ -1026,12 +1026,13 @@ function fieldPreview(el) {
  * Nội dung nào thực sự mất khi rời trang.
  *
  * Chính sách theo từng form:
- *   data-leave="keep"  → nháp được giữ, rời trang không mất gì
- *   data-leave="clear" → nháp bị xoá khi rời trang, không hỏi (nội dung ngắn)
- *   data-leave="warn"  → nháp bị xoá khi rời trang, hỏi trước (nội dung dài)
+ *   data-leave="keep"  → nháp được giữ, rời trang không mất gì.
+ *                        Chỉ field không lưu nháp được (data-lose-fields, file)
+ *                        mới thực sự mất và cần hỏi.
+ *   data-leave="clear" → nháp bị xoá khi rời trang, không hỏi (nội dung ngắn).
+ *   data-leave="warn"  → nháp bị xoá khi rời trang, hỏi trước (nội dung dài).
  *
- * Ngoài ra, field không lưu nháp được (file, mật khẩu) luôn thực sự mất nên
- * form chứa chúng được hỏi trước bất kể chính sách.
+ * Form không lưu nháp (đổi mật khẩu, OTP...) mọi nội dung đều mất nên luôn hỏi.
  *
  * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
  */
@@ -1040,19 +1041,17 @@ function losingForms() {
 
     draftForms().forEach(form => {
         const policy = form.dataset.leave || 'clear';
+
+        if (policy === 'clear') return;
+
         const only = (form.dataset.loseFields || '')
             .split(',')
             .map(item => item.trim())
             .filter(Boolean);
 
-        // keep: nháp còn nguyên, chỉ field không lưu được mới mất.
-        // clear: nháp bị xoá, không hỏi.
-        // warn: nháp bị xoá, hỏi trước.
-        if (policy === 'clear' && only.length === 0) return;
-
         candidates.push({
             form,
-            label: form.dataset.loseLabel || form.dataset.guard || 'Nội dung đã nhập',
+            label: form.dataset.loseLabel || 'Nội dung đã nhập',
             only: only.length > 0 ? only : null,
         });
     });
