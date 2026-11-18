@@ -221,7 +221,7 @@ check('Giu lai noi dung composer sau khi dang that bai', str_contains($res['body
 // 10. Form trong HTML có đánh dấu data-guard
 // ------------------------------------------------------------------
 {
-    const res = request('GET', $base . '/');
+    $res = request('GET', $base . '/');
     check('Form dang ky co danh dau data-guard', str_contains($res['body'], 'data-draft="register" data-guard="Thông tin đăng ký"'));
 
     $res = request('GET', $base . '/login');
