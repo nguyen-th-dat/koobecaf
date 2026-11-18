@@ -103,7 +103,7 @@ $friendStatus = $friendStatus ?? 'none';
                     <h3>Chưa có bài viết nào</h3>
                     <p><?= $isSelf ? 'Hãy chia sẻ khoảnh khắc đầu tiên của bạn.' : $user['display_name'] . ' chưa đăng bài viết nào.' ?></p>
                     <?php if ($isSelf): ?>
-                        <a class="btn btn-solid mt-2" href="<?= url('/') ?>#composer"><i class="bi bi-pencil-square me-1"></i>Viết bài ngay</a>
+                        <a class="btn btn-solid mt-2" href="<?= url('/posts/create') ?>"><i class="bi bi-pencil-square me-1"></i>Viết bài ngay</a>
                     <?php endif; ?>
                 </div>
             </div>
