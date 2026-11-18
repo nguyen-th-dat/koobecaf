@@ -6,6 +6,10 @@
  * @var int|null $activeId
  */
 $activeId = $activeId ?? null;
+$unreadTotal = 0;
+foreach ($conversations as $conversation) {
+    $unreadTotal += (int) $conversation['unread_count'];
+}
 ?>
 <?php if ($conversations === []): ?>
     <div class="empty-state">
@@ -21,26 +25,27 @@ $activeId = $activeId ?? null;
            data-conversation-id="<?= (int) $conversation['id'] ?>"
            data-unread="<?= $unread ?>"
            data-search="<?= e(mb_strtolower(trim($conversation['other_display_name'] . ' ' . $conversation['other_username']))) ?>">
-            <span class="position-relative flex-shrink-0">
+            <span class="chat-conversation-avatar">
                 <img src="<?= e(avatar_url($conversation['other_avatar_path'])) ?>" alt="" class="avatar avatar-md">
                 <?php if ($unread > 0): ?>
                     <span class="chat-presence-dot" aria-hidden="true"></span>
                 <?php endif; ?>
             </span>
 
-            <div class="person-meta">
-                <div class="d-flex align-items-baseline justify-content-between gap-2">
-                    <span class="person-name"><?= e($conversation['other_display_name']) ?></span>
+            <span class="chat-conversation-body">
+                <span class="chat-conversation-top">
+                    <span class="chat-conversation-name"><?= e($conversation['other_display_name']) ?></span>
                     <small class="chat-conversation-time"><?= e(time_ago($conversation['last_message_at'] ?? $conversation['updated_at'])) ?></small>
-                </div>
-                <small class="chat-preview">
-                    <?= e(excerpt($conversation['last_message'] ?? 'Bắt đầu cuộc trò chuyện', 60)) ?>
-                </small>
-            </div>
-
-            <?php if ($unread > 0): ?>
-                <span class="chat-unread"><?= $unread > 99 ? '99+' : $unread ?></span>
-            <?php endif; ?>
+                </span>
+                <span class="chat-conversation-bottom">
+                    <small class="chat-preview">
+                        <?= e(excerpt($conversation['last_message'] ?? 'Bắt đầu cuộc trò chuyện', 60)) ?>
+                    </small>
+                    <?php if ($unread > 0): ?>
+                        <span class="chat-unread"><?= $unread > 99 ? '99+' : $unread ?></span>
+                    <?php endif; ?>
+                </span>
+            </span>
         </a>
     <?php endforeach; ?>
 <?php endif; ?>

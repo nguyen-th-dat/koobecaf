@@ -77,11 +77,16 @@ $previousDay = null;
             <div class="chat-filter">
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <input type="search" class="form-control" id="chatListFilter" placeholder="Lọc hội thoại..." autocomplete="off" aria-label="Lọc hội thoại">
+                <button type="button" class="chat-filter-clear" data-chat-filter-clear aria-label="Xoá bộ lọc" title="Xoá bộ lọc">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
             </div>
 
             <div class="chat-filter-tabs" role="tablist" aria-label="Bộ lọc hội thoại">
                 <button type="button" class="active" data-chat-filter="all" role="tab" aria-selected="true">Tất cả</button>
-                <button type="button" data-chat-filter="unread" role="tab" aria-selected="false">Chưa đọc</button>
+                <button type="button" data-chat-filter="unread" role="tab" aria-selected="false">
+                    Chưa đọc<span class="tab-count" data-chat-unread-count hidden></span>
+                </button>
             </div>
         </div>
 
@@ -94,34 +99,36 @@ $previousDay = null;
     </aside>
 
     <section class="chat-main card surface-card">
-        <header class="chat-header d-flex align-items-center gap-3 p-3 border-bottom">
+        <header class="chat-header">
             <a class="btn btn-subtle btn-sm md:d-none flex-shrink-0" href="<?= url('/chat') ?>" aria-label="Quay lại danh sách hội thoại">
                 <i class="bi bi-arrow-left"></i>
             </a>
 
             <?php if ($other !== null): ?>
-                <a class="d-flex align-items-center gap-3 min-w-0 text-decoration-none" href="<?= url('/u/' . $other['username']) ?>">
-                    <img src="<?= e(avatar_url($other['avatar_path'])) ?>" alt="" class="avatar avatar-md avatar-ring flex-shrink-0">
-                    <div class="min-w-0">
-                        <div class="chat-header-name text-truncate"><?= e($other['display_name']) ?></div>
-                        <div class="chat-header-status">
+                <a class="chat-header-peer" href="<?= url('/u/' . $other['username']) ?>">
+                    <img src="<?= e(avatar_url($other['avatar_path'])) ?>" alt="" class="avatar avatar-md flex-shrink-0">
+                    <span class="min-w-0">
+                        <span class="chat-header-name d-block"><?= e($other['display_name']) ?></span>
+                        <span class="chat-header-status">
                             <span class="chat-status-dot" data-chat-peer-status title="Chưa xác định"></span>
-                            <span class="text-truncate">@<?= e($other['username']) ?></span>
-                        </div>
-                    </div>
+                            <span class="chat-status-text" data-chat-peer-status-text>@<?= e($other['username']) ?></span>
+                        </span>
+                    </span>
                 </a>
 
-                <a class="btn icon-btn bordered ms-auto flex-shrink-0" href="<?= url('/u/' . $other['username']) ?>" title="Xem trang cá nhân" aria-label="Xem trang cá nhân">
-                    <i class="bi bi-box-arrow-up-right"></i>
-                </a>
+                <div class="chat-header-actions">
+                    <a class="btn icon-btn bordered" href="<?= url('/u/' . $other['username']) ?>" title="Xem trang cá nhân" aria-label="Xem trang cá nhân">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                </div>
             <?php else: ?>
                 <div class="min-w-0">
-                    <div class="chat-header-name text-truncate">Trò chuyện</div>
+                    <span class="chat-header-name d-block">Trò chuyện</span>
                 </div>
             <?php endif; ?>
         </header>
 
-        <div class="chat-messages" data-conversation-id="<?= (int) $conversationId ?>" id="chatMessages">
+        <div class="chat-messages" data-conversation-id="<?= (int) $conversationId ?>" id="chatMessages" role="log" aria-live="polite" aria-label="Tin nhắn">
             <?php if ($grouped === []): ?>
                 <div class="chat-empty">
                     <span class="chat-empty-mark"><i class="bi bi-chat-heart"></i></span>
@@ -141,10 +148,13 @@ $previousDay = null;
                     <?php endif; ?>
 
                     <div class="chat-bubble-row<?= $isMine ? ' mine' : '' ?><?= $entry['grouped'] ? ' grouped' : ' group-start' ?><?= $entry['group_end'] ? ' group-end' : '' ?>"
-                         data-message-id="<?= (int) $message['id'] ?>">
+                         data-message-id="<?= (int) $message['id'] ?>"
+                         data-sender-id="<?= (int) $message['sender_id'] ?>"
+                         data-time="<?= e((string) $message['created_at']) ?>">
                         <?php if (!$isMine): ?>
                             <img src="<?= e(avatar_url($message['avatar_path'])) ?>" alt="" class="avatar avatar-sm flex-shrink-0">
                         <?php endif; ?>
+
                         <div class="chat-bubble">
                             <div class="chat-text"><?= nl2br(e($message['body'])) ?></div>
                             <small class="chat-time">
@@ -154,10 +164,25 @@ $previousDay = null;
                                 <?php endif; ?>
                             </small>
                         </div>
+
+                        <div class="chat-bubble-tools">
+                            <button type="button" data-chat-copy aria-label="Sao chép nội dung" title="Sao chép">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+
+        <button type="button" class="chat-scroll-bottom" data-chat-scroll-bottom aria-label="Cuộn xuống cuối đoạn chat" title="Cuộn xuống cuối">
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+
+        <button type="button" class="chat-new-messages" data-chat-new-messages aria-label="Xem tin nhắn mới">
+            <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+            <span data-chat-new-messages-count>Tin nhắn mới</span>
+        </button>
 
         <div class="chat-typing d-none" id="chatTyping" aria-live="polite">
             <span class="typing-dots"><i></i><i></i><i></i></span>

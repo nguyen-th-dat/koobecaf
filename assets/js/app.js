@@ -527,6 +527,12 @@ function timeAgo(value) {
     return Math.floor(diff / 2592000) + ' tháng trước';
 }
 
+/** Ảnh đại diện dự phòng khi tin realtime không kèm ảnh. */
+function peerAvatarFallback() {
+    const img = document.querySelector('.chat-header-peer img.avatar');
+    return img ? img.getAttribute('src') || '' : '';
+}
+
 document.addEventListener('submit', async (event) => {
     const form = event.target;
     if (!form.classList.contains('comment-form')) return;
@@ -652,11 +658,184 @@ document.addEventListener('click', async (event) => {
    ============================================================= */
 const chatMessages = document.querySelector('.chat-messages');
 const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatCounter = document.querySelector('[data-chat-counter]');
+const chatScrollBottom = document.querySelector('[data-chat-scroll-bottom]');
+const chatNewMessages = document.querySelector('[data-chat-new-messages]');
+const chatNewMessagesCount = document.querySelector('[data-chat-new-messages-count]');
+const chatEmptyState = chatMessages?.querySelector('.chat-empty');
 
-if (chatMessages) {
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+const CHAT_MAX_LENGTH = 5000;
+/** Khoảng cách (px) dưới đáy để coi là "đang ở cuối đoạn chat". */
+const CHAT_BOTTOM_THRESHOLD = 80;
+
+/* -------------------------------------------------------------
+   Ô nhập: tự giãn theo nội dung + bộ đếm ký tự
+   ------------------------------------------------------------- */
+if (chatInput) {
+    const autoGrow = () => {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 160) + 'px';
+        // Ẩn thanh cuộn khi không cần cuộn
+        chatInput.style.overflowY = chatInput.scrollHeight > 160 ? 'auto' : 'hidden';
+    };
+
+    const updateCounter = () => {
+        if (!chatCounter) return;
+
+        const length = chatInput.value.length;
+        chatCounter.textContent = `${length}/${CHAT_MAX_LENGTH}`;
+        chatCounter.classList.toggle('is-warning', length >= CHAT_MAX_LENGTH * 0.85 && length < CHAT_MAX_LENGTH);
+        chatCounter.classList.toggle('is-danger', length >= CHAT_MAX_LENGTH);
+    };
+
+    chatInput.addEventListener('input', () => {
+        autoGrow();
+        updateCounter();
+    });
+
+    // Khôi phục nội dung nháp: chiều cao ô nhập phải khớp lại.
+    chatInput.addEventListener('focus', autoGrow);
+    requestAnimationFrame(() => {
+        autoGrow();
+        updateCounter();
+    });
+
+    // Enter gửi tin, Shift+Enter xuống dòng.
+    chatInput.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.metaKey || event.isComposing) {
+            return;
+        }
+
+        event.preventDefault();
+        chatForm?.requestSubmit();
+    });
 }
 
+/* -------------------------------------------------------------
+   Vùng đọc: cuộn, nút cuộn xuống đáy, bộ đếm tin nhắn mới
+   ------------------------------------------------------------- */
+if (chatMessages) {
+    const isAtBottom = () => {
+        return chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight <= CHAT_BOTTOM_THRESHOLD;
+    };
+
+    const scrollToBottom = (behavior = 'smooth') => {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior });
+        chatScrollBottom?.classList.remove('is-visible');
+        chatNewMessages?.classList.remove('is-visible');
+        if (chatNewMessagesCount) chatNewMessagesCount.textContent = 'Tin nhắn mới';
+        if (window.KBChat?.state) window.KBChat.state.pendingCount = 0;
+    };
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    chatMessages.addEventListener('scroll', () => {
+        if (isAtBottom()) {
+            chatScrollBottom?.classList.remove('is-visible');
+            chatNewMessages?.classList.remove('is-visible');
+            if (chatNewMessagesCount) chatNewMessagesCount.textContent = 'Tin nhắn mới';
+            return;
+        }
+
+        chatScrollBottom?.classList.add('is-visible');
+    });
+
+    chatScrollBottom?.addEventListener('click', () => scrollToBottom());
+    chatNewMessages?.addEventListener('click', () => scrollToBottom());
+
+    window.KBChatScrollToBottom = () => scrollToBottom('auto');
+}
+
+/* -------------------------------------------------------------
+   Danh sách hội thoại: lọc theo tên + tab Tất cả / Chưa đọc
+   ------------------------------------------------------------- */
+const chatListFilter = document.getElementById('chatListFilter');
+const chatListContainer = document.getElementById('chatConversationList');
+
+if (chatListContainer) {
+    let chatFilterMode = 'all';
+
+    const conversations = Array.from(chatListContainer.querySelectorAll('.chat-conversation'));
+
+    const updateUnreadCount = () => {
+        const total = conversations.reduce((sum, item) => sum + Number(item.dataset.unread || 0), 0);
+        const label = document.querySelector('[data-chat-unread-count]');
+        if (label) {
+            label.textContent = total > 0 ? `(${total})` : '';
+            label.hidden = total === 0;
+        }
+
+        const badge = document.querySelector('[data-chat-unread-total]');
+        if (badge) {
+            badge.textContent = total > 99 ? '99+' : total;
+            badge.classList.toggle('d-none', total === 0);
+        }
+    };
+
+    const applyFilter = () => {
+        const keyword = (chatListFilter?.value || '').trim().toLowerCase();
+        let visible = 0;
+
+        conversations.forEach((item) => {
+            const matchesText = keyword === '' || (item.dataset.search || '').includes(keyword);
+            const matchesMode = chatFilterMode === 'all' || Number(item.dataset.unread || 0) > 0;
+            const show = matchesText && matchesMode;
+
+            item.hidden = !show;
+            item.classList.toggle('d-none', !show);
+            if (show) visible += 1;
+        });
+
+        let empty = chatListContainer.querySelector('[data-chat-list-empty]');
+        if (visible === 0) {
+            if (!empty) {
+                empty = document.createElement('div');
+                empty.className = 'chat-list-empty';
+                empty.dataset.chatListEmpty = '';
+                empty.innerHTML = '<i class="bi bi-chat-square-dots" aria-hidden="true"></i>Không có hội thoại phù hợp.';
+                chatListContainer.appendChild(empty);
+            }
+            empty.hidden = false;
+        } else if (empty) {
+            empty.hidden = true;
+        }
+    };
+
+    chatListFilter?.addEventListener('input', () => {
+        chatListFilter.closest('.chat-filter')?.classList.toggle('has-value', chatListFilter.value !== '');
+        applyFilter();
+    });
+
+    document.querySelector('[data-chat-filter-clear]')?.addEventListener('click', () => {
+        if (!chatListFilter) return;
+        chatListFilter.value = '';
+        chatListFilter.closest('.chat-filter')?.classList.remove('has-value');
+        applyFilter();
+        chatListFilter.focus();
+    });
+
+    document.querySelectorAll('[data-chat-filter]').forEach((button) => {
+        button.addEventListener('click', () => {
+            chatFilterMode = button.dataset.chatFilter || 'all';
+            document.querySelectorAll('[data-chat-filter]').forEach((other) => {
+                const active = other === button;
+                other.classList.toggle('active', active);
+                other.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            applyFilter();
+        });
+    });
+
+    updateUnreadCount();
+    applyFilter();
+
+    window.KBChatRefreshList = updateUnreadCount;
+}
+
+/* -------------------------------------------------------------
+   Gửi tin nhắn
+   ------------------------------------------------------------- */
 if (chatForm && chatMessages) {
     const conversationId = Number(chatForm.dataset.conversationId);
     const chatState = {
@@ -664,6 +843,7 @@ if (chatForm && chatMessages) {
         lastMessageId: Number(chatMessages.querySelector('[data-message-id]')?.dataset.messageId ?? 0),
         realtime: false,
         sending: false,
+        pendingCount: 0,
     };
 
     function formatMessageTime(value) {
@@ -671,6 +851,37 @@ if (chatForm && chatMessages) {
         return Number.isNaN(time.getTime())
             ? ''
             : time.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    /**
+     * Gom tin nhắn mới vào nhóm liên tiếp của cùng người gửi để bong bóng
+     * hiển thị liền mạch, giống hệt tin render sẵn từ PHP.
+     */
+    function applyGrouping(row) {
+        const senderId = Number(row.dataset.senderId || 0);
+        const rows = Array.from(chatMessages.querySelectorAll('.chat-bubble-row'));
+        const index = rows.indexOf(row);
+        const previous = index > 0 ? rows[index - 1] : null;
+
+        let grouped = false;
+        if (previous) {
+            const sameSender = Number(previous.dataset.senderId || 0) === senderId;
+            const previousTime = new Date(String(previous.dataset.time || '').replace(' ', 'T')).getTime();
+            const currentTime = new Date(String(row.dataset.time || '').replace(' ', 'T')).getTime();
+            const closeInTime = !Number.isNaN(previousTime) && !Number.isNaN(currentTime)
+                && Math.abs(currentTime - previousTime) <= 300000;
+
+            grouped = Boolean(sameSender && closeInTime);
+
+            if (grouped) {
+                // Tin trước không còn là cuối nhóm nữa.
+                previous.classList.remove('group-end');
+            }
+        }
+
+        row.classList.toggle('grouped', grouped);
+        row.classList.toggle('group-start', !grouped);
+        row.classList.add('group-end');
     }
 
     function appendMessage(message) {
@@ -682,18 +893,51 @@ if (chatForm && chatMessages) {
             ? Boolean(message.is_mine)
             : Number(message.sender_id) === window.KB_USER_ID;
 
+        const wasAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight <= CHAT_BOTTOM_THRESHOLD;
+
         const row = document.createElement('div');
-        row.className = 'chat-bubble-row' + (isMine ? ' mine' : '');
+        row.className = 'chat-bubble-row' + (isMine ? ' mine' : '') + ' group-start group-end';
         row.dataset.messageId = id;
+        row.dataset.senderId = Number(message.sender_id || 0);
+        row.dataset.time = String(message.created_at || '');
+
+        const avatar = !isMine
+            ? `<img src="${escapeHtml(message.avatar_url || peerAvatarFallback())}" alt="" class="avatar avatar-sm flex-shrink-0">`
+            : '';
+
         row.innerHTML = `
+            ${avatar}
             <div class="chat-bubble">
                 <div class="chat-text">${escapeHtml(message.body).replace(/\n/g, '<br>')}</div>
                 <small class="chat-time">${formatMessageTime(message.created_at)}${
-                    isMine ? ' <i class="bi bi-check2" data-read-mark="1"></i>' : ''
+                    isMine ? ' <i class="bi bi-check2" data-read-mark="1" title="Đã gửi"></i>' : ''
                 }</small>
+            </div>
+            <div class="chat-bubble-tools">
+                <button type="button" data-chat-copy aria-label="Sao chép nội dung" title="Sao chép">
+                    <i class="bi bi-clipboard"></i>
+                </button>
             </div>`;
+
         chatMessages.appendChild(row);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        applyGrouping(row);
+
+        // Bỏ trạng thái rỗng khi tin nhắn đầu tiên đến.
+        chatEmptyState?.remove();
+
+        if (wasAtBottom) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            chatState.pendingCount += 1;
+            if (chatNewMessages) {
+                chatNewMessages.classList.add('is-visible');
+                if (chatNewMessagesCount) {
+                    chatNewMessagesCount.textContent = chatState.pendingCount > 1
+                        ? `${chatState.pendingCount} tin nhắn mới`
+                        : 'Tin nhắn mới';
+                }
+            }
+        }
     }
 
     /** Đánh dấu tin nhắn của mình đã được người kia đọc. */
@@ -727,8 +971,8 @@ if (chatForm && chatMessages) {
 
     chatForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const input = chatForm.querySelector('input[name="body"]');
-        const body = input.value.trim();
+        const input = chatForm.querySelector('textarea[name="body"], input[name="body"]');
+        const body = (input?.value || '').trim();
         if (!body || chatState.sending) return;
 
         chatState.sending = true;
@@ -740,9 +984,11 @@ if (chatForm && chatMessages) {
                 await sendViaHttp(body);
             }
 
-            input.value = '';
+            if (input) {
+                input.value = '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
             clearFormDraft(chatForm);
-            showToast('success', 'Đã gửi tin nhắn.');
         } catch (error) {
             showToast('error', error.message || 'Không thể gửi tin nhắn.');
         } finally {
@@ -770,6 +1016,24 @@ if (chatForm && chatMessages) {
         refreshBadges();
     }, 5000);
 }
+
+/* -------------------------------------------------------------
+   Sao chép nội dung tin nhắn
+   ------------------------------------------------------------- */
+document.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-chat-copy]');
+    if (!button) return;
+
+    const text = button.closest('.chat-bubble')?.querySelector('.chat-text')?.textContent || '';
+    if (!text) return;
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('success', 'Đã sao chép nội dung tin nhắn.');
+    } catch (error) {
+        showToast('error', 'Không thể sao chép nội dung.');
+    }
+});
 
 /* =============================================================
    Badge cập nhật

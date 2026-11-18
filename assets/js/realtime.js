@@ -124,6 +124,9 @@
 
             case 'subscribe:ok':
                 // Đã đăng ký kênh — gửi trạng thái đã đọc cho các tin nhắn còn lại.
+                if (chat) {
+                    chat.state.peer = (payload.conversation && payload.conversation.peer) || null;
+                }
                 sendFrame({ type: 'read', conversation_id: conversationId });
                 break;
 
@@ -139,9 +142,11 @@
                     body: message.body,
                     created_at: message.created_at,
                     is_mine: isMine,
+                    avatar_url: isMine ? '' : peerAvatarUrl(),
                 });
                 if (!isMine) {
                     sendFrame({ type: 'read', conversation_id: conversationId });
+                    markPeerOnline();
                 }
                 refreshBadges();
                 break;
@@ -506,8 +511,32 @@
         typingIndicator.classList.toggle('d-none', !isTyping);
     }
 
+    /** Ảnh đại diện của người đối diện (dùng cho tin nhắn realtime). */
+    function peerAvatarUrl() {
+        const img = document.querySelector('.chat-header-peer img.avatar');
+        return img ? img.getAttribute('src') || '' : '';
+    }
+
+    /** Đánh dấu người đối diện đang online khi có tin nhắn mới. */
+    function markPeerOnline() {
+        const dot = document.querySelector('[data-chat-peer-status]');
+        if (dot) {
+            dot.classList.add('online');
+            dot.classList.remove('offline');
+            dot.title = 'Đang online';
+        }
+
+        const text = document.querySelector('[data-chat-peer-status-text]');
+        if (text) {
+            const handle = text.textContent.trim();
+            text.textContent = 'Đang online';
+            text.classList.add('is-online');
+            text.title = handle;
+        }
+    }
+
     function notifyTyping() {
-        const input = document.querySelector('#chatForm input[name="body"]');
+        const input = document.querySelector('#chatForm textarea[name="body"], #chatForm input[name="body"]');
         if (!input) {
             return;
         }
@@ -532,7 +561,7 @@
     }
 
     document.addEventListener('input', (event) => {
-        if (event.target && event.target.matches('#chatForm input[name="body"]')) {
+        if (event.target && event.target.matches('#chatForm textarea[name="body"], #chatForm input[name="body"]')) {
             notifyTyping();
         }
     });
