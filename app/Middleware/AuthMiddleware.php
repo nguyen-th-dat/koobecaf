@@ -20,7 +20,7 @@ class AuthMiddleware extends Middleware
             Response::error('Bạn cần đăng nhập để thực hiện thao tác này.', 401);
         }
 
-        Session::flash('error', 'Vui lòng đăng nhập để tiếp tục.');
+        setFlashMessage('error', 'Vui lòng đăng nhập để tiếp tục.');
         Response::redirect('/login');
     }
 }
