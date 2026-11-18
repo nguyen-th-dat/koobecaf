@@ -57,6 +57,35 @@ final class ChatController extends Controller
         $messages = Message::forConversation($conversationId, 100);
         $messages = array_reverse($messages);
 
+        // Dữ liệu khởi tạo cho client WebSocket.
+        $ws = [
+            'enabled' => \App\Core\WebSocketToken::isEnabled(),
+            'url'     => \App\Core\WebSocketToken::url(),
+            'token'   => '',
+            'ticket'  => '',
+            'conversation_id' => $conversationId,
+        ];
+
+        if ($ws['enabled'] && $otherId !== null) {
+            try {
+                $ws['token'] = \App\Core\WebSocketToken::issue($userId);
+                $peer = User::find($otherId);
+                if ($peer !== null) {
+                    $ws['ticket'] = \App\Core\WebSocketToken::issueTicket($userId, $conversationId, [
+                        'id'           => (int) $peer['id'],
+                        'username'     => (string) $peer['username'],
+                        'display_name' => (string) $peer['display_name'],
+                        'avatar_path'  => $peer['avatar_path'] ?? null,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \App\Core\Logger::error('Không thể cấp token WebSocket: ' . $e->getMessage());
+                $ws['enabled'] = false;
+            }
+        } else {
+            $ws['enabled'] = false;
+        }
+
         $this->view('chat/show', [
             'title'         => 'Trò chuyện',
             'wide'          => true,
@@ -65,6 +94,7 @@ final class ChatController extends Controller
             'messages'      => $messages,
             'conversations' => Conversation::forUser($userId),
             'user'          => auth_user(),
+            'ws'            => $ws,
         ]);
     }
 
