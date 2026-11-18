@@ -21,7 +21,7 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <?php endforeach; ?>
     <link rel="canonical" href="<?= e($canonicalUrl ?? url('/')) ?>">
 <?php endif; ?>
-    <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
+    <link rel="icon" href="<?= asset('images/logo.png') ?>" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
