@@ -6,11 +6,11 @@ $following = $userId !== null ? \App\Models\User::followingSuggestions($userId, 
 <div class="rail-card">
     <div class="rail-title">Gợi ý kết bạn</div>
     <?php if ($suggestions === []): ?>
-        <p class="fg-secondary small mb-0">Không có gợi ý mới.</p>
+        <p class="fg-secondary small mb-0">Không có gợi ý mới lúc này.</p>
     <?php else: ?>
         <?php foreach ($suggestions as $person): ?>
             <div class="person-row">
-                <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
+                <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md avatar-ring">
                 <div class="person-meta">
                     <a class="person-name" href="<?= url('/u/' . $person['username']) ?>"><?= e($person['display_name']) ?></a>
                     <span class="person-handle">@<?= e($person['username']) ?></span>
