@@ -10,6 +10,7 @@ use App\Core\Session;
 use App\Models\Post;
 use App\Models\Share;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 
 final class ShareController extends Controller
 {
@@ -33,9 +34,11 @@ final class ShareController extends Controller
         }
 
         Share::create((int) $post['id'], $userId, $content);
-        Post::createShare($userId, (int) $post['id'], $content, $privacy);
+        $sharePostId = Post::createShare($userId, (int) $post['id'], $content, $privacy);
 
         NotificationService::shared((int) $post['id'], $userId, (int) $post['user_id']);
+        RealtimeService::postShared((int) $post['id'], (int) $userId);
+        RealtimeService::postCreated($sharePostId);
 
         Response::success([
             'share_count' => Post::shareCount((int) $post['id']),
