@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Core\OldInput;
 use App\Core\Request;
 use App\Core\Router;
 use App\Core\Session;
@@ -36,6 +37,7 @@ if (rtrim((string) Env::get('APP_BASE_PATH', ''), '/') === '') {
 date_default_timezone_set((string) Config::get('app.timezone', 'Asia/Ho_Chi_Minh'));
 
 Session::start();
+OldInput::boot();
 
 $request = new Request();
 Csrf::validate($request);
