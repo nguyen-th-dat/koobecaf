@@ -3,12 +3,12 @@
     <p class="fg-secondary mb-0">Chào mừng trở lại với Koobecaf.</p>
 </div>
 
-<form action="<?= url('/login') ?>" method="post" novalidate>
+<form action="<?= url('/login') ?>" method="post" novalidate data-draft="login" data-old-fields="<?= e(old_fields(['email'])) ?>">
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
         <label class="form-label" for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" value="<?= old('email') ?>" required autofocus autocomplete="email">
+        <input type="email" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" required autofocus autocomplete="email">
     </div>
 
     <div class="mb-3">
