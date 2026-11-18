@@ -1,6 +1,6 @@
 <div class="auth-title">
     <h1>Đăng nhập</h1>
-    <p class="text-secondary mb-0">Chào mừng trở lại với Koobecaf.</p>
+    <p class="fg-secondary mb-0">Chào mừng trở lại với Koobecaf.</p>
 </div>
 
 <form action="<?= url('/login') ?>" method="post" novalidate>
@@ -15,13 +15,13 @@
         <label class="form-label" for="password">Mật khẩu</label>
         <div class="input-group">
             <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
-            <button class="btn btn-outline-secondary" type="button" data-toggle-password="#password" aria-label="Hiện mật khẩu">
+            <button class="btn btn-outline" type="button" data-toggle-password="#password" aria-label="Hiện mật khẩu">
                 <i class="bi bi-eye"></i>
             </button>
         </div>
     </div>
 
-    <button class="btn btn-primary w-100" type="submit">Đăng nhập</button>
+    <button class="btn btn-solid w-100" type="submit">Đăng nhập</button>
 </form>
 
 <hr class="my-4">
