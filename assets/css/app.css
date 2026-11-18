@@ -2303,6 +2303,11 @@
         display: none;
     }
 
+    /* Trên tablet/mobile, thông báo và tin nhắn đã có ở thanh điều hướng dưới */
+    .topbar-icon-btn {
+        display: none;
+    }
+
     .post-actions .action-btn i {
         font-size: 1.15rem;
     }
@@ -2321,6 +2326,12 @@
     .search-form {
         flex: 1 1 auto;
         max-width: none;
+    }
+
+    /* Ô tìm kiếm thu gọn để nhường chỗ cho nút tài khoản */
+    .search-form input {
+        font-size: 14px;
+        min-height: 36px;
     }
 }
 
