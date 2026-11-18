@@ -424,6 +424,7 @@
 
     .input-group .form-control {
         flex: 1 1 auto;
+        min-width: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
     }
@@ -782,6 +783,8 @@
     .row.g-3 { --kb-gutter: 24px; }
 
     .row > * {
+        flex: 0 0 auto;
+        width: 100%;
         padding-inline: calc(var(--kb-gutter) / 2);
     }
 
