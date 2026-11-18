@@ -261,10 +261,11 @@ php tests/password_reset.php  http://localhost:8000
 php tests/form_persistence.php http://localhost:8000
 php tests/draft_cleared.php   http://localhost:8000
 node tests/draft_engine.js
+node tests/leave_guard.js
 php tests/pages.php           http://localhost:8000
 ```
 
-Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `PASS: 21 | FAIL: 0`, `PASS: 16 | FAIL: 0`, `PASS: 9 | FAIL: 0`, `PASS: 14 | FAIL: 0`, `FAIL: 0`.
+Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `PASS: 21 | FAIL: 0`, `PASS: 20 | FAIL: 0`, `PASS: 9 | FAIL: 0`, `PASS: 14 | FAIL: 0`, `PASS: 13 | FAIL: 0`, `FAIL: 0`.
 
 > `tests/password_reset.php` cần `MAIL_DRIVER=log` trong `.env` vì đọc token từ `storage/logs/`.
 
@@ -314,3 +315,13 @@ php -S localhost:8000 -t . router.php
 | Ưu tiên | Field do server render từ `old()` thắng nháp cũ (đánh dấu qua `data-old-fields`); các field còn lại lấy giá trị nháp vì đó là trạng thái mới nhất |
 | Xoá nháp | Form gửi thành công thì server gửi `data-cleared-drafts` xuống `<body>` để trình duyệt xoá nháp, tránh tự điền lại nội dung đã đăng |
 | Kiểm thử | Thêm `tests/form_persistence.php` (16), `tests/draft_cleared.php` (9), `tests/draft_engine.js` (14 — chạy bằng Node, không cần server). Tổng 154 kiểm tra PHP + 14 kiểm tra JS, đều 0 lỗi |
+
+## Đợt cảnh báo rời trang khi còn nội dung chưa gửi
+
+| Hạng mục | Xử lý |
+|---|---|
+| Hộp thoại | Thêm `.leave-modal` trong `assets/css/app.css` + hộp thoại dựng bằng JS trong `assets/js/app.js`: liệt kê chính xác những gì sẽ mất (tên field kèm xem trước nội dung, cắt ngắn 60 ký tự) với hai lựa chọn "Ở lại trang" / "Rời đi" |
+| Đánh dấu form | `data-guard="<nhãn>"` cho composer, sửa bài viết, hồ sơ, đăng nhập, đăng ký, quên mật khẩu; `data-leave-guard="Đăng xuất"` cho form đăng xuất trong topbar |
+| Kích hoạt | Bấm link nội bộ → chặn điều hướng và mở hộp thoại; đóng tab / tải lại trang → `beforeunload` dùng hộp thoại xác nhận chuẩn của trình duyệt |
+| Chống báo nhầm | Field rỗng, field ẩn, CSRF token không bị tính; giá trị mặc định chưa sửa (ví dụ tên hiển thị sẵn có) không bị tính; giá trị server render lại từ lần gửi lỗi trước vẫn được cảnh báo |
+| Kiểm thử | Thêm `tests/leave_guard.js` (13 kiểm tra, chạy bằng Node) + bổ sung 4 kiểm tra đánh dấu `data-guard` trong `tests/form_persistence.php` |
