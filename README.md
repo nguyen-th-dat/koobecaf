@@ -433,9 +433,10 @@ php -S localhost:8000 -t . router.php
 php tests/smoke.php        http://localhost:8000   # 54 kiểm tra end-to-end
 php tests/extended.php     http://localhost:8000   # 40 kiểm tra biên
 php tests/password_reset.php http://localhost:8000 # 21 kiểm tra quên/đặt lại mật khẩu
-php tests/form_persistence.php http://localhost:8000 # 16 kiểm tra giữ giá trị form
+php tests/form_persistence.php http://localhost:8000 # 20 kiểm tra giữ giá trị form
 php tests/draft_cleared.php http://localhost:8000   # 9 kiểm tra xoá nháp sau khi gửi thành công
 node tests/draft_engine.js                          # 14 kiểm tra logic lưu nháp (không cần server)
+node tests/leave_guard.js                           # 13 kiểm tra logic cảnh báo rời trang (không cần server)
 php tests/pages.php        http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
 
@@ -445,9 +446,10 @@ Kết quả mong đợi:
 PASS: 54 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
 PASS: 21 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
-PASS: 16 | FAIL: 0     (form_persistence.php)
+PASS: 20 | FAIL: 0     (form_persistence.php)
 PASS: 9  | FAIL: 0     (draft_cleared.php)
 PASS: 14 | FAIL: 0     (draft_engine.js)
+PASS: 13 | FAIL: 0     (leave_guard.js)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
 
