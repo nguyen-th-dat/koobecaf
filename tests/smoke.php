@@ -392,6 +392,20 @@ check('Dang xuat chuyen huong', $res['status'] === 302, 'status=' . $res['status
 $res = request('GET', $base . '/settings/profile');
 check('Sau dang xuat yeu cau dang nhap lai', $res['status'] === 302 && str_contains((string) $res['location'], '/login'));
 
+// ------------------------------------------------------------------
+// 20. Dang nhap bang username
+// ------------------------------------------------------------------
+$res = request('GET', $base . '/login');
+$res = request('POST', $base . '/login', ['form' => [
+    '_token'   => csrfToken($res['body']),
+    'email'    => $username,
+    'password' => $password,
+]]);
+check('Dang nhap bang username thanh cong', $res['status'] === 302 && !str_contains((string) $res['location'], '/login'), 'status=' . $res['status']);
+
+$res = request('GET', $base . '/');
+check('Da dang nhap bang username', !str_contains($res['body'], '>Đăng ký<'), 'van thay nut dang ky');
+
 @unlink($cookieJar);
 @unlink($cookieJar2);
 
