@@ -8,7 +8,11 @@
 $activeId = $activeId ?? null;
 ?>
 <?php if ($conversations === []): ?>
-    <p class="fg-secondary small text-center px-3 py-4 mb-0">Chưa có cuộc trò chuyện nào.</p>
+    <div class="empty-state">
+        <span class="empty-icon"><i class="bi bi-chat-dots"></i></span>
+        <h3>Chưa có cuộc trò chuyện</h3>
+        <p>Các cuộc trò chuyện của bạn sẽ hiển thị ở đây.</p>
+    </div>
 <?php else: ?>
     <?php foreach ($conversations as $conversation): ?>
         <a class="chat-conversation<?= (int) $conversation['id'] === $activeId ? ' active' : '' ?>"
