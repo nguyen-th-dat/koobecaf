@@ -73,7 +73,7 @@ $navActive = static function (string $prefix) use ($path): string {
                         <li><a class="menu-item" href="<?= url('/settings/profile') ?>"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
                         <li><hr class="menu-divider"></li>
                         <li>
-                            <form action="<?= url('/logout') ?>" method="post" class="px-2">
+                            <form action="<?= url('/logout') ?>" method="post" class="px-2" data-leave-guard="Đăng xuất">
                                 <?= \App\Core\Csrf::field() ?>
                                 <button class="menu-item fg-danger w-100" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
                             </form>
