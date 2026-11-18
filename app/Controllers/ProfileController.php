@@ -39,6 +39,7 @@ final class ProfileController extends Controller
         $friends = [];
         $followers = [];
         $following = [];
+        $photos = [];
         $total = 0;
 
         if ($tab === 'comments') {
@@ -51,6 +52,8 @@ final class ProfileController extends Controller
             $followers = \App\Models\Follow::followers($userId);
         } elseif ($tab === 'following') {
             $following = \App\Models\Follow::following($userId);
+        } elseif ($tab === 'photos') {
+            $photos = User::photos($userId, 30);
         } else {
             $total = Post::countByUser($userId);
             $posts = Post::byUser($userId, $viewerId, $perPage, ($page - 1) * $perPage);
@@ -66,6 +69,7 @@ final class ProfileController extends Controller
             'friends'     => $friends,
             'followers'   => $followers,
             'following'   => $following,
+            'photos'      => $photos,
             'tab'         => $tab,
             'page'        => $page,
             'total'       => $total,

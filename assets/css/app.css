@@ -1640,12 +1640,33 @@
         background-color: color-mix(in srgb, var(--kb-surface-soft) 60%, transparent);
     }
 
-    /* ---------------- Trang cá nhân ---------------- */
+    /* ---------------- Trang cá nhân ----------------
+       Bố cục: một "hero" gồm ảnh bìa + thẻ thông tin đè lên mép dưới ảnh bìa,
+       sau đó là dải số liệu, tab và nội dung. Toàn bộ dùng nền kem/mint của
+       hệ thống thiết kế nên tự động đúng ở cả chế độ sáng và tối. */
+    .profile-hero {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: var(--kb-space-lg);
+    }
+
     .profile-cover {
         position: relative;
-        height: 200px;
+        height: 220px;
         background-size: cover;
         background-position: center;
+        background-color: var(--kb-surface-cream-strong);
+    }
+
+    /* Vân texture nhẹ cho ảnh bìa rỗng, giúp phần nền không bị trơn */
+    .profile-cover-texture {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .5;
+        background-image:
+            radial-gradient(circle at 18% 28%, color-mix(in srgb, var(--kb-primary) 22%, transparent) 0, transparent 42%),
+            radial-gradient(circle at 82% 66%, color-mix(in srgb, var(--kb-primary-mint) 26%, transparent) 0, transparent 46%);
     }
 
     /* Lớp chuyển sắc nhẹ ở đáy ảnh bìa để tách ảnh khỏi nội dung bên dưới */
@@ -1653,8 +1674,8 @@
         content: "";
         position: absolute;
         inset: auto 0 0 0;
-        height: 96px;
-        background: linear-gradient(to top, color-mix(in srgb, var(--kb-surface-card) 85%, transparent), transparent);
+        height: 110px;
+        background: linear-gradient(to top, color-mix(in srgb, var(--kb-surface-card) 92%, transparent), transparent);
         pointer-events: none;
     }
 
@@ -1662,72 +1683,264 @@
         background: linear-gradient(120deg, var(--kb-primary-soft), var(--kb-surface-card));
     }
 
-    .profile-avatar-row {
+    /* ---- Khối thông tin đè lên ảnh bìa ---- */
+    .profile-hero-body {
         position: relative;
-        margin-top: -48px;
+        padding: 0 var(--kb-space-lg) var(--kb-space-lg);
+        margin-top: -56px;
     }
 
-    .profile-avatar-row .avatar-xl {
-        box-shadow: 0 0 0 4px var(--kb-surface-card);
-    }
-
-    .profile-stats {
+    .profile-identity {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--kb-space-lg);
         flex-wrap: wrap;
+    }
+
+    .profile-avatar-wrap {
+        position: relative;
+        flex: 0 0 auto;
+        padding: 4px;
+        border-radius: 50%;
+        background-color: var(--kb-surface-card);
+        box-shadow: var(--kb-shadow-raised);
+    }
+
+    .profile-avatar {
+        display: block;
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: var(--kb-surface-cream-strong);
+    }
+
+    .profile-avatar-ring {
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kb-primary) 25%, transparent);
+        pointer-events: none;
+    }
+
+    .profile-identity-text {
+        flex: 1 1 280px;
+        min-width: 0;
+        padding-top: var(--kb-space-sm);
+    }
+
+    .profile-name-row {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-sm);
+        flex-wrap: wrap;
+    }
+
+    .profile-name {
+        margin: 0;
+        font-family: var(--kb-font-display);
+        font-size: 2.1rem;
+        font-weight: 500;
+        line-height: 1.15;
+        color: var(--kb-ink);
+        overflow-wrap: anywhere;
+    }
+
+    .profile-handle {
+        margin-top: 2px;
+        font-size: .9rem;
+        color: var(--kb-muted);
+    }
+
+    .profile-bio {
+        margin: var(--kb-space-sm) 0 0;
+        color: var(--kb-body);
+        line-height: 1.6;
+        max-width: 62ch;
+    }
+
+    .profile-bio-empty {
+        color: var(--kb-muted-soft);
+        font-style: italic;
+    }
+
+    .profile-meta {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-md);
+        margin-top: var(--kb-space-sm);
+        font-size: .82rem;
+        color: var(--kb-muted-soft);
+    }
+
+    .profile-meta i {
+        margin-right: .35rem;
+        color: var(--kb-primary);
+    }
+
+    /* ---- Nút hành động ---- */
+    .profile-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        flex-wrap: wrap;
+        margin-left: auto;
+        padding-top: var(--kb-space-sm);
+    }
+
+    .profile-form-action {
+        display: inline-flex;
+        margin: 0;
+    }
+
+    .profile-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: 8px 16px;
+        border-radius: var(--kb-radius-pill);
+        font-size: 13.5px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .profile-btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    .profile-btn.is-following {
+        background-color: var(--kb-primary-soft);
+        border-color: color-mix(in srgb, var(--kb-primary) 30%, transparent);
+        color: var(--kb-primary);
+    }
+
+    /* ---- Dải số liệu ---- */
+    .profile-stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--kb-space-sm);
+        margin-top: var(--kb-space-lg);
+        padding-top: var(--kb-space-md);
+        border-top: 1px solid var(--kb-hairline-soft);
     }
 
     .profile-stat {
         display: flex;
-        flex-direction: column;
+        align-items: center;
+        gap: var(--kb-space-sm);
         padding: var(--kb-space-xs) var(--kb-space-sm);
-        border-radius: var(--kb-radius-md);
+        border-radius: var(--kb-radius-lg);
         background-color: var(--kb-surface-soft);
-        min-width: 96px;
         text-decoration: none;
         color: var(--kb-muted);
-        transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease);
-    }
-
-    .profile-stat strong {
-        color: var(--kb-ink);
-        font-family: var(--kb-font-display);
-        font-weight: 500;
-        font-size: 1.35rem;
-        line-height: 1.2;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .profile-stat span {
-        font-size: .8rem;
+        transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease),
+            transform var(--kb-dur-fast) var(--kb-ease);
     }
 
     .profile-stat:hover {
         background-color: var(--kb-surface-cream-strong);
         color: var(--kb-primary);
         text-decoration: none;
+        transform: translateY(-1px);
     }
 
-    .profile-stat:hover strong {
+    .profile-stat.is-active {
+        background-color: var(--kb-primary-soft);
         color: var(--kb-primary);
     }
 
-    /* Tab hồ sơ dùng chip nền kem thay vì gạch dưới */
+    .profile-stat-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        border-radius: var(--kb-radius-md);
+        background-color: color-mix(in srgb, var(--kb-primary) 12%, transparent);
+        color: var(--kb-primary);
+        font-size: 15px;
+    }
+
+    .profile-stat-body {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .profile-stat-body strong {
+        color: var(--kb-ink);
+        font-family: var(--kb-font-display);
+        font-weight: 500;
+        font-size: 1.4rem;
+        line-height: 1.15;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .profile-stat:hover .profile-stat-body strong,
+    .profile-stat.is-active .profile-stat-body strong {
+        color: var(--kb-primary);
+    }
+
+    .profile-stat-body span {
+        font-size: .78rem;
+        line-height: 1.3;
+    }
+
+    /* ---- Tab hồ sơ ---- */
+    .profile-tabs-wrap {
+        position: sticky;
+        top: var(--kb-topbar-h);
+        z-index: 20;
+        margin-bottom: var(--kb-space-lg);
+        background-color: color-mix(in srgb, var(--kb-canvas) 92%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--kb-hairline);
+    }
+
+    /* Cột chính hẹp nên tab trượt ngang thay vì xuống dòng */
     .profile-tabs {
         display: flex;
-        flex-wrap: wrap;
-        border-bottom: 1px solid var(--kb-hairline);
-        padding-bottom: var(--kb-space-xs);
+        flex-wrap: nowrap;
         gap: var(--kb-space-xxs);
-        margin-bottom: var(--kb-space-lg);
+        overflow-x: auto;
+        scrollbar-width: none;
+        scroll-behavior: smooth;
+        padding-bottom: 2px;
+    }
+
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Lớp mờ ở mép phải gợi ý còn tab bên ngoài */
+    .profile-tabs-wrap.is-scrollable {
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent 100%);
+        mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent 100%);
+    }
+
+    .profile-tabs .nav-item {
+        flex: 0 0 auto;
     }
 
     .profile-tabs .nav-link {
         position: relative;
-        padding: 8px 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: 10px 14px;
         border-radius: var(--kb-radius-md);
         color: var(--kb-muted);
         font-family: var(--kb-font-body);
         font-weight: 500;
         font-size: 14px;
+        white-space: nowrap;
         text-decoration: none;
         transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease);
     }
@@ -1739,21 +1952,350 @@
     }
 
     .profile-tabs .nav-link.active {
-        background-color: transparent;
+        background-color: var(--kb-primary-soft);
         color: var(--kb-primary);
         font-weight: 600;
     }
 
-    /* Gạch chân cho tab đang chọn */
-    .profile-tabs .nav-link.active::after {
+    /* Số nhỏ đi kèm tab */
+    .profile-tab-count {
+        font-style: normal;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 1px 7px;
+        border-radius: var(--kb-radius-pill);
+        background-color: color-mix(in srgb, var(--kb-primary) 14%, transparent);
+        color: var(--kb-primary);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .profile-tabs .nav-link:not(.active) .profile-tab-count {
+        background-color: var(--kb-surface-card);
+        color: var(--kb-muted-soft);
+    }
+
+    /* ---- Thư viện ảnh ---- */
+    .profile-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: var(--kb-space-xs);
+    }
+
+    .profile-gallery-item {
+        position: relative;
+        display: block;
+        aspect-ratio: 1 / 1;
+        border-radius: var(--kb-radius-lg);
+        overflow: hidden;
+        background-color: var(--kb-surface-cream-strong);
+        border: 1px solid var(--kb-hairline);
+    }
+
+    .profile-gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform var(--kb-dur-slow) var(--kb-ease-out);
+    }
+
+    .profile-gallery-item:hover img {
+        transform: scale(1.06);
+    }
+
+    .profile-gallery-overlay {
+        position: absolute;
+        inset: auto 0 0 0;
+        padding: 20px 12px 10px;
+        font-size: 12.5px;
+        font-weight: 500;
+        color: #fff;
+        background: linear-gradient(to top, rgba(20, 20, 19, .75), transparent);
+        opacity: 0;
+        transition: opacity var(--kb-dur) var(--kb-ease);
+    }
+
+    .profile-gallery-item:hover .profile-gallery-overlay {
+        opacity: 1;
+    }
+
+    /* ---- Danh sách người (bạn bè / theo dõi) ---- */
+    .profile-people-head {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        margin-bottom: var(--kb-space-md);
+        padding-bottom: var(--kb-space-sm);
+        border-bottom: 1px solid var(--kb-hairline-soft);
+    }
+
+    .profile-people-count {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 1px 9px;
+        border-radius: var(--kb-radius-pill);
+        background-color: var(--kb-surface-soft);
+        color: var(--kb-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .profile-people-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--kb-space-sm);
+    }
+
+    .profile-person-card {
+        display: flex;
+        justify-content: center;
+    }
+
+    .profile-person-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: var(--kb-space-md) var(--kb-space-sm);
+        border-radius: var(--kb-radius-lg);
+        border: 1px solid var(--kb-hairline-soft);
+        background-color: var(--kb-surface-soft);
+        text-align: center;
+        text-decoration: none;
+        transition: border-color var(--kb-dur-fast) var(--kb-ease), background-color var(--kb-dur-fast) var(--kb-ease),
+            transform var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .profile-person-link:hover {
+        border-color: color-mix(in srgb, var(--kb-primary) 35%, transparent);
+        background-color: var(--kb-surface-cream-strong);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .profile-person-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--kb-ink);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .profile-person-handle {
+        font-size: 12px;
+        color: var(--kb-muted-soft);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* ---- Mục đã chia sẻ ---- */
+    .profile-share-item {
+        padding: var(--kb-space-sm) 0;
+        border-bottom: 1px solid var(--kb-hairline-soft);
+    }
+
+    .profile-share-item:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    /* ---------------- Trang cài đặt tài khoản ---------------- */
+    .settings-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--kb-space-md);
+        flex-wrap: wrap;
+        margin-bottom: var(--kb-space-lg);
+    }
+
+    .settings-title {
+        margin: 0;
+        font-family: var(--kb-font-display);
+        font-size: 2rem;
+        font-weight: 500;
+        line-height: 1.15;
+        color: var(--kb-ink);
+    }
+
+    .settings-subtitle {
+        margin: var(--kb-space-xxs) 0 0;
+        color: var(--kb-muted);
+        font-size: .9rem;
+    }
+
+    .settings-card-title {
+        display: flex;
+        align-items: center;
+        margin: 0 0 var(--kb-space-md);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--kb-ink);
+    }
+
+    .settings-card-title i {
+        color: var(--kb-primary);
+    }
+
+    .settings-divider {
+        margin: var(--kb-space-lg) 0;
+        border-color: var(--kb-hairline-soft);
+        opacity: 1;
+    }
+
+    .settings-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        margin-top: var(--kb-space-lg);
+    }
+
+    /* Ô nhập bị khoá (username, email) — vẫn hiển thị rõ giá trị */
+    .form-control.is-disabled {
+        background-color: var(--kb-surface-soft);
+        color: var(--kb-muted);
+        cursor: not-allowed;
+    }
+
+    .form-text-counter {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .form-text-counter.is-warning {
+        color: var(--kb-warning);
+    }
+
+    /* ---- Xem trước hồ sơ trong trang cài đặt ---- */
+    .profile-preview {
+        position: relative;
+        height: 150px;
+        margin-bottom: var(--kb-space-lg);
+        border-radius: var(--kb-radius-lg);
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+        background-color: var(--kb-surface-cream-strong);
+        border: 1px solid var(--kb-hairline);
+    }
+
+    .profile-preview::after {
         content: "";
         position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: -5px;
-        height: 2px;
-        border-radius: var(--kb-radius-pill);
-        background-color: var(--kb-primary);
+        inset: auto 0 0 0;
+        height: 80px;
+        background: linear-gradient(to top, color-mix(in srgb, var(--kb-surface-card) 92%, transparent), transparent);
+        pointer-events: none;
+    }
+
+    .profile-preview.is-empty {
+        background: linear-gradient(120deg, var(--kb-primary-soft), var(--kb-surface-card));
+    }
+
+    .profile-preview-body {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: flex-end;
+        gap: var(--kb-space-sm);
+        height: 100%;
+        padding: var(--kb-space-md);
+    }
+
+    .profile-preview-avatar {
+        padding: 3px;
+        border-radius: 50%;
+        background-color: var(--kb-surface-card);
+        box-shadow: var(--kb-shadow-raised);
+    }
+
+    .profile-preview-avatar img {
+        display: block;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: var(--kb-surface-cream-strong);
+    }
+
+    .profile-preview-text {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 4px;
+        color: var(--kb-ink);
+    }
+
+    .profile-preview-text strong {
+        font-family: var(--kb-font-display);
+        font-size: 1.15rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .profile-preview-text span {
+        font-size: .8rem;
+        color: var(--kb-muted);
+    }
+
+    /* ---- Bộ chọn giao diện dạng thẻ ---- */
+    .theme-picker {
+        display: flex;
+        gap: var(--kb-space-sm);
+        flex-wrap: wrap;
+    }
+
+    .theme-option {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        padding: var(--kb-space-xs) var(--kb-space-md) var(--kb-space-xs) var(--kb-space-xs);
+        border: 1px solid var(--kb-hairline);
+        border-radius: var(--kb-radius-lg);
+        background-color: var(--kb-surface-soft);
+        color: var(--kb-muted);
+        font-family: var(--kb-font-body);
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color var(--kb-dur-fast) var(--kb-ease), background-color var(--kb-dur-fast) var(--kb-ease),
+            color var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .theme-option:hover {
+        border-color: var(--kb-surface-cream-strong);
+        color: var(--kb-ink);
+    }
+
+    .theme-option.active {
+        border-color: var(--kb-primary);
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
+    }
+
+    .theme-option-swatch {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--kb-radius-md);
+        font-size: 14px;
+    }
+
+    .theme-swatch-light {
+        background-color: #faf9f5;
+        border: 1px solid #e6dfd8;
+        color: #b58412;
+    }
+
+    .theme-swatch-dark {
+        background-color: #181715;
+        border: 1px solid #2c2a27;
+        color: #f0d79a;
     }
 
     /* ---------------- Trò chuyện ----------------
@@ -3219,6 +3761,23 @@
     .post-actions .action-btn i {
         font-size: 1.15rem;
     }
+
+    /* ---- Trang cá nhân: ảnh bìa thấp hơn, số liệu xuống 2 cột ---- */
+    .profile-cover {
+        height: 180px;
+    }
+
+    .profile-hero-body {
+        margin-top: -44px;
+    }
+
+    .profile-stats-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profile-name {
+        font-size: 1.9rem;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -3281,19 +3840,109 @@
         font-size: 14px;
         min-height: 36px;
     }
+
+    /* ---- Trang cá nhân trên mobile ---- */
+    .profile-cover {
+        height: 150px;
+    }
+
+    .profile-hero-body {
+        margin-top: -36px;
+        padding: 0 var(--kb-space-md) var(--kb-space-md);
+    }
+
+    .profile-identity {
+        gap: var(--kb-space-md);
+    }
+
+    .profile-avatar {
+        width: 84px;
+        height: 84px;
+    }
+
+    .profile-identity-text {
+        flex: 1 1 200px;
+        padding-top: 0;
+    }
+
+    .profile-name {
+        font-size: 1.6rem;
+    }
+
+    .profile-bio {
+        font-size: .92rem;
+        margin-top: var(--kb-space-xs);
+    }
+
+    /* Nút hành động chiếm hết hàng, không còn đẩy sang phải */
+    .profile-actions {
+        width: 100%;
+        margin-left: 0;
+        padding-top: var(--kb-space-sm);
+    }
+
+    .profile-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+
+    .profile-btn-icon {
+        flex: 0 0 38px;
+    }
+
+    .profile-stats-row {
+        margin-top: var(--kb-space-md);
+        padding-top: var(--kb-space-sm);
+    }
+
+    .profile-stat {
+        padding: var(--kb-space-xs);
+    }
+
+    .profile-stat-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+    }
+
+    .profile-stat-body strong {
+        font-size: 1.15rem;
+    }
+
+    .profile-stat-body span {
+        font-size: .72rem;
+    }
+
+    .profile-tabs-wrap {
+        top: var(--kb-topbar-h-sm);
+    }
+
+    /* Mobile: tab trượt ngang thay vì xuống dòng để tiết kiệm chiều cao */
+    .profile-tabs .nav-link {
+        padding: 9px 11px;
+        font-size: 13px;
+    }
+
+    .profile-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+
+    .profile-people-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .settings-head {
+        align-items: flex-start;
+    }
+
+    .settings-title {
+        font-size: 1.6rem;
+    }
 }
 
 @media (max-width: 575.98px) {
     .app-shell {
         padding: var(--kb-space-md) var(--kb-space-sm) var(--kb-space-xxl);
-    }
-
-    .profile-cover {
-        height: 130px;
-    }
-
-    .profile-avatar-row {
-        margin-top: -30px;
     }
 
     .chat-bubble {
@@ -3320,11 +3969,6 @@
     .chat-new-messages {
         right: var(--kb-space-md);
         bottom: 134px;
-    }
-
-    .profile-stat {
-        min-width: 0;
-        flex: 1 1 calc(50% - var(--kb-space-sm));
     }
 }
 

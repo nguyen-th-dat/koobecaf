@@ -265,13 +265,13 @@ document.addEventListener('click', (event) => {
    Chọn giao diện
    ============================================================= */
 document.addEventListener('click', (event) => {
-    const button = event.target.closest('.theme-btn');
+    const button = event.target.closest('.theme-btn, .theme-option');
     if (!button) return;
     const theme = button.dataset.theme;
     document.documentElement.setAttribute('data-theme', theme);
     const input = document.getElementById('themeInput');
     if (input) input.value = theme;
-    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.theme-btn, .theme-option').forEach(btn => btn.classList.remove('active'));
     button.classList.add('active');
     fetch(apiUrl('/settings/theme'), {
         method: 'POST',
@@ -1851,3 +1851,80 @@ function initDrafts() {
 }
 
 initDrafts();
+
+/* =============================================================
+   Trang cá nhân: bộ đếm tiểu sử + xem trước ảnh đại diện/ảnh bìa
+   ============================================================= */
+(function initProfileSettings() {
+    // ---- Bộ đếm ký tự cho ô tiểu sử ----
+    const bio = document.getElementById('bio');
+    const bioCount = document.querySelector('[data-bio-count]');
+    if (bio && bioCount) {
+        const counter = bioCount.closest('.form-text');
+        const update = () => {
+            const length = bio.value.length;
+            bioCount.textContent = String(length);
+            if (counter) {
+                counter.classList.toggle('is-warning', length >= 450 && length < 500);
+            }
+        };
+        bio.addEventListener('input', update);
+        update();
+    }
+
+    // ---- Xem trước ảnh đại diện ----
+    const avatarInput = document.getElementById('avatar');
+    const avatarPreview = document.getElementById('avatarPreview');
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', () => {
+            const file = avatarInput.files && avatarInput.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            avatarPreview.src = url;
+            avatarPreview.addEventListener('load', () => URL.revokeObjectURL(url), { once: true });
+        });
+    }
+
+    // ---- Xem trước ảnh bìa ----
+    const coverInput = document.getElementById('cover');
+    const coverPreview = document.querySelector('.profile-preview');
+    if (coverInput && coverPreview) {
+        coverInput.addEventListener('change', () => {
+            const file = coverInput.files && coverInput.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            coverPreview.style.backgroundImage = `url("${url}")`;
+            coverPreview.classList.remove('is-empty');
+            coverPreview.addEventListener('transitionend', () => URL.revokeObjectURL(url), { once: true });
+        });
+    }
+})();
+
+/* =============================================================
+   Trang cá nhân: cuộn tab đang chọn vào khung nhìn
+   ============================================================= */
+(function initProfileTabs() {
+    const wrap = document.querySelector('.profile-tabs-wrap');
+    const tabs = document.querySelector('.profile-tabs');
+    if (!wrap || !tabs) return;
+
+    const syncMask = () => {
+        const overflow = tabs.scrollWidth - tabs.clientWidth;
+        const atEnd = tabs.scrollLeft >= overflow - 2;
+        wrap.classList.toggle('is-scrollable', overflow > 2 && !atEnd);
+    };
+
+    const active = tabs.querySelector('.nav-link.active');
+    if (active) {
+        // Đặt tab đang chọn vào giữa khung nhìn khi vừa tải trang
+        requestAnimationFrame(() => {
+            const target = active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2;
+            tabs.scrollLeft = Math.max(0, target);
+            syncMask();
+        });
+    }
+
+    tabs.addEventListener('scroll', syncMask, { passive: true });
+    window.addEventListener('resize', syncMask);
+    syncMask();
+})();

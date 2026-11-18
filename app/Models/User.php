@@ -129,13 +129,41 @@ final class User
         );
     }
 
+    /** Số liệu tổng hợp cho trang cá nhân. */
     public static function stats(int $id): array
     {
         return [
-            'posts'    => \App\Models\Post::countByUser($id),
-            'friends'  => (int) Database::fetchValue("SELECT COUNT(*) FROM friendships WHERE status = 'accepted' AND (user_id = ? OR friend_id = ?)", [$id, $id]),
+            'posts'     => \App\Models\Post::countByUser($id),
+            'friends'   => (int) Database::fetchValue("SELECT COUNT(*) FROM friendships WHERE status = 'accepted' AND (user_id = ? OR friend_id = ?)", [$id, $id]),
             'followers' => (int) Database::fetchValue('SELECT COUNT(*) FROM follows WHERE following_id = ?', [$id]),
             'following' => (int) Database::fetchValue('SELECT COUNT(*) FROM follows WHERE follower_id = ?', [$id]),
+            'comments'  => (int) Database::fetchValue('SELECT COUNT(*) FROM comments WHERE user_id = ?', [$id]),
+            'shares'    => (int) Database::fetchValue('SELECT COUNT(*) FROM shares WHERE user_id = ?', [$id]),
+            'likes'     => (int) Database::fetchValue('SELECT COUNT(*) FROM likes WHERE user_id = ?', [$id]),
+            'photos'    => (int) Database::fetchValue(
+                'SELECT COUNT(*) FROM post_images pi
+                 JOIN posts p ON p.id = pi.post_id
+                 WHERE p.user_id = ? AND p.shared_post_id IS NULL',
+                [$id]
+            ),
         ];
+    }
+
+    /**
+     * Danh sách ảnh người dùng đã đăng kèm bài viết gốc.
+     *
+     * @return array<int,array>
+     */
+    public static function photos(int $id, int $limit = 24): array
+    {
+        return Database::fetchAll(
+            'SELECT pi.id, pi.path, pi.post_id, p.content, p.created_at
+             FROM post_images pi
+             JOIN posts p ON p.id = pi.post_id
+             WHERE p.user_id = ? AND p.shared_post_id IS NULL
+             ORDER BY p.created_at DESC, pi.position ASC
+             LIMIT ' . max(1, $limit),
+            [$id]
+        );
     }
 }
