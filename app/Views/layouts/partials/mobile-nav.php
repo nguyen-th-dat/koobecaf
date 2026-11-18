@@ -1,4 +1,7 @@
 <?php
+/**
+ * Thanh điều hướng dưới màn hình + ngăn kéo menu (chỉ dùng cho người đã đăng nhập).
+ */
 $unreadMessages = auth_id() !== null ? \App\Models\Conversation::totalUnread(auth_id()) : 0;
 $unreadNotifications = auth_id() !== null ? \App\Models\Notification::unreadCount(auth_id()) : 0;
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
