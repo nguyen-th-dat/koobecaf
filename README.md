@@ -58,6 +58,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - **Realtime** (WebSocket): bài viết mới từ người theo dõi / bạn bè được chèn lên đầu feed kèm hiệu ứng nổi; số liệu like / bình luận / chia sẻ và bình luận mới cập nhật tức thì trên bài đang xem.
 
 ### 2.4. Bài viết (Posts)
+- **Trang đăng bài riêng** (`/posts/create`): soạn nội dung, chọn ảnh, chọn quyền riêng tư — tách khỏi bảng tin.
 - Tạo bài viết chỉ có chữ, có ảnh (1–n ảnh), có ảnh kèm link.
 - Xem trước ảnh trước khi đăng (client-side).
 - Sửa / xóa bài viết của mình, có hộp thoại xác nhận trước khi xóa.
@@ -737,7 +738,7 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 |---|---|
 | Xác thực | `GET/POST /login`, `GET/POST /register`, `POST /logout` |
 | Công khai | `GET /`, `GET /post/{id}`, `GET /p/{id}`, `GET /u/{username}`, `GET /search` |
-| Bài viết | `POST /posts`, `GET /posts/{id}/edit`, `POST /posts/{id}/update|delete|like|comment|share` |
+| Bài viết | `GET /posts/create`, `POST /posts`, `GET /posts/{id}/edit`, `POST /posts/{id}/update|delete|like|comment|share` |
 | Bình luận | `POST /comments/{id}/update|delete` |
 | Hồ sơ | `GET/POST /settings/profile`, `POST /settings/password`, `POST /settings/theme` |
 | Bạn bè | `GET /friends`, `GET /friends/requests`, `POST /friends/request/{id}`, `POST /friends/{id}/accept|decline|cancel|remove` |
