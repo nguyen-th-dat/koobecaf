@@ -10,8 +10,7 @@ function php(script) {
 
 const out = php(
     "require 'app/bootstrap.php'; \\App\\Core\\Env::load('.env');" +
-    "$id = \\App\\Models\\Post::create(2, 'REALTIME-TEST-' . time(), 'public');" +
-    "\\App\\Services\\RealtimeService::postCreated($id);" +
-    "echo $id;"
+    "$rows = \\App\\Core\\Database::fetchAll('SELECT id, actor_id, type, entity_id FROM notifications WHERE user_id = 1 ORDER BY id DESC LIMIT 5');" +
+    "echo json_encode($rows);"
 );
-console.log('post id:', out);
+console.log(out);
