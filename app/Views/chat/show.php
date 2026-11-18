@@ -65,6 +65,10 @@ $viewerId = auth_id();
             <?php endif; ?>
         </div>
 
+        <div class="chat-typing px-3 pb-1 small fg-secondary d-none" id="chatTyping" aria-live="polite">
+            <span class="typing-dots"><i class="bi bi-three-dots"></i></span> đang gõ...
+        </div>
+
         <form class="chat-input d-flex gap-2 p-3 border-top" id="chatForm" data-conversation-id="<?= (int) $conversationId ?>" data-draft="chat-<?= (int) $conversationId ?>">
             <input type="text" class="form-control" name="body" placeholder="Nhập tin nhắn..." maxlength="5000" autocomplete="off" required>
             <button class="btn btn-solid" type="submit"><i class="bi bi-send"></i><span class="d-none sm:d-inline ms-1">Gửi</span></button>
