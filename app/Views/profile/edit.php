@@ -28,6 +28,7 @@
                 <div class="col-12">
                     <label class="form-label" for="bio">Tiểu sử</label>
                     <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="500" placeholder="Giới thiệu về bạn..."><?= e($user['bio']) ?></textarea>
+                    <div class="form-text">Tối đa 500 ký tự.</div>
                 </div>
             </div>
 
@@ -64,6 +65,7 @@
             <div class="mb-3">
                 <label class="form-label" for="new_password">Mật khẩu mới</label>
                 <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8" autocomplete="new-password">
+                <div class="form-text">Tối thiểu 8 ký tự.</div>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="new_password_confirmation">Xác nhận mật khẩu mới</label>
@@ -85,6 +87,7 @@
                 <button type="button" class="btn btn-outline theme-btn<?= $user['theme'] === 'light' ? ' active' : '' ?>" data-theme="light"><i class="bi bi-sun me-1"></i>Sáng</button>
                 <button type="button" class="btn btn-outline theme-btn<?= $user['theme'] === 'dark' ? ' active' : '' ?>" data-theme="dark"><i class="bi bi-moon-stars me-1"></i>Tối</button>
             </div>
+            <div class="form-text mt-2">Giao diện được lưu theo tài khoản của bạn.</div>
         </form>
     </div>
 </div>
