@@ -6,10 +6,10 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Response;
-use App\Core\Session;
 use App\Models\Friendship;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 
 final class FriendController extends Controller
 {
@@ -68,11 +68,13 @@ final class FriendController extends Controller
 
         if ($accepted) {
             NotificationService::friendAccepted($targetId, $userId);
-            Session::flash('success', 'Đã chấp nhận lời mời kết bạn.');
+            setFlashMessage('success', 'Đã chấp nhận lời mời kết bạn.');
         } else {
             NotificationService::friendRequested($targetId, $userId);
-            Session::flash('success', 'Đã gửi lời mời kết bạn.');
+            setFlashMessage('success', 'Đã gửi lời mời kết bạn.');
         }
+
+        RealtimeService::social($accepted ? 'friend.accepted' : 'friend.requested', $userId, $targetId);
 
         if ($this->request->isJson()) {
             Response::success(['status' => Friendship::status($userId, $targetId)]);
@@ -99,7 +101,8 @@ final class FriendController extends Controller
 
         Friendship::accept($userId, $friendshipId);
         NotificationService::friendAccepted((int) $request['user_id'], $userId);
-        Session::flash('success', 'Đã chấp nhận lời mời kết bạn.');
+        RealtimeService::social('friend.accepted', $userId, (int) $request['user_id']);
+        setFlashMessage('success', 'Đã chấp nhận lời mời kết bạn.');
 
         Response::back('/friends/requests');
     }
@@ -112,7 +115,7 @@ final class FriendController extends Controller
         }
 
         Friendship::decline($userId, (int) $params['id']);
-        Session::flash('success', 'Đã từ chối lời mời.');
+        setFlashMessage('success', 'Đã từ chối lời mời.');
 
         Response::back('/friends/requests');
     }
@@ -126,7 +129,7 @@ final class FriendController extends Controller
         }
 
         Friendship::cancel($userId, $targetId);
-        Session::flash('success', 'Đã hủy lời mời.');
+        setFlashMessage('success', 'Đã hủy lời mời.');
 
         Response::back('/friends');
     }
@@ -140,7 +143,7 @@ final class FriendController extends Controller
         }
 
         Friendship::unfriend($userId, $targetId);
-        Session::flash('success', 'Đã hủy kết bạn.');
+        setFlashMessage('success', 'Đã hủy kết bạn.');
 
         Response::back('/friends');
     }
