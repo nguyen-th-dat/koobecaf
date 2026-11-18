@@ -36,7 +36,11 @@ $viewerId = auth_id();
 
         <div class="chat-messages flex-grow-1 p-3" data-conversation-id="<?= (int) $conversationId ?>">
             <?php if ($messages === []): ?>
-                <p class="fg-secondary text-center small">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
+                <div class="empty-state">
+                    <span class="empty-icon"><i class="bi bi-chat-heart"></i></span>
+                    <h3>Chưa có tin nhắn nào</h3>
+                    <p>Hãy bắt đầu cuộc trò chuyện với <?= $other !== null ? e($other['display_name']) : 'bạn bè' ?>.</p>
+                </div>
             <?php else: ?>
                 <?php foreach ($messages as $message): ?>
                     <?php $isMine = (int) $message['sender_id'] === $viewerId; ?>
