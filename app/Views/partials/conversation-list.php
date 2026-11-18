@@ -15,20 +15,31 @@ $activeId = $activeId ?? null;
     </div>
 <?php else: ?>
     <?php foreach ($conversations as $conversation): ?>
-        <a class="chat-conversation<?= (int) $conversation['id'] === $activeId ? ' active' : '' ?>"
-           href="<?= url('/chat/' . (int) $conversation['id']) ?>">
-            <img src="<?= e(avatar_url($conversation['other_avatar_path'])) ?>" alt="" class="avatar avatar-md">
+        <?php $unread = (int) $conversation['unread_count']; ?>
+        <a class="chat-conversation<?= (int) $conversation['id'] === $activeId ? ' active' : '' ?><?= $unread > 0 ? ' unread' : '' ?>"
+           href="<?= url('/chat/' . (int) $conversation['id']) ?>"
+           data-conversation-id="<?= (int) $conversation['id'] ?>"
+           data-unread="<?= $unread ?>"
+           data-search="<?= e(mb_strtolower(trim($conversation['other_display_name'] . ' ' . $conversation['other_username']))) ?>">
+            <span class="position-relative flex-shrink-0">
+                <img src="<?= e(avatar_url($conversation['other_avatar_path'])) ?>" alt="" class="avatar avatar-md">
+                <?php if ($unread > 0): ?>
+                    <span class="chat-presence-dot" aria-hidden="true"></span>
+                <?php endif; ?>
+            </span>
+
             <div class="person-meta">
-                <div class="d-flex justify-content-between gap-2">
+                <div class="d-flex align-items-baseline justify-content-between gap-2">
                     <span class="person-name"><?= e($conversation['other_display_name']) ?></span>
-                    <small class="fg-secondary text-nowrap"><?= e(time_ago($conversation['last_message_at'] ?? $conversation['updated_at'])) ?></small>
+                    <small class="chat-conversation-time"><?= e(time_ago($conversation['last_message_at'] ?? $conversation['updated_at'])) ?></small>
                 </div>
-                <small class="fg-secondary d-block text-truncate">
+                <small class="chat-preview">
                     <?= e(excerpt($conversation['last_message'] ?? 'Bắt đầu cuộc trò chuyện', 60)) ?>
                 </small>
             </div>
-            <?php if ((int) $conversation['unread_count'] > 0): ?>
-                <span class="badge rounded-pill bg-primary"><?= (int) $conversation['unread_count'] ?></span>
+
+            <?php if ($unread > 0): ?>
+                <span class="chat-unread"><?= $unread > 99 ? '99+' : $unread ?></span>
             <?php endif; ?>
         </a>
     <?php endforeach; ?>
