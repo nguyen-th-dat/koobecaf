@@ -8,6 +8,12 @@ $appCss = file_get_contents($root . '/assets/css/app.css');
 // CSS escape dấu hai chấm trong selector (vd .lg\:col-2) — bỏ backslash để so khớp
 $appCss = str_replace('\\', '', $appCss);
 
+// Hệ thống toast nằm ở file riêng nên cũng phải được kiểm tra.
+$toastCss = is_file($root . '/assets/css/toast.css')
+    ? str_replace('\\', '', file_get_contents($root . '/assets/css/toast.css'))
+    : '';
+$appCss .= $toastCss;
+
 $classes = [];
 $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app/Views'));
 foreach ($rii as $file) {
