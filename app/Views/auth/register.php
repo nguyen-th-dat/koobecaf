@@ -1,6 +1,6 @@
 <div class="auth-title">
     <h1>Đăng ký</h1>
-    <p class="text-secondary mb-0">Tạo tài khoản để kết nối với bạn bè.</p>
+    <p class="fg-secondary mb-0">Tạo tài khoản để kết nối với bạn bè.</p>
 </div>
 
 <form action="<?= url('/register') ?>" method="post" novalidate>
@@ -26,7 +26,7 @@
         <label class="form-label" for="password">Mật khẩu</label>
         <div class="input-group">
             <input type="password" class="form-control" id="password" name="password" required minlength="8" autocomplete="new-password">
-            <button class="btn btn-outline-secondary" type="button" data-toggle-password="#password" aria-label="Hiện mật khẩu">
+            <button class="btn btn-outline" type="button" data-toggle-password="#password" aria-label="Hiện mật khẩu">
                 <i class="bi bi-eye"></i>
             </button>
         </div>
@@ -38,7 +38,7 @@
         <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required minlength="8" autocomplete="new-password">
     </div>
 
-    <button class="btn btn-primary w-100" type="submit">Tạo tài khoản</button>
+    <button class="btn btn-solid w-100" type="submit">Tạo tài khoản</button>
 </form>
 
 <hr class="my-4">
