@@ -190,7 +190,7 @@ koobecaf/
 ├── .htaccess                      # Rewrite về index.php + chặn mã nguồn
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
 │   ├── css/app.css                # Design system tự viết (token, layout, component)
-│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling
+│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling + lưu nháp form
 │   ├── images/logo.png            # Logo thương hiệu
 │   └── vendor/                    # Bootstrap Icons (bản local)
 ├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
