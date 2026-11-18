@@ -10,10 +10,15 @@ if ($base !== '' && str_starts_with($path, $base)) {
     $path = substr($path, strlen($base));
 }
 $path = '/' . trim($path, '/');
+
+/** Đánh dấu mục điều hướng ngang đang active */
+$navActive = static function (string $prefix) use ($path): string {
+    return ($prefix === '/' ? $path === '/' : str_starts_with($path, $prefix)) ? ' active' : '';
+};
 ?>
 <header class="topbar sticky-top">
     <div class="container-fluid">
-        <div class="d-flex align-items-center gap-2">
+        <div class="topbar-inner">
             <button class="btn icon-btn lg:d-none" type="button" data-drawer-toggle="#mobileSidebar" aria-label="Menu">
                 <i class="bi bi-list"></i>
             </button>
@@ -23,7 +28,16 @@ $path = '/' . trim($path, '/');
                 <span class="brand-text">Koobecaf</span>
             </a>
 
-            <form class="search-form flex-grow-1 lg:mx-4" action="<?= url('/search') ?>" method="get" role="search">
+            <?php if (is_auth()): ?>
+                <nav class="topbar-nav" aria-label="Điều hướng chính">
+                    <a class="nav-link<?= $navActive('/') ?>" href="<?= url('/') ?>">Bảng tin</a>
+                    <a class="nav-link<?= $navActive('/discover') ?>" href="<?= url('/discover') ?>">Khám phá</a>
+                    <a class="nav-link<?= $navActive('/chat') ?>" href="<?= url('/chat') ?>">Trò chuyện</a>
+                    <a class="nav-link<?= $navActive('/notifications') ?>" href="<?= url('/notifications') ?>">Thông báo</a>
+                </nav>
+            <?php endif; ?>
+
+            <form class="search-form" action="<?= url('/search') ?>" method="get" role="search">
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
             </form>
