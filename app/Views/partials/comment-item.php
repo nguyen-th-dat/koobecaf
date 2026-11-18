@@ -8,7 +8,7 @@ $isMine = $viewerId !== null && (int) $comment['user_id'] === $viewerId;
 ?>
 <div class="comment-item d-flex gap-2 py-2" data-comment-id="<?= (int) $comment['id'] ?>">
     <a href="<?= url('/u/' . $comment['username']) ?>">
-        <img src="<?= e(upload_url($comment['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+        <img src="<?= e(avatar_url($comment['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
     </a>
     <div class="flex-grow-1 min-w-0">
         <div class="comment-bubble">

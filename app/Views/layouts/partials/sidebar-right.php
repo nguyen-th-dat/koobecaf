@@ -13,7 +13,7 @@ $following = $userId !== null ? \App\Models\User::followingSuggestions($userId, 
                 <ul class="list-unified">
                     <?php foreach ($suggestions as $person): ?>
                         <li class="d-flex align-items-center gap-2 py-2">
-                            <img src="<?= e(upload_url($person['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                            <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
                             <div class="flex-grow-1 min-w-0">
                                 <a class="d-block text-truncate fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $person['username']) ?>">
                                     <?= e($person['display_name']) ?>
@@ -37,7 +37,7 @@ $following = $userId !== null ? \App\Models\User::followingSuggestions($userId, 
                 <ul class="list-unified">
                     <?php foreach ($following as $person): ?>
                         <li class="d-flex align-items-center gap-2 py-2">
-                            <img src="<?= e(upload_url($person['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                            <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                             <div class="min-w-0">
                                 <a class="d-block text-truncate fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $person['username']) ?>">
                                     <?= e($person['display_name']) ?>

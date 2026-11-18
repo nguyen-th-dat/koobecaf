@@ -28,7 +28,7 @@
                 <?php foreach ($conversations as $conversation): ?>
                     <li>
                         <a class="d-flex align-items-center gap-2 py-2 fg-body text-decoration-none" href="<?= url('/chat/' . (int) $conversation['id']) ?>">
-                            <img src="<?= e(upload_url($conversation['other_avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                            <img src="<?= e(avatar_url($conversation['other_avatar_path'])) ?>" alt="" class="avatar avatar-md">
                             <div class="flex-grow-1 min-w-0">
                                 <div class="d-flex justify-content-between gap-2">
                                     <span class="fw-semibold text-truncate"><?= e($conversation['other_display_name']) ?></span>

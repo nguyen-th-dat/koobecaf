@@ -35,7 +35,7 @@ $labels = [
                 <?php foreach ($notifications as $notification): ?>
                     <li class="notification-item d-flex gap-2 py-2<?= (int) $notification['is_read'] === 0 ? ' unread' : '' ?>"
                         data-notification-id="<?= (int) $notification['id'] ?>">
-                        <img src="<?= e(upload_url($notification['actor_avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                        <img src="<?= e(avatar_url($notification['actor_avatar_path'])) ?>" alt="" class="avatar avatar-md">
                         <div class="flex-grow-1 min-w-0">
                             <div class="small">
                                 <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $notification['actor_username']) ?>">

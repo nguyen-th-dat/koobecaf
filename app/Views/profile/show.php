@@ -20,7 +20,7 @@ $friendStatus = $friendStatus ?? 'none';
     </div>
     <div class="card-body pt-0">
         <div class="d-flex align-items-end gap-3 profile-avatar-row">
-            <img src="<?= e(upload_url($user['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-xl">
+            <img src="<?= e(avatar_url($user['avatar_path'])) ?>" alt="" class="avatar avatar-xl">
             <div class="flex-grow-1 min-w-0 pb-2">
                 <h1 class="h2 mb-0 text-truncate"><?= e($user['display_name']) ?></h1>
                 <div class="fg-secondary">@<?= e($user['username']) ?></div>
@@ -106,7 +106,7 @@ $friendStatus = $friendStatus ?? 'none';
             <?php else: ?>
                 <?php foreach ($comments as $comment): ?>
                     <div class="d-flex gap-2 py-2 border-bottom">
-                        <img src="<?= e(upload_url($comment['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                        <img src="<?= e(avatar_url($comment['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                         <div class="min-w-0">
                             <div class="d-flex align-items-center gap-2">
                                 <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $comment['username']) ?>"><?= e($comment['display_name']) ?></a>
@@ -132,7 +132,7 @@ $friendStatus = $friendStatus ?? 'none';
                 <?php foreach ($shared as $share): ?>
                     <div class="py-2 border-bottom">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <img src="<?= e(upload_url($share['author_avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                            <img src="<?= e(avatar_url($share['author_avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                             <div class="min-w-0">
                                 <a class="fw-semibold fg-body-emphasis text-decoration-none d-block text-truncate" href="<?= url('/u/' . $share['author_username']) ?>">
                                     <?= e($share['author_display_name']) ?>
@@ -170,7 +170,7 @@ $friendStatus = $friendStatus ?? 'none';
                 <ul class="list-unified">
                     <?php foreach ($people as $person): ?>
                         <li class="d-flex align-items-center gap-2 py-2">
-                            <img src="<?= e(upload_url($person['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                            <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
                             <div class="flex-grow-1 min-w-0">
                                 <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
                                     <?= e($person['display_name']) ?>

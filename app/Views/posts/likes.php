@@ -17,7 +17,7 @@
             <ul class="list-unified">
                 <?php foreach ($users as $person): ?>
                     <li class="d-flex align-items-center gap-2 py-2">
-                        <img src="<?= e(upload_url($person['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                        <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
                         <div class="flex-grow-1 min-w-0">
                             <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
                                 <?= e($person['display_name']) ?>

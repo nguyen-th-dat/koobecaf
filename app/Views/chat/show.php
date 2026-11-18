@@ -17,7 +17,7 @@ $viewerId = auth_id();
                 <?php foreach ($conversations as $conversation): ?>
                     <a class="chat-conversation<?= (int) $conversation['id'] === $conversationId ? ' active' : '' ?>"
                        href="<?= url('/chat/' . (int) $conversation['id']) ?>">
-                        <img src="<?= e(upload_url($conversation['other_avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                        <img src="<?= e(avatar_url($conversation['other_avatar_path'])) ?>" alt="" class="avatar avatar-md">
                         <div class="min-w-0 flex-grow-1">
                             <div class="d-flex justify-content-between gap-2">
                                 <span class="fw-semibold text-truncate"><?= e($conversation['other_display_name']) ?></span>
@@ -38,7 +38,7 @@ $viewerId = auth_id();
         <div class="chat-header d-flex align-items-center gap-2 p-3 border-bottom">
             <a class="btn btn-subtle btn-sm md:d-none" href="<?= url('/chat') ?>"><i class="bi bi-arrow-left"></i></a>
             <?php if ($other !== null): ?>
-                <img src="<?= e(upload_url($other['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                <img src="<?= e(avatar_url($other['avatar_path'])) ?>" alt="" class="avatar avatar-md">
                 <div class="min-w-0">
                     <div class="fw-semibold text-truncate"><?= e($other['display_name']) ?></div>
                     <small class="fg-secondary">@<?= e($other['username']) ?></small>
@@ -54,7 +54,7 @@ $viewerId = auth_id();
                     <?php $isMine = (int) $message['sender_id'] === $viewerId; ?>
                     <div class="chat-bubble-row <?= $isMine ? 'mine' : '' ?>" data-message-id="<?= (int) $message['id'] ?>">
                         <?php if (!$isMine): ?>
-                            <img src="<?= e(upload_url($message['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                            <img src="<?= e(avatar_url($message['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                         <?php endif; ?>
                         <div class="chat-bubble">
                             <div class="chat-text"><?= nl2br(e($message['body'])) ?></div>

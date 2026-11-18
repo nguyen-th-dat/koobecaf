@@ -14,7 +14,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
             <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm">
                 <?= \App\Core\Csrf::field() ?>
                 <div class="d-flex gap-2">
-                    <img src="<?= e(upload_url($user['avatar_path'] ?? null) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                    <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md">
                     <textarea name="content" class="form-control" rows="3" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"></textarea>
                 </div>
 

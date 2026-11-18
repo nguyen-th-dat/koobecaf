@@ -13,7 +13,7 @@ $originalImages = $meta['originalImages'];
 <article class="card surface-card post-card mb-3" data-post-id="<?= (int) $post['id'] ?>">
     <?php if ($meta['isShared'] && $original !== null): ?>
         <div class="shared-header d-flex align-items-center gap-2 px-3 pt-3">
-            <img src="<?= e(upload_url($post['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+            <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
             <div class="min-w-0">
                 <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
                 <small class="fg-secondary d-block">đã chia sẻ · <?= e(time_ago($post['created_at'])) ?></small>
@@ -24,7 +24,7 @@ $originalImages = $meta['originalImages'];
     <div class="post-body d-flex gap-3 p-3">
         <?php if (!$meta['isShared'] || $original === null): ?>
             <a href="<?= url('/u/' . $post['username']) ?>">
-                <img src="<?= e(upload_url($post['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
+                <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-md">
             </a>
         <?php endif; ?>
 
@@ -64,7 +64,7 @@ $originalImages = $meta['originalImages'];
             <?php if ($meta['isShared'] && $original !== null): ?>
                 <div class="shared-original p-3 mt-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <img src="<?= e(upload_url($original['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                        <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                         <div>
                             <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
                             <small class="fg-secondary d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
@@ -123,7 +123,7 @@ $originalImages = $meta['originalImages'];
     <div class="post-comments border-top d-none" data-comments-container="<?= (int) $post['id'] ?>">
         <?php if (is_auth()): ?>
             <form class="comment-form d-flex gap-2 p-2 border-bottom" data-post-id="<?= (int) $post['id'] ?>">
-                <img src="<?= e(upload_url(auth_user()['avatar_path'] ?? null) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
+                <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                 <input type="text" name="content" class="form-control form-control-sm" placeholder="Viết bình luận..." maxlength="2000" required>
                 <input type="hidden" name="parent_id" value="">
                 <button class="btn btn-solid btn-sm" type="submit">Gửi</button>

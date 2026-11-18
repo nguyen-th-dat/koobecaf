@@ -28,7 +28,7 @@ $path = '/' . trim($path, '/');
                 <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
             </form>
 
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1 ms-auto">
                 <?php if (is_auth()): ?>
                     <a class="btn icon-btn position-relative" href="<?= url('/chat') ?>" aria-label="Tin nhắn">
                         <i class="bi bi-chat-dots"></i>

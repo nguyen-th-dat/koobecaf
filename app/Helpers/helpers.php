@@ -198,11 +198,10 @@ if (!function_exists('format_date')) {
 }
 
 if (!function_exists('avatar_url')) {
-    function avatar_url(?string $path, string $fallback = 'default'): string
+    /** URL ảnh đại diện, dùng ảnh mặc định khi người dùng chưa tải avatar lên. */
+    function avatar_url(?string $path): string
     {
-        $url = upload_url($path);
-
-        return $url ?? asset('images/' . $fallback . '.svg');
+        return upload_url($path) ?? upload_url('avatars/default-avatar.png');
     }
 }
 
