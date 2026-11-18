@@ -1,6 +1,6 @@
 # Koobecaf — Nền tảng mạng xã hội (PHP thuần + MySQL)
 
-Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ bản, được xây dựng bằng **PHP 8.2 thuần** (không dùng Laravel), **MySQL/MariaDB (InnoDB)** và **Bootstrap 5.3.x**. Toàn bộ Backend, Frontend và Database đều là mã nguồn thật, có thể triển khai và chạy trực tiếp trên XAMPP.
+Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ bản, được xây dựng bằng **PHP 8.2 thuần** (không dùng Laravel), **MySQL/MariaDB (InnoDB)** và **CSS tự viết theo design system**. Toàn bộ Backend, Frontend và Database đều là mã nguồn thật, có thể triển khai và chạy trực tiếp trên XAMPP.
 
 ---
 
@@ -19,12 +19,12 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 | Lớp | Công nghệ |
 |---|---|
 | Backend | PHP 8.2+, MVC thuần, PDO (prepared statements), PHP Session, Composer (PSR-4 autoload) |
-| Frontend | HTML5, CSS3, JavaScript ES6+ (Fetch API), Bootstrap 5.3.3, Bootstrap Icons 1.11.x |
+| Frontend | HTML5, CSS3 (design system tự viết trong `assets/css/app.css`), JavaScript ES6+ (Fetch API), Bootstrap Icons 1.13.2 |
 | Database | MySQL 8.0+ / MariaDB 10.4+, InnoDB, `utf8mb4_unicode_ci` |
 | Môi trường | XAMPP (Apache + PHP + MySQL/MariaDB) |
 | Công cụ | Composer, `php -S` (dev server), bộ test tích hợp tự viết |
 
-> Bootstrap 5.3.x và Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet.
+> Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet. Phần CSS không dùng Bootstrap: toàn bộ token, layout và component được viết tay theo `DESIGN.md` (nền kem `#faf9f5`, nhấn mint `#14806c`, Cormorant Garamond cho tiêu đề, Inter cho nội dung).
 
 ---
 
@@ -174,10 +174,10 @@ koobecaf/
 ├── router.php                     # Router script cho `php -S`
 ├── .htaccess                      # Rewrite về index.php + chặn mã nguồn
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
-│   ├── css/app.css                # CSS riêng (bám theo biến Bootstrap 5.3)
+│   ├── css/app.css                # Design system tự viết (token, layout, component)
 │   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling
-│   ├── images/                    # logo.png (logo thương hiệu), favicon.svg, default.svg
-│   └── vendor/                    # Bootstrap 5.3.3 + Bootstrap Icons (bản local)
+│   ├── images/logo.png            # Logo thương hiệu
+│   └── vendor/                    # Bootstrap Icons (bản local)
 ├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
 │
 ├── routes/
@@ -189,11 +189,15 @@ koobecaf/
 ├── tests/
 │   ├── smoke.php                   # 54 kiểm tra tích hợp end-to-end
 │   ├── extended.php                # 40 kiểm tra biên (upload, quyền, riêng tư, mật khẩu, theme, regression)
-│   └── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
+│   ├── password_reset.php          # 21 kiểm tra luồng quên/đặt lại mật khẩu
+│   ├── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
+│   └── check_classes.php           # Kiểm tra class trong CSS có được định nghĩa
 │
 ├── .env.example                   # Mẫu cấu hình môi trường
 ├── .gitignore
 ├── composer.json
+├── package.json                   # Bootstrap Icons (nguồn để vendor lại assets/vendor/)
+├── DESIGN.md                      # Design system: token màu, typography, layout
 ├── README.md
 └── PROGRESS.md
 ```
@@ -208,7 +212,7 @@ koobecaf/
 | MySQL | 8.0 | Hoặc MariaDB 10.4+ |
 | Apache | 2.4 | Bật `mod_rewrite`, `AllowOverride All` |
 | Composer | 2.x | Chỉ dùng để sinh autoload PSR-4 |
-| Bootstrap | 5.3.x | Đã vendor sẵn, không cần tải thêm |
+| Node.js | 18+ | Chỉ cần khi muốn cập nhật lại `assets/vendor/bootstrap-icons` từ `node_modules` |
 
 ---
 
