@@ -9,7 +9,7 @@ use App\Core\Request;
 use App\Core\Router;
 use App\Core\Session;
 
-define('BASE_PATH', dirname(__DIR__));
+define('BASE_PATH', __DIR__);
 
 require BASE_PATH . '/app/bootstrap.php';
 
@@ -21,14 +21,14 @@ Config::load(BASE_PATH . '/config');
  *
  * Ứng dụng có thể nằm ở nhiều vị trí khác nhau:
  *   - PHP built-in server: SCRIPT_NAME = /index.php          → base rỗng
- *   - Apache trong htdocs: SCRIPT_NAME = /koobecaf/public/index.php → base = /koobecaf/public
+ *   - Apache trong htdocs: SCRIPT_NAME = /koobecaf/index.php → base = /koobecaf
  *
  * dirname() của SCRIPT_NAME chính là thư mục chứa entrypoint, tức phần
  * tiền tố URL mà mọi route của ứng dụng sẽ nằm sau.
  */
 if (rtrim((string) Env::get('APP_BASE_PATH', ''), '/') === '') {
     $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? ''));
-    $detected = rtrim(dirname($scriptName), '/');
+    $detected = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
 
     Env::set('APP_BASE_PATH', $detected === '/' ? '' : $detected);
 }

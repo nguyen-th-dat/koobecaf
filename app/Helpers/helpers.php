@@ -66,7 +66,7 @@ if (!function_exists('url')) {
 }
 
 if (!function_exists('asset')) {
-    /** URL của tài nguyên tĩnh trong thư mục public. */
+    /** URL của tài nguyên tĩnh trong thư mục assets. */
     function asset(string $path): string
     {
         return url('/assets/' . ltrim($path, '/'));

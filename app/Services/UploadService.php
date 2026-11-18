@@ -45,7 +45,7 @@ final class UploadService
         $extension = self::ALLOWED_MIMES[$mime];
         $filename = bin2hex(random_bytes(16)) . '.' . $extension;
 
-        $baseDir = dirname(__DIR__, 2) . '/public/uploads/' . trim($folder, '/');
+        $baseDir = dirname(__DIR__, 2) . '/uploads/' . trim($folder, '/');
         if (!is_dir($baseDir) && !mkdir($baseDir, 0775, true) && !is_dir($baseDir)) {
             throw new \RuntimeException('Không thể tạo thư mục lưu trữ.');
         }
@@ -67,7 +67,7 @@ final class UploadService
         if (str_contains($relativePath, '..')) {
             return;
         }
-        $full = dirname(__DIR__, 2) . '/public/uploads/' . ltrim($relativePath, '/');
+        $full = dirname(__DIR__, 2) . '/uploads/' . ltrim($relativePath, '/');
         if (is_file($full)) {
             @unlink($full);
         }

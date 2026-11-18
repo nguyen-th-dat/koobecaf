@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Router cho PHP built-in server (chỉ dùng khi phát triển).
- * Chạy: php -S localhost:8000 -t public public/router.php
+ * Chạy: php -S localhost:8000 -t . router.php
  */
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 $file = __DIR__ . $path;
