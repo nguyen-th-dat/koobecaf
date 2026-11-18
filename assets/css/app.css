@@ -1758,14 +1758,29 @@
 
     /* ---------------- Trò chuyện ----------------
        Trang chat dùng bố cục "app trong app": cột danh sách hội thoại cố định
-       bên trái, vùng đọc tin nhắn ở giữa. Chiều cao khớp viewport để ô nhập
-       luôn nằm sát đáy mà không phải cuộn trang. */
+       bên trái, vùng đọc tin nhắn ở giữa. Trên desktop, chiều cao khớp viewport
+       để ô nhập luôn nằm sát đáy mà không phải cuộn trang. */
     .chat-layout {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
         gap: var(--kb-space-md);
-        height: calc(100vh - var(--kb-topbar-h) - var(--kb-space-xxl));
-        min-height: 480px;
+    }
+
+    /* ---- Mobile: danh sách hội thoại chiếm trọn màn hình ---- */
+    .chat-layout[data-view="list"] .chat-sidebar {
+        display: flex;
+        height: calc(100dvh - var(--kb-topbar-h) - 96px);
+        min-height: 420px;
+    }
+
+    /* ---- Mobile: mở một cuộc trò chuyện — ẩn danh sách, hiện vùng đọc ---- */
+    .chat-layout[data-view="conversation"] {
+        height: calc(100dvh - var(--kb-topbar-h) - 84px);
+        min-height: 440px;
+    }
+
+    .chat-layout[data-view="conversation"] .chat-sidebar {
+        display: none;
     }
 
     /* ---- Cột danh sách hội thoại ---- */
@@ -2099,6 +2114,18 @@
 
     .chat-bubble-row.mine .chat-time {
         opacity: .85;
+    }
+
+    /* Chấm nhắc chưa đọc trên avatar */
+    .chat-presence-dot {
+        position: absolute;
+        right: 0;
+        bottom: 1px;
+        width: 10px;
+        height: 10px;
+        border-radius: var(--kb-radius-pill);
+        background-color: var(--kb-primary);
+        border: 2px solid var(--kb-surface-card);
     }
 
     /* ---- Ô nhập tin nhắn ---- */
@@ -2823,12 +2850,18 @@
             display: none;
         }
 
+        /* Desktop: hai cột — danh sách hội thoại + vùng đọc */
         .chat-layout {
             grid-template-columns: 340px minmax(0, 1fr);
+            height: calc(100vh - var(--kb-topbar-h) - var(--kb-space-xxl));
+            min-height: 480px;
         }
 
-        .chat-sidebar {
+        .chat-layout[data-view="list"] .chat-sidebar,
+        .chat-layout[data-view="conversation"] .chat-sidebar {
             display: flex;
+            height: auto;
+            min-height: 0;
         }
     }
 
