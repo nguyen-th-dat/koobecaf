@@ -11,16 +11,15 @@
 # AI tools
 /.claude/
 /.cursor/
+/.agents/
+/.aider-desk/
+PROMT.md
 
 # Project directories
 /tools/
 /test/
 /temp/
 /tmp/
-
-/.agents
-/.aider-desk
-PROMT.md
 
 # Log ứng dụng
 /storage/logs/*.log
@@ -35,6 +34,3 @@ PROMT.md
 !/uploads/avatars/default-avatar.png
 /uploads/covers/*
 /uploads/posts/*
-DESIGN.md
-/tests/
-
