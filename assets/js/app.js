@@ -498,10 +498,13 @@ function buildCommentNode(comment) {
 
     const repliesBox = node.querySelector('.comment-replies');
     if (repliesBox) {
-        comment.replies.forEach(reply => repliesBox.appendChild(buildCommentNode(reply)));
+        (comment.replies || []).forEach(reply => repliesBox.appendChild(buildCommentNode(reply)));
     }
     return node;
 }
+
+// Cho realtime.js dựng lại node bình luận khi có bình luận mới.
+window.KBBuildCommentNode = buildCommentNode;
 
 function escapeHtml(value) {
     const div = document.createElement('div');
@@ -786,6 +789,9 @@ async function refreshBadges() {
 if (Object.keys(badgeSources).length && document.querySelector('[data-badge]')) {
     setInterval(refreshBadges, 15000);
 }
+
+// Cho realtime.js gọi lại khi có sự kiện mới (chat, thông báo…).
+window.KBRefreshBadges = refreshBadges;
 
 /* =============================================================
    Tìm kiếm AJAX
