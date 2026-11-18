@@ -236,15 +236,6 @@ if (topbar) {
 }
 
 /* =============================================================
-   Đóng cảnh báo
-   ============================================================= */
-document.addEventListener('click', (event) => {
-    const dismiss = event.target.closest('[data-alert-dismiss]');
-    if (!dismiss) return;
-    dismiss.closest('.alert')?.remove();
-});
-
-/* =============================================================
    Xác nhận trước khi xóa
    ============================================================= */
 document.addEventListener('submit', (event) => {
@@ -287,6 +278,14 @@ document.addEventListener('click', (event) => {
         headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme: theme }),
         credentials: 'same-origin',
+    }).then((response) => {
+        if (!response.ok) {
+            showToast('error', 'Không thể lưu giao diện.');
+            return;
+        }
+        showToast('success', theme === 'dark' ? 'Đã chuyển sang giao diện tối.' : 'Đã chuyển sang giao diện sáng.');
+    }).catch(() => {
+        showToast('error', 'Không thể lưu giao diện.');
     });
 });
 
@@ -366,6 +365,7 @@ document.addEventListener('click', async (event) => {
         if (icon) icon.className = payload.data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
         const counter = card?.querySelector('[data-like-count]');
         if (counter) counter.innerHTML = `<i class="bi bi-hand-thumbs-up me-1"></i>${payload.data.like_count}`;
+        showToast('success', payload.data.liked ? 'Đã thích bài viết.' : 'Đã bỏ thích bài viết.');
     }
 
     if (action === 'share') {
@@ -452,6 +452,8 @@ document.addEventListener('click', async (event) => {
         if (label) label.textContent = following ? 'Đang theo dõi' : 'Theo dõi';
         button.classList.toggle('is-following', following);
     }
+
+    showToast('success', following ? 'Đã theo dõi.' : 'Đã bỏ theo dõi.');
 });
 
 /* =============================================================
@@ -542,6 +544,8 @@ document.addEventListener('submit', async (event) => {
         return;
     }
 
+    const isReply = Boolean(parentInput && parentInput.value);
+
     input.value = '';
     if (parentInput) parentInput.value = '';
     clearFormDraft(form);
@@ -553,6 +557,7 @@ document.addEventListener('submit', async (event) => {
     const card = form.closest('.post-card');
     const counter = card?.querySelector('[data-comment-count]');
     if (counter) counter.innerHTML = `<i class="bi bi-chat me-1"></i>${payload.data.comment_count}`;
+    showToast('success', isReply ? 'Đã trả lời bình luận.' : 'Đã gửi bình luận.');
 });
 
 document.addEventListener('click', async (event) => {
@@ -729,6 +734,7 @@ if (chatForm && chatMessages) {
 
             input.value = '';
             clearFormDraft(chatForm);
+            showToast('success', 'Đã gửi tin nhắn.');
         } catch (error) {
             showToast('error', error.message || 'Không thể gửi tin nhắn.');
         } finally {
