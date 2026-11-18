@@ -13,6 +13,7 @@ USE `koobecaf`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `notifications`;
+DROP TABLE IF EXISTS `password_resets`;
 DROP TABLE IF EXISTS `messages`;
 DROP TABLE IF EXISTS `conversation_members`;
 DROP TABLE IF EXISTS `conversations`;
@@ -231,4 +232,21 @@ CREATE TABLE `notifications` (
     KEY `idx_notifications_user_read` (`user_id`, `is_read`, `created_at`),
     CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `fk_notifications_actor` FOREIGN KEY (`actor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- -------------------------------------------------------------
+-- password_resets: token đặt lại mật khẩu (quên mật khẩu)
+-- -------------------------------------------------------------
+CREATE TABLE `password_resets` (
+    `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`    BIGINT UNSIGNED NOT NULL,
+    `token_hash` CHAR(64)        NOT NULL,
+    `expires_at` DATETIME        NOT NULL,
+    `used_at`    DATETIME        NULL DEFAULT NULL,
+    `created_at` DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_password_resets_token` (`token_hash`),
+    KEY `idx_password_resets_user` (`user_id`),
+    KEY `idx_password_resets_expires` (`expires_at`),
+    CONSTRAINT `fk_password_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
