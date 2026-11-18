@@ -12,8 +12,8 @@ namespace App\Core;
  * `/internal/publish` của WebSocket server, kèm chữ ký HMAC-SHA256 của body
  * (dùng chung `APP_KEY`) — server chỉ chấp nhận event có chữ ký hợp lệ.
  *
- * Việc gửi không chặn luồng chính: timeout ngắn, lỗi bị bỏ qua âm thầm
- * (client sẽ tự đồng bộ lại qua khi load trang hoặc qua API).
+ * Việc gửi không được làm hỏng luồng chính: timeout ngắn, lỗi bị bỏ qua âm
+ * thầm (client sẽ tự đồng bộ lại khi tải trang hoặc qua API polling dự phòng).
  */
 final class WsPublisher
 {
@@ -23,11 +23,11 @@ final class WsPublisher
     /**
      * Phát một sự kiện.
      *
-     * @param array<string,mixed> $event
+     * @param array<string,mixed> $payload
      */
-    public static function publish(array $event): bool
+    public static function publish(string $event, array $payload = []): bool
     {
-        if (!WebSocketToken::isEnabled()) {
+        if (!WebSocketToken::isEnabled() || $event === '') {
             return false;
         }
 
@@ -36,41 +36,79 @@ final class WsPublisher
             return false;
         }
 
-        $body = json_encode($event, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $body = json_encode(
+            ['event' => $event, 'payload' => $payload],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
         if (!is_string($body)) {
             return false;
         }
 
         $signature = hash_hmac('sha256', $body, self::key());
 
-        $ch = curl_init($url);
-        if ($ch === false) {
+        $response = self::post($url, $body, $signature);
+        if ($response === false) {
+            Logger::info('Không gửi được sự kiện "' . $event . '" tới WebSocket server.');
+
             return false;
         }
 
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $body,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => self::TIMEOUT,
-            CURLOPT_CONNECTTIMEOUT => self::TIMEOUT,
-            CURLOPT_HTTPHEADER     => [
-                'Content-Type: application/json',
-                'X-KB-Signature: ' . $signature,
+        return true;
+    }
+
+    /**
+     * Gửi POST và trả về nội dung phản hồi, hoặc false khi thất bại.
+     */
+    private static function post(string $url, string $body, string $signature): string|false
+    {
+        $headers = [
+            'Content-Type: application/json',
+            'X-KB-Signature: ' . $signature,
+        ];
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            if ($ch === false) {
+                return false;
+            }
+
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $body,
+                CURLOPT_HTTPHEADER     => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => self::TIMEOUT,
+                CURLOPT_CONNECTTIMEOUT => self::TIMEOUT,
+            ]);
+
+            $response = curl_exec($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            curl_close($ch);
+
+            if ($response === false || $status < 200 || $status >= 300) {
+                return false;
+            }
+
+            return (string) $response;
+        }
+
+        // Dự phòng khi không có extension cURL.
+        $context = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => implode("\r\n", $headers),
+                'content'       => $body,
+                'timeout'       => self::TIMEOUT,
+                'ignore_errors' => true,
             ],
         ]);
 
-        $response = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        curl_close($ch);
-
+        $response = @file_get_contents($url, false, $context);
         if ($response === false) {
-            Logger::info('Không gửi được sự kiện tới WebSocket server: ' . $event['event'] ?? '');
-
             return false;
         }
 
-        return $status >= 200 && $status < 300;
+        return $response;
     }
 
     /** URL endpoint nội bộ của WebSocket server. */
@@ -81,12 +119,11 @@ final class WsPublisher
             return $explicit;
         }
 
-        $host = (string) Env::get('WS_HOST', '127.0.0.1');
         $port = (int) Env::get('WS_PORT', 8080);
 
-        // Host/port của WebSocket server là nơi lắng nghe, nên gọi nội bộ
-        // qua chính địa chỉ đó (thường là 127.0.0.1 trên cùng máy).
-        return 'http://' . $host . ':' . $port . '/internal/publish';
+        // WebSocket server thường lắng nghe trên 127.0.0.1 cùng máy với ứng
+        // dụng PHP, nên endpoint nội bộ cũng gọi theo địa chỉ loopback.
+        return 'http://127.0.0.1:' . $port . '/internal/publish';
     }
 
     private static function key(): string
