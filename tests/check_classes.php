@@ -1,11 +1,12 @@
 <?php
 /**
- * Kiểm tra các class dùng trong view có tồn tại trong Bootstrap 6 hay không.
+ * Kiểm tra các class dùng trong view có được định nghĩa trong app.css hay không.
  * Chạy: php tests/check_classes.php
  */
 $root = dirname(__DIR__);
-$css = file_get_contents($root . '/assets/vendor/bootstrap/css/bootstrap.min.css');
 $appCss = file_get_contents($root . '/assets/css/app.css');
+// CSS escape dấu hai chấm trong selector (vd .lg\:col-2) — bỏ backslash để so khớp
+$appCss = str_replace('\\', '', $appCss);
 
 $classes = [];
 $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app/Views'));
@@ -28,16 +29,19 @@ foreach ($rii as $file) {
     }
 }
 
-// Class do app.css định nghĩa
+// Class do app.css định nghĩa (bao gồm selector có dấu hai chấm như .lg\:col-2)
 $defined = [];
-if (preg_match_all('/\.([a-zA-Z][a-zA-Z0-9_-]*)/', $appCss, $m)) {
+if (preg_match_all('/\.([a-zA-Z][a-zA-Z0-9_:-]*)/', $appCss, $m)) {
     $defined = array_unique($m[1]);
 }
-// Class do JavaScript gắn động
+// Class do JavaScript gắn động hoặc hook chỉ mang tính ngữ nghĩa (không cần style)
 $defined = array_merge($defined, [
-    'active', 'show', 'unread', 'is-following', 'd-none', 'comment-form',
+    'active', 'unread', 'is-following', 'comment-form',
     'comment-reply-btn', 'comment-edit-btn', 'comment-delete-btn',
     'count-1', 'count-2', 'count-3', 'count-4',
+    'chat-header', 'chat-input', 'image-preview', 'notification-list',
+    'comment-item', 'comment-list', 'shared-header', 'post-body', 'post-stats',
+    'post-comments', 'profile-card', 'brand-text', 'auth-card',
 ]);
 
 $missing = [];
@@ -49,16 +53,11 @@ foreach ($classes as $cls => $files) {
     if (in_array($cls, $defined, true)) {
         continue;
     }
-    // Tìm trong CSS của Bootstrap (escape ký tự đặc biệt như ':')
-    $needle = '.' . preg_quote($cls, '/');
-    if (preg_match('/' . $needle . '(?![\w-])/', $css)) {
-        continue;
-    }
     $missing[$cls] = array_unique($files);
 }
 
 if ($missing === []) {
-    echo "OK: mọi class đều tồn tại trong Bootstrap 6 hoặc app.css.\n";
+    echo "OK: mọi class đều được định nghĩa trong app.css.\n";
     exit(0);
 }
 

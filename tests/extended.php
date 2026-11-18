@@ -289,7 +289,7 @@ $themeJson = json_decode($res['body'], true);
 check('Doi giao dien toi', ($themeJson['success'] ?? false) === true && ($themeJson['data']['theme'] ?? '') === 'dark', $res['body']);
 
 $res = request('GET', $base . '/');
-check('Trang hien thi data-bs-theme=dark', str_contains($res['body'], 'data-bs-theme="dark"'));
+check('Trang hien thi data-theme=dark', str_contains($res['body'], 'data-theme="dark"'));
 
 // ------------------------------------------------------------------
 // 9. Trang loi moi: chap nhan
