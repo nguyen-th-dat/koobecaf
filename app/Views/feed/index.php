@@ -11,7 +11,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 <?php if (is_auth()): ?>
     <div class="card surface-card mb-3" id="composer">
         <div class="card-body">
-            <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm" data-draft="composer" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
+            <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm" data-draft="composer" data-leave="keep" data-lose-fields="images[]" data-lose-label="Ảnh đã chọn" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
                 <?= \App\Core\Csrf::field() ?>
                 <div class="d-flex gap-3">
                     <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md avatar-ring">
