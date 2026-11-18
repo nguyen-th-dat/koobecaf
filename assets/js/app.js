@@ -416,6 +416,11 @@ document.addEventListener('click', (event) => {
     const link = event.target.closest('a[href$="#composer"]');
     if (!link) return;
 
+    // Trang đăng bài đã là trang riêng — chuyển thẳng tới đó.
+    if (window.location.pathname !== link.pathname) {
+        return;
+    }
+
     event.preventDefault();
     const composer = document.getElementById('composer');
     if (!composer) return;
