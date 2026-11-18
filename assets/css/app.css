@@ -1028,10 +1028,19 @@
         color: var(--kb-primary);
     }
 
+    /* Cụm hành động bên phải: tìm kiếm + CTA + menu tài khoản */
+    .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-sm);
+        min-width: 0;
+    }
+
     .search-form {
         position: relative;
-        max-width: 420px;
-        flex: 1 1 auto;
+        width: 100%;
+        max-width: 340px;
+        flex: 0 1 340px;
     }
 
     /* Nút CTA nhỏ góc trên bên phải */
@@ -1774,6 +1783,22 @@
 
     .post-actions .action-btn i {
         font-size: 1.15rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Chỉ giữ dấu hiệu thương hiệu để nhường chỗ cho ô tìm kiếm */
+    .topbar .brand-text {
+        display: none;
+    }
+
+    .topbar-inner {
+        gap: var(--kb-space-sm);
+    }
+
+    .search-form {
+        flex: 1 1 auto;
+        max-width: none;
     }
 }
 
