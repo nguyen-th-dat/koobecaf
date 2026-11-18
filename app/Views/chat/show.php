@@ -24,13 +24,16 @@ $viewerId = auth_id();
 
     <section class="chat-main card surface-card">
         <div class="chat-header d-flex align-items-center gap-2 p-3 border-bottom">
-            <a class="btn btn-subtle btn-sm md:d-none" href="<?= url('/chat') ?>"><i class="bi bi-arrow-left"></i></a>
+            <a class="btn btn-subtle btn-sm md:d-none" href="<?= url('/chat') ?>" aria-label="Quay lại danh sách hội thoại"><i class="bi bi-arrow-left"></i></a>
             <?php if ($other !== null): ?>
-                <img src="<?= e(avatar_url($other['avatar_path'])) ?>" alt="" class="avatar avatar-md">
+                <img src="<?= e(avatar_url($other['avatar_path'])) ?>" alt="" class="avatar avatar-md avatar-ring">
                 <div class="min-w-0">
                     <div class="fw-semibold text-truncate"><?= e($other['display_name']) ?></div>
                     <small class="fg-secondary">@<?= e($other['username']) ?></small>
                 </div>
+                <a class="btn icon-btn bordered ms-auto" href="<?= url('/u/' . $other['username']) ?>" title="Xem trang cá nhân" aria-label="Xem trang cá nhân">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
             <?php endif; ?>
         </div>
 
