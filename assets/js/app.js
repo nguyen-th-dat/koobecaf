@@ -569,6 +569,7 @@ document.addEventListener('submit', async (event) => {
 
     input.value = '';
     if (parentInput) parentInput.value = '';
+    clearFormDraft(form);
     const container = form.closest('.post-comments');
     if (container) {
         await loadComments(postId, container);
@@ -685,6 +686,7 @@ if (chatForm && chatMessages) {
         }
 
         input.value = '';
+        clearFormDraft(chatForm);
         appendMessage(payload.data);
     });
 
@@ -859,3 +861,144 @@ document.querySelectorAll('.notification-item').forEach(item => {
         });
     });
 });
+
+/* =============================================================
+   Lưu nháp form
+   ------------------------------------------------------------
+   Mỗi form đánh dấu bằng data-draft="<key>" sẽ được lưu vào localStorage mỗi khi
+   người dùng nhập, khôi phục lại khi tải trang (kể cả khi quay lại từ bộ nhớ đệm
+   của trình duyệt) và xoá sau khi form được xử lý thành công.
+
+   Thứ tự ưu tiên khi khôi phục: giá trị do server render (old()) luôn thắng,
+   nháp chỉ dùng cho field còn trống.
+   ============================================================= */
+const DRAFT_PREFIX = 'kb:draft:';
+const DRAFT_DEBOUNCE = 200;
+const DRAFT_SKIP_TYPES = new Set(['file', 'hidden', 'submit', 'button', 'password', 'reset']);
+
+function draftStorageKey(key) {
+    return DRAFT_PREFIX + key;
+}
+
+function readDraft(key) {
+    try {
+        const raw = window.localStorage.getItem(draftStorageKey(key));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeDraft(key, fields) {
+    try {
+        window.localStorage.setItem(draftStorageKey(key), JSON.stringify(fields));
+    } catch (e) {
+        // localStorage bị chặn (chế độ riêng tư) - bỏ qua, form vẫn hoạt động bình thường.
+    }
+}
+
+function removeDraft(key) {
+    try {
+        window.localStorage.removeItem(draftStorageKey(key));
+    } catch (e) {
+        // Bỏ qua.
+    }
+}
+
+/** Xoá nháp đã lưu của một form cụ thể. */
+function clearFormDraft(form) {
+    if (!form || !form.dataset.draft) return;
+    removeDraft(form.dataset.draft);
+}
+
+function collectDraftFields(form) {
+    const fields = [];
+
+    form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+        const type = (el.type || '').toLowerCase();
+
+        // Field ẩn (vd _token, parent_id) không lưu: token chỉ dùng một lần,
+        // còn parent_id phụ thuộc bình luận đang trả lời nên không có ý nghĩa khi tải lại trang.
+        if (DRAFT_SKIP_TYPES.has(type)) return;
+
+        if (type === 'checkbox' || type === 'radio') {
+            fields.push({ name: el.name, kind: type, value: el.value, checked: el.checked });
+            return;
+        }
+
+        fields.push({ name: el.name, kind: 'value', value: el.value });
+    });
+
+    return fields;
+}
+
+/**
+ * Điền giá trị nháp vào form.
+ *
+ * Field đã được server render từ giá trị cũ (data-old-fields) được giữ nguyên vì
+ * đó mới là dữ liệu người dùng vừa gửi lên. Các field còn lại lấy giá trị nháp
+ * vì đó là trạng thái mới nhất người dùng đang nhập.
+ */
+function applyDraft(form, draft) {
+    const serverFields = (form.dataset.oldFields || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+
+    draft.forEach(entry => {
+        if (serverFields.includes(entry.name)) return;
+
+        const targets = form.querySelectorAll('[name="' + CSS.escape(entry.name) + '"]');
+        targets.forEach(el => {
+            if (entry.kind === 'value') {
+                el.value = entry.value;
+                return;
+            }
+
+            if (entry.kind === 'checkbox') {
+                el.checked = entry.checked;
+                return;
+            }
+
+            if (entry.kind === 'radio' && !form.querySelector('[name="' + CSS.escape(entry.name) + '"]:checked')) {
+                el.checked = entry.checked;
+            }
+        });
+    });
+}
+
+function initDrafts() {
+    // Danh sách nháp cần xoá do server báo (form đã xử lý thành công).
+    (document.body.dataset.clearedDrafts || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .forEach(removeDraft);
+
+    document.querySelectorAll('form[data-draft]').forEach(form => {
+        const key = form.dataset.draft;
+
+        let timer = null;
+        const scheduleSave = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => writeDraft(key, collectDraftFields(form)), DRAFT_DEBOUNCE);
+        };
+
+        form.addEventListener('input', scheduleSave);
+        form.addEventListener('change', () => writeDraft(key, collectDraftFields(form)));
+
+        const draft = readDraft(key);
+        if (draft) applyDraft(form, draft);
+
+        // Khôi phục lại khi người dùng quay lại trang từ bộ nhớ đệm (bfcache).
+        window.addEventListener('pageshow', event => {
+            if (!event.persisted) return;
+            const cached = readDraft(key);
+            if (cached) applyDraft(form, cached);
+        });
+    });
+}
+
+initDrafts();
