@@ -25,7 +25,7 @@ $path = '/' . trim($path, '/');
 <div class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
     <div class="drawer-header">
         <a class="brand" href="<?= url('/') ?>">
-            <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>
+            <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
             <span class="brand-text">Koobecaf</span>
         </a>
         <button type="button" class="btn-close" data-drawer-dismiss aria-label="Đóng"></button>

@@ -23,7 +23,7 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
 <body class="auth-body" data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>">
 <div class="auth-wrapper">
     <a class="brand brand-lg justify-content-center mb-4" href="<?= url('/') ?>">
-        <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>
+        <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
         <span class="brand-text">Koobecaf</span>
     </a>
 

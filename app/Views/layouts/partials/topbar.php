@@ -24,7 +24,7 @@ $navActive = static function (string $prefix) use ($path): string {
             </button>
 
             <a class="brand" href="<?= url('/') ?>">
-                <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>
+                <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
                 <span class="brand-text">Koobecaf</span>
             </a>
 

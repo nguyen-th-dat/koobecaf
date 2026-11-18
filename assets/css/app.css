@@ -978,6 +978,20 @@
         font-size: 2rem;
     }
 
+    /* Logo hình ảnh (nền trong suốt) */
+    .brand-logo {
+        display: block;
+        width: 2.25rem;
+        height: 2.25rem;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .brand-lg .brand-logo {
+        width: 3rem;
+        height: 3rem;
+    }
+
     /* Dấu hiệu thương hiệu dạng gai radial 4 nhánh */
     .brand-mark {
         display: inline-flex;
@@ -989,12 +1003,6 @@
         background-color: var(--kb-primary);
         color: var(--kb-primary-contrast);
         font-size: .95rem;
-    }
-
-    .brand-lg .brand-mark {
-        width: 2.5rem;
-        height: 2.5rem;
-        font-size: 1.2rem;
     }
 
     /* Điều hướng ngang trên desktop */

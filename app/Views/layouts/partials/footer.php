@@ -8,7 +8,7 @@
         <div class="row g-3">
             <div class="col-12 md:col-6 lg:col-6">
                 <a class="brand mb-3" href="<?= url('/') ?>">
-                    <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>
+                    <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
                     <span class="brand-text">Koobecaf</span>
                 </a>
                 <p class="mb-0" style="max-width: 380px;">
