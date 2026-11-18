@@ -18,13 +18,19 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
 </div>
 
 <?php if ($keyword === ''): ?>
-    <div class="card surface-card"><div class="card-body text-center fg-secondary py-5">Nhập từ khóa để tìm kiếm người dùng và bài viết.</div></div>
+    <div class="card surface-card">
+        <div class="empty-state">
+            <span class="empty-icon"><i class="bi bi-search"></i></span>
+            <h3>Tìm kiếm trên Koobecaf</h3>
+            <p>Nhập tên, username hoặc từ khoá để tìm người dùng và bài viết.</p>
+        </div>
+    </div>
 <?php else: ?>
     <div class="card surface-card mb-3">
         <div class="card-body">
             <div class="rail-title">Người dùng</div>
             <?php if ($users === []): ?>
-                <p class="fg-secondary small mb-0">Không tìm thấy người dùng nào.</p>
+                <p class="fg-secondary small mb-0">Không tìm thấy người dùng nào phù hợp.</p>
             <?php else: ?>
                 <?php foreach ($users as $person): ?>
                     <?php
@@ -42,7 +48,13 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
     <div class="rail-title mb-2">Bài viết (<?= (int) $totalPosts ?>)</div>
 
     <?php if ($posts === []): ?>
-        <div class="card surface-card"><div class="card-body text-center fg-secondary py-4">Không tìm thấy bài viết nào.</div></div>
+        <div class="card surface-card">
+            <div class="empty-state">
+                <span class="empty-icon"><i class="bi bi-search"></i></span>
+                <h3>Không tìm thấy bài viết nào</h3>
+                <p>Thử từ khoá khác hoặc tìm theo tên người dùng.</p>
+            </div>
+        </div>
     <?php else: ?>
         <?php foreach ($posts as $post): ?>
             <?php $data = post_view_data($post, $viewerId); ?>
@@ -50,7 +62,7 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
         <?php endforeach; ?>
 
         <?php if ($totalPages > 1): ?>
-            <nav aria-label="Phân trang" class="d-flex justify-content-center gap-2 my-3">
+            <nav aria-label="Phân trang" class="pagination my-3">
                 <?php if ($page > 1): ?>
                     <a class="btn btn-outline btn-sm" href="?q=<?= urlencode($keyword) ?>&page=<?= $page - 1 ?>">Trước</a>
                 <?php endif; ?>
