@@ -149,8 +149,8 @@
                 break;
 
             case 'error':
-                if (window.kbToast) {
-                    window.kbToast(payload.message || 'Lỗi realtime.', 'danger');
+                if (typeof window.showToast === 'function') {
+                    window.showToast('error', payload.message || 'Lỗi realtime.');
                 }
                 break;
 
