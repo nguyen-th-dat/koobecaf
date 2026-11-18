@@ -1062,9 +1062,35 @@ if (Object.keys(badgeSources).length && document.querySelector('[data-badge]')) 
 // Cho realtime.js gọi lại khi có sự kiện mới (chat, thông báo…).
 window.KBRefreshBadges = refreshBadges;
 
-/* =============================================================
+/* -------------------------------------------------------------
+   Mở/đóng bảng tìm người (chỉ dùng trên mobile)
+   ------------------------------------------------------------- */
+const chatLayout = document.querySelector('.chat-layout');
+
+if (chatLayout) {
+    const openStart = () => {
+        chatLayout.dataset.chatStartOpen = '1';
+        document.getElementById('chatUserSearch')?.focus();
+    };
+
+    const closeStart = () => {
+        delete chatLayout.dataset.chatStartOpen;
+        document.getElementById('chatSearchResults')?.classList.add('d-none');
+    };
+
+    document.querySelector('[data-chat-new-chat]')?.addEventListener('click', openStart);
+    document.querySelector('[data-chat-start-close]')?.addEventListener('click', closeStart);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && chatLayout.dataset.chatStartOpen === '1') {
+            closeStart();
+        }
+    });
+}
+
+/* -------------------------------------------------------------
    Tìm kiếm AJAX
-   ============================================================= */
+   ------------------------------------------------------------- */
 const searchInput = document.querySelector('.search-form input[name="q"]');
 if (searchInput) {
     let searchTimer = null;

@@ -11,7 +11,12 @@ $unreadTotal = (int) \App\Models\Conversation::totalUnread(auth_id());
         <div class="chat-sidebar-head">
             <div class="d-flex align-items-center justify-content-between gap-2">
                 <div class="rail-title mb-0">Hội thoại</div>
-                <span class="badge rounded-pill bg-primary d-none" data-chat-unread-total><?= $unreadTotal ?></span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge rounded-pill bg-primary d-none" data-chat-unread-total><?= $unreadTotal ?></span>
+                    <button type="button" class="btn btn-subtle btn-sm chat-new-chat-btn" data-chat-new-chat aria-label="Bắt đầu cuộc trò chuyện mới" title="Nhắn tin mới">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="chat-filter">
@@ -37,6 +42,9 @@ $unreadTotal = (int) \App\Models\Conversation::totalUnread(auth_id());
 
     <section class="chat-main card surface-card">
         <div class="card-body d-flex flex-column justify-content-center h-100">
+            <button type="button" class="btn btn-subtle btn-sm chat-start-close" data-chat-start-close aria-label="Đóng" title="Đóng">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <div class="chat-empty">
                 <span class="chat-empty-mark"><i class="bi bi-chat-heart"></i></span>
                 <h2 class="h4 mb-0">Bắt đầu cuộc trò chuyện mới</h2>
