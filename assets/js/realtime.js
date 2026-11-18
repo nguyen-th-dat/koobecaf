@@ -110,6 +110,10 @@
     // -----------------------------------------------------------------
 
     function handleFrame(payload) {
+        dispatchFrame(payload);
+    }
+
+    function dispatchFrame(payload) {
         switch (payload.type) {
             case 'auth:ok':
                 if (chat) {
@@ -445,7 +449,11 @@
     // -----------------------------------------------------------------
 
     function apiUrl(path) {
-        return (body.dataset.baseUrl || '/') + path;
+        // baseUrl có thể là chuỗi rỗng khi ứng dụng nằm ở thư mục gốc —
+        // dùng ?? để không biến '' thành '/' (sẽ tạo URL //api/... sai).
+        const base = document.body.dataset.baseUrl ?? '/';
+
+        return base + path;
     }
 
     function showToast(type, message) {
