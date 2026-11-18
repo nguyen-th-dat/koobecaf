@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Response;
 use App\Models\Follow;
 use App\Models\User;
+use App\Services\RealtimeService;
 
 final class FollowController extends Controller
 {
@@ -33,6 +34,8 @@ final class FollowController extends Controller
             Follow::add($userId, $targetId);
             \App\Services\NotificationService::followed($targetId, $userId);
         }
+
+        RealtimeService::social($following ? 'unfollow' : 'follow', $userId, $targetId);
 
         Response::success([
             'following' => !$following,

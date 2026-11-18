@@ -372,6 +372,14 @@
     // -----------------------------------------------------------------
 
     async function handleNotification(payload) {
+        // Sự kiện từ chat (tin nhắn mới) không có payload thông báo — chỉ cần
+        // làm mới badge, không được đặt badge về 0.
+        if (payload.type_name) {
+            refreshBadges();
+
+            return;
+        }
+
         const notification = payload.notification || {};
         const unread = Number(payload.unread_count) || 0;
 
