@@ -38,6 +38,7 @@ class FakeElement {
         this.type = type;
         this.value = value;
         this.checked = false;
+        this.form = null;
         this._listeners = {};
     }
 
@@ -46,8 +47,10 @@ class FakeElement {
         this._listeners[type].push(handler);
     }
 
+    /** Sự kiện nổi (bubble) lên form như trong DOM thật. */
     dispatch(type) {
         (this._listeners[type] || []).forEach(handler => handler({}));
+        if (this.form) this.form.dispatch(type);
     }
 }
 
@@ -56,6 +59,7 @@ class FakeForm {
         this.fields = fields;
         this.dataset = { ...dataset };
         this._listeners = {};
+        fields.forEach(field => { field.form = this; });
     }
 
     addEventListener(type, handler) {
@@ -65,6 +69,11 @@ class FakeForm {
 
     dispatch(type) {
         (this._listeners[type] || []).forEach(handler => handler({}));
+    }
+
+    /** Sự kiện input/change nổi (bubble) từ field lên form như trong DOM thật. */
+    dispatchFromField(type) {
+        this.dispatch(type);
     }
 
     querySelectorAll(selector) {
