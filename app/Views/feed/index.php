@@ -9,18 +9,18 @@ $viewerId = auth_id();
 $totalPages = max(1, (int) ceil($total / $perPage));
 ?>
 <?php if (is_auth()): ?>
-    <div class="card surface-card mb-3">
+    <div class="card surface-card mb-3" id="composer">
         <div class="card-body">
             <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm">
                 <?= \App\Core\Csrf::field() ?>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-3">
                     <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md">
-                    <textarea name="content" class="form-control" rows="3" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"></textarea>
+                    <textarea name="content" class="form-control composer-input" rows="2" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"></textarea>
                 </div>
 
                 <div class="image-preview d-flex flex-wrap gap-2 mt-2 d-none" id="imagePreview"></div>
 
-                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top">
                     <label class="btn btn-subtle btn-sm mb-0" for="postImages">
                         <i class="bi bi-image me-1"></i>Ảnh
                         <input type="file" id="postImages" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="d-none">
