@@ -58,6 +58,8 @@ final class ChatController extends Controller
         $messages = array_reverse($messages);
 
         // Dữ liệu khởi tạo cho client WebSocket.
+        // Token đăng nhập do layout cấp cho mọi người dùng; ở đây chỉ thêm
+        // ticket của cuộc trò chuyện để client subscribe vào phòng chat.
         $ws = [
             'enabled' => \App\Core\WebSocketToken::isEnabled(),
             'url'     => \App\Core\WebSocketToken::url(),
@@ -68,7 +70,6 @@ final class ChatController extends Controller
 
         if ($ws['enabled'] && $otherId !== null) {
             try {
-                $ws['token'] = \App\Core\WebSocketToken::issue($userId);
                 $peer = User::find($otherId);
                 if ($peer !== null) {
                     $ws['ticket'] = \App\Core\WebSocketToken::issueTicket($userId, $conversationId, [
@@ -79,11 +80,8 @@ final class ChatController extends Controller
                     ]);
                 }
             } catch (\Throwable $e) {
-                \App\Core\Logger::error('Không thể cấp token WebSocket: ' . $e->getMessage());
-                $ws['enabled'] = false;
+                \App\Core\Logger::error('Không thể cấp ticket WebSocket: ' . $e->getMessage());
             }
-        } else {
-            $ws['enabled'] = false;
         }
 
         $this->view('chat/show', [
