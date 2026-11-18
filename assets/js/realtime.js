@@ -346,6 +346,12 @@
 
     function handleSocialEvent(payload) {
         const actor = payload.actor || {};
+
+        // Không báo cho chính người vừa thao tác.
+        if (Number(actor.id) === Number(window.KB_USER_ID)) {
+            return;
+        }
+
         const name = actor.display_name || 'Ai đó';
 
         const messages = {
@@ -416,6 +422,11 @@
 
             item.classList.add('is-realtime-new');
             list.insertBefore(item, list.firstChild);
+
+            const empty = document.querySelector('[data-notification-empty]');
+            if (empty) {
+                empty.remove();
+            }
         } catch (error) {
             // Bỏ qua — badge vẫn đã được cập nhật.
         }
