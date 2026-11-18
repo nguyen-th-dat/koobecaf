@@ -286,6 +286,16 @@ php -S localhost:8000 -t . router.php
 | Upload mồ côi | Quét `post_images.path` + `users.avatar_path` + `users.cover_path` → xoá 36 file không còn tham chiếu (giữ `.htaccess` và `avatars/default-avatar.png`) |
 | File trùng lặp | Xoá `logo.png` + `favicon.png` ở thư mục gốc (712KB mỗi file, không code nào tham chiếu — thực tế dùng `assets/images/logo.png`) và `assets/images/default.svg`, `assets/images/favicon.svg` (không dùng) |
 | Dependency | `package-lock.json` khai báo `bootstrap ^6.0.0-alpha.1` lệch với `package.json` → sinh lại lock chỉ còn `bootstrap-icons@1.13.2`; xoá `playwright` + `playwright-core` (18MB, không nằm trong manifest); cài lại `node_modules` sạch |
-| `.gitignore` | Bỏ `/tests/` và `DESIGN.md` khỏi danh sách ignore (file đã được track nhưng vẫn bị ignore — dễ bị mất khi clone); thêm `/.aider-desk/`; dọn entry trùng lặp |
-| `.htaccess` | Thêm `\.aider-desk` vào rule chặn truy cập mã nguồn |
-| `README.md` | Sửa mô tả công nghệ cho khớp thực tế: CSS tự viết theo `DESIGN.md` (không dùng Bootstrap CSS), Bootstrap Icons 1.13.2, bổ sung `tests/check_classes.php`, `package.json`, `DESIGN.md` vào cây thư mục |
+| `.gitignore` | Bỏ `/tests/` khỏi danh sách ignore (file test đã được track nhưng vẫn bị ignore — dễ bị mất khi clone); dọn entry trùng lặp |
+| `.htaccess` | Dọn rule chặn truy cập cho các thư mục đã xoá |
+| `README.md` | Sửa mô tả công nghệ cho khớp thực tế: CSS tự viết (không dùng Bootstrap CSS), Bootstrap Icons 1.13.2, bổ sung `tests/check_classes.php`, `package.json` vào cây thư mục |
+
+## Đợt loại bỏ tài liệu và công cụ của trợ lý AI
+
+| Hạng mục | Xử lý |
+|---|---|
+| Thư mục công cụ | Xoá `.cursor/` (11.6MB, 451 file — rules + skills), `.agents/` (11 file bootstrap skills), `.claude/` |
+| Tài liệu | Xoá `DESIGN.md` (590 dòng phân tích design system của claude.com), `PROMT.md` (873 dòng đặc tả giao diện cho agent), `skills-lock.json` |
+| Mã nguồn | `assets/css/app.css`: bỏ `"Copernicus"`, `"Tiempos Headline"`, `"StyreneB"` khỏi font-stack và comment giải thích chúng là font thay thế của Anthropic; bỏ dòng "Nguồn thiết kế: DESIGN.md" |
+| Tham chiếu | `layouts/partials/footer.php`: đổi "Thiết kế theo DESIGN.md" thành tagline của sản phẩm và bỏ comment trùng tên file; `.htaccess`: bỏ `skills-lock.json`, `DESIGN.md`, `PROMT.md` khỏi rule chặn tải về |
+| `.gitignore` | Bỏ hẳn khối "AI tools" (`.claude/`, `.cursor/`, `.agents/`, `.aider-desk/`, `PROMT.md`) — các thư mục này không còn tồn tại trong project |
