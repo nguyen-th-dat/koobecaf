@@ -104,6 +104,18 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Light Mode / Dark Mode, lưu theo tài khoản (`users.theme`) và trong session.
 - Responsive: sidebar → offcanvas + bottom navigation trên mobile.
 
+### 2.13. Giữ giá trị form (Form persistence)
+Ba tầng bảo vệ dữ liệu người dùng đã nhập, không mất khi tải lại trang hoặc gửi lỗi:
+
+1. **Nháp phía trình duyệt** — form có `data-draft="<key>"` tự lưu vào `localStorage` mỗi khi nhập (debounce 200ms) và khôi phục lại khi tải trang, kể cả khi quay lại từ bộ nhớ đệm của trình duyệt (bfcache).
+   - Form mật khẩu, file, hidden và CSRF token không được lưu.
+   - `localStorage` bị chặn (chế độ riêng tư) hoặc dữ liệu hỏng không gây lỗi.
+2. **Giá trị cũ phía server** — khi validate thất bại, `Controller::fail()` lưu field đã nhập vào session; request kế tiếp render lại bằng `old()` rồi xoá khỏi session (chỉ dùng một lần).
+   - Áp dụng cho: đăng nhập, đăng ký, quên mật khẩu, soạn bài viết, sửa bài viết, cập nhật hồ sơ.
+3. **Xoá nháp khi thành công** — server gửi `data-cleared-drafts` xuống trình duyệt để xoá nháp cũ, tránh tự động điền lại nội dung đã đăng.
+
+Ưu tiên khi khôi phục: giá trị do server render (`old()`) thắng nháp cũ — field được đánh dấu qua `data-old-fields`.
+
 ---
 
 ## 3. Cấu trúc thư mục
@@ -120,6 +132,7 @@ koobecaf/
 │   │   ├── Database.php           # PDO singleton, prepared statements, transaction
 │   │   ├── Env.php                # Bộ đọc file .env
 │   │   ├── Logger.php             # Ghi log lỗi vào storage/logs
+│   │   ├── OldInput.php           # Giữ giá trị form cũ sau khi validate thất bại
 │   │   ├── Request.php            # GET/POST/JSON/files/headers
 │   │   ├── Response.php           # JSON response & redirect
 │   │   ├── Router.php             # Định tuyến regex, hỗ trợ {id}/{username}
