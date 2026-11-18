@@ -11,9 +11,10 @@
 <div class="card surface-card">
     <div class="card-body">
         <?php if ($requests === []): ?>
-            <div class="text-center fg-secondary py-4">
-                <i class="bi bi-inbox d-block mb-2 fs-2xl"></i>
-                Không có lời mời kết bạn nào.
+            <div class="empty-state">
+                <span class="empty-icon"><i class="bi bi-inbox"></i></span>
+                <h3>Không có lời mời kết bạn nào</h3>
+                <p>Khi có người gửi lời mời, bạn sẽ nhận được thông báo ở đây.</p>
             </div>
         <?php else: ?>
             <?php foreach ($requests as $request): ?>
