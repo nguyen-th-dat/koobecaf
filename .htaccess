@@ -1,22 +1,49 @@
-# Chặn truy cập trực tiếp vào mã nguồn, cấu hình và dữ liệu.
+# =============================================================
+#  Koobecaf - cấu hình Apache cho thư mục gốc dự án
+# =============================================================
 #
-# File này chỉ có tác dụng khi thư mục dự án nằm TRONG Document root của
-# Apache (ví dụ http://localhost/koobecaf/public/). Nếu bạn đã trỏ
-# Document root thẳng vào thư mục public/ thì không cần file này.
+# Ứng dụng chạy ngay tại thư mục gốc (http://localhost/koobecaf/).
+# File này đảm nhiệm:
+#   1. Chặn truy cập mã nguồn, cấu hình và dữ liệu
+#   2. Chuyển mọi request không phải file thật về index.php
+# =============================================================
+
 Options -Indexes
+DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Mọi request không nằm trong /public/ đều bị từ chối.
-    # Điều kiện trừ /public/ giúp các rule kế thừa từ thư mục cha không
-    # chặn nhầm request hợp lệ của chính ứng dụng.
-    RewriteCond %{REQUEST_URI} !/public/ [NC]
-    RewriteRule ^ - [F,L]
+    # -------------------------------------------------------------
+    # 1. Chặn truy cập mã nguồn, cấu hình và thư mục hệ thống
+    #    RewriteRule dưới đây có đường dẫn tương đối so với thư mục
+    #    chứa file .htaccess nên vẫn đúng khi project nằm trong subdirectory.
+    # -------------------------------------------------------------
+    RewriteRule ^(app|config|routes|database|storage|tests|vendor|node_modules|\.git|\.cursor|\.agents)/ - [R=404,L]
+
+    # -------------------------------------------------------------
+    # 2. Chuyển tiếp mọi request (trừ file/thư mục thật) về index.php
+    # -------------------------------------------------------------
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
-<FilesMatch "^(composer\.json|\.env.*|PROMT\.md|PROGRESS\.md|README\.md)$">
+# -------------------------------------------------------------
+# Chặn tải về các tệp cấu hình và tài liệu ở thư mục gốc
+# -------------------------------------------------------------
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|phpunit\.xml|\.env.*|DESIGN\.md|PROMT\.md|PROGRESS\.md|README\.md)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
 </FilesMatch>
+
+# -------------------------------------------------------------
+# Cache tài nguyên tĩnh
+# -------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
