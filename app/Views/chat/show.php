@@ -8,7 +8,7 @@
 $viewerId = auth_id();
 ?>
 <div class="chat-layout">
-    <aside class="chat-sidebar card surface-card d-none d-md-block">
+    <aside class="chat-sidebar card surface-card d-none md:d-block">
         <div class="card-body p-0">
             <div class="p-3 border-bottom">
                 <h1 class="h6 mb-0"><i class="bi bi-chat-dots me-2"></i>Tin nhắn</h1>
@@ -21,12 +21,12 @@ $viewerId = auth_id();
                         <div class="min-w-0 flex-grow-1">
                             <div class="d-flex justify-content-between gap-2">
                                 <span class="fw-semibold text-truncate"><?= e($conversation['other_display_name']) ?></span>
-                                <small class="text-secondary text-nowrap"><?= e(time_ago($conversation['last_message_at'] ?? $conversation['updated_at'])) ?></small>
+                                <small class="fg-secondary text-nowrap"><?= e(time_ago($conversation['last_message_at'] ?? $conversation['updated_at'])) ?></small>
                             </div>
-                            <small class="text-secondary d-block text-truncate"><?= e(excerpt($conversation['last_message'] ?? '', 40)) ?></small>
+                            <small class="fg-secondary d-block text-truncate"><?= e(excerpt($conversation['last_message'] ?? '', 40)) ?></small>
                         </div>
                         <?php if ((int) $conversation['unread_count'] > 0): ?>
-                            <span class="badge text-bg-danger rounded-pill"><?= (int) $conversation['unread_count'] ?></span>
+                            <span class="badge rounded-pill bg-primary"><?= (int) $conversation['unread_count'] ?></span>
                         <?php endif; ?>
                     </a>
                 <?php endforeach; ?>
@@ -36,19 +36,19 @@ $viewerId = auth_id();
 
     <section class="chat-main card surface-card">
         <div class="chat-header d-flex align-items-center gap-2 p-3 border-bottom">
-            <a class="btn btn-sm btn-light d-md-none" href="<?= url('/chat') ?>"><i class="bi bi-arrow-left"></i></a>
+            <a class="btn btn-subtle btn-sm md:d-none" href="<?= url('/chat') ?>"><i class="bi bi-arrow-left"></i></a>
             <?php if ($other !== null): ?>
                 <img src="<?= e(upload_url($other['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
                 <div class="min-w-0">
                     <div class="fw-semibold text-truncate"><?= e($other['display_name']) ?></div>
-                    <small class="text-secondary">@<?= e($other['username']) ?></small>
+                    <small class="fg-secondary">@<?= e($other['username']) ?></small>
                 </div>
             <?php endif; ?>
         </div>
 
         <div class="chat-messages flex-grow-1 p-3" data-conversation-id="<?= (int) $conversationId ?>">
             <?php if ($messages === []): ?>
-                <p class="text-secondary text-center small">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
+                <p class="fg-secondary text-center small">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
             <?php else: ?>
                 <?php foreach ($messages as $message): ?>
                     <?php $isMine = (int) $message['sender_id'] === $viewerId; ?>
@@ -61,7 +61,7 @@ $viewerId = auth_id();
                             <small class="chat-time">
                                 <?= e(format_date($message['created_at'], 'H:i')) ?>
                                 <?php if ($isMine): ?>
-                                    <i class="bi <?= $message['read_at'] !== null ? 'bi-check2-all text-primary' : 'bi-check2' ?>" title="<?= $message['read_at'] !== null ? 'Đã xem' : 'Đã gửi' ?>"></i>
+                                    <i class="bi <?= $message['read_at'] !== null ? 'bi-check2-all fg-primary' : 'bi-check2' ?>" title="<?= $message['read_at'] !== null ? 'Đã xem' : 'Đã gửi' ?>"></i>
                                 <?php endif; ?>
                             </small>
                         </div>
@@ -72,7 +72,7 @@ $viewerId = auth_id();
 
         <form class="chat-input d-flex gap-2 p-3 border-top" id="chatForm" data-conversation-id="<?= (int) $conversationId ?>">
             <input type="text" class="form-control" name="body" placeholder="Nhập tin nhắn..." maxlength="5000" autocomplete="off" required>
-            <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i><span class="d-none d-sm-inline ms-1">Gửi</span></button>
+            <button class="btn btn-solid" type="submit"><i class="bi bi-send"></i><span class="d-none sm:d-inline ms-1">Gửi</span></button>
         </form>
     </section>
 </div>
