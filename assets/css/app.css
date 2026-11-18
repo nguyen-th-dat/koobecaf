@@ -460,10 +460,6 @@
         border-radius: var(--kb-radius-lg);
     }
 
-    .surface-card > .card-body {
-        padding: var(--kb-space-xl);
-    }
-
     /* ---------------- Điều hướng ---------------- */
     .nav {
         list-style: none;
@@ -1502,7 +1498,6 @@
     .surface-card > .card-body {
         padding: var(--kb-space-md);
     }
-
     .profile-cover {
         height: 130px;
     }

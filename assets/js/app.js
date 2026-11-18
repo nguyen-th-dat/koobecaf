@@ -720,7 +720,7 @@ if (chatSearchInput && chatSearchResults) {
                         <i class="bi bi-chat-dots fg-secondary"></i>
                     </a>
                 </li>`).join('') + '</ul>';
-            chatSearch Results.classList.remove('d-none');
+            chatSearchhResults.classList.remove('d-none');
         }, 300);
     });
 
