@@ -44,7 +44,7 @@ $originalImages = $meta['originalImages'];
                         </div>
                     </div>
                     <?php if ($meta['isOwner']): ?>
-                        <button class="btn icon-btn" type="button" data-bs-toggle="menu" data-bs-placement="bottom-end" aria-label="Tuỳ chọn">
+                        <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
                             <i class="bi bi-three-dots"></i>
                         </button>
                         <ul class="menu">
