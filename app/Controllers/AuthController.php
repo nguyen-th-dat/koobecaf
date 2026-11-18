@@ -87,8 +87,10 @@ final class AuthController extends Controller
 
     public function logout(): void
     {
-        Session::destroy();
-        Session::start();
+        // Xoá dữ liệu đăng nhập nhưng giữ phiên để truyền được thông báo
+        // "đăng xuất thành công" sang trang đăng nhập.
+        Session::clear();
+        Session::regenerate();
         setFlashMessage('success', 'Bạn đã đăng xuất thành công.');
         Response::redirect('/login');
     }
