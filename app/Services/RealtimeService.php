@@ -168,7 +168,9 @@ final class RealtimeService
             'shared_post_id' => $post['shared_post_id'] !== null ? (int) $post['shared_post_id'] : null,
             'share_content' => (string) ($post['share_content'] ?? ''),
             'created_at'   => (string) $post['created_at'],
-            'author'       => self::userPayload((int) $post['user_id'], $post),
+            // $post chứa cột `id` của bài viết nên không thể dùng làm hồ sơ
+            // người dùng — luôn tải user theo user_id.
+            'author'       => self::userPayload((int) $post['user_id']),
             'images'       => $images,
             'original'     => self::originalPayload($post),
             'url'          => url('/post/' . $postId),
@@ -204,7 +206,7 @@ final class RealtimeService
             'id'           => $originalId,
             'content'      => (string) $original['content'],
             'created_at'   => (string) $original['created_at'],
-            'author'       => self::userPayload((int) $original['user_id'], $original),
+            'author'       => self::userPayload((int) $original['user_id']),
             'images'       => $images,
         ];
     }
@@ -231,7 +233,9 @@ final class RealtimeService
      */
     public static function userPayload(int $userId, ?array $user = null): ?array
     {
-        if ($user === null) {
+        if ($user === null || (int) ($user['id'] ?? 0) !== $userId) {
+            // Bảo đảm id trả về luôn là id người dùng, không phải id của bản
+            // ghi (post) khi truyền nhầm mảng bài viết.
             $user = User::find($userId);
         }
         if ($user === null) {
