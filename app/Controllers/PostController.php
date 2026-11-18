@@ -64,6 +64,22 @@ final class PostController extends Controller
         return $tags;
     }
 
+    /**
+     * Trang đăng bài viết (riêng biệt khỏi bảng tin).
+     */
+    public function create(): void
+    {
+        $userId = auth_id();
+        if ($userId === null) {
+            Response::redirect('/login');
+        }
+
+        $this->view('posts/create', [
+            'title' => 'Đăng bài viết',
+            'user'  => auth_user(),
+        ]);
+    }
+
     public function store(): void
     {
         $userId = auth_id();
@@ -84,7 +100,7 @@ final class PostController extends Controller
         }
 
         if ($validator->fails()) {
-            $this->failBack($validator->firstError(), '/', ['content', 'privacy']);
+            $this->fail($validator->firstError(), '/posts/create', ['content', 'privacy']);
         }
 
         $imagePaths = [];
@@ -92,7 +108,7 @@ final class PostController extends Controller
             try {
                 $imagePaths[] = UploadService::image($file, 'posts');
             } catch (\RuntimeException $e) {
-                $this->failBack($e->getMessage(), '/', ['content', 'privacy']);
+                $this->fail($e->getMessage(), '/posts/create', ['content', 'privacy']);
             }
         }
 
