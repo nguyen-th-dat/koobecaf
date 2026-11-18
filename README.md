@@ -116,6 +116,12 @@ Ba tầng bảo vệ dữ liệu người dùng đã nhập, không mất khi t�
 
 Ưu tiên khi khôi phục: giá trị do server render (`old()`) thắng nháp cũ — field được đánh dấu qua `data-old-fields`.
 
+### 2.14. Cảnh báo rời trang khi còn nội dung chưa gửi
+- Form có `data-guard="<nhãn>"` được kiểm tra trước khi người dùng rời trang.
+- Bấm link nội bộ → hiện hộp thoại liệt kê chính xác những gì sẽ mất (tên field + xem trước nội dung, cắt ngắn 60 ký tự), kèm hai lựa chọn **Ở lại trang** / **Rời đi**.
+- Đóng tab hoặc tải lại trang → trình duyệt hiện hộp thoại xác nhận chuẩn (`beforeunload`).
+- Form `data-leave-guard` (ví dụ đăng xuất) cũng được cảnh báo nếu đang có dữ liệu chưa gửi ở form khác.
+- Chỉ cảnh báo khi thực sự có dữ liệu: field rỗng, field ẩn, và giá trị mặc định chưa sửa đều không bị tính.
 ---
 
 ## 3. Cấu trúc thư mục
