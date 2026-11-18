@@ -201,6 +201,8 @@
      * giao diện luôn giống hệt bài viết render bình thường.
      */
     async function handleNewPost(post) {
+        window.__kbNew = window.__kbNew || [];
+        window.__kbNew.push('enter ' + JSON.stringify(post && post.id) + ' author=' + JSON.stringify(post && post.author));
         if (!post || !post.id) {
             return;
         }
