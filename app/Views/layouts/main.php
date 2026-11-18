@@ -54,6 +54,8 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 
 <?php if (is_auth()): ?>
     <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
+<?php else: ?>
+    <?php require __DIR__ . '/partials/mobile-nav-guest.php'; ?>
 <?php endif; ?>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>
