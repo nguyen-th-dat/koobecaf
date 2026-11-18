@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Config;
 use App\Core\Csrf;
 use App\Core\Env;
+use App\Core\Flash;
 use App\Core\OldInput;
 use App\Core\Request;
 use App\Core\Router;
@@ -38,6 +39,7 @@ date_default_timezone_set((string) Config::get('app.timezone', 'Asia/Ho_Chi_Minh
 
 Session::start();
 OldInput::boot();
+Flash::boot();
 
 $request = new Request();
 Csrf::validate($request);

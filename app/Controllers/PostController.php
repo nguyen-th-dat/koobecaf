@@ -8,12 +8,12 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Core\OldInput;
 use App\Core\Response;
-use App\Core\Session;
 use App\Core\Validator;
 use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\Share;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 use App\Services\UploadService;
 
 final class PostController extends Controller
@@ -103,7 +103,9 @@ final class PostController extends Controller
             return $postId;
         });
 
-        Session::flash('success', 'Đã đăng bài viết.');
+        RealtimeService::postCreated($postId);
+
+        setFlashMessage('success', 'Đã đăng bài viết.');
         OldInput::clearDraft('composer');
         Response::redirect('/');
     }
@@ -165,11 +167,13 @@ final class PostController extends Controller
                 $path = UploadService::image($file, 'posts');
                 Post::attachImages((int) $post['id'], [$path]);
             } catch (\RuntimeException $e) {
-                Session::flash('error', $e->getMessage());
+                setFlashMessage('error', $e->getMessage());
             }
         }
 
-        Session::flash('success', 'Đã cập nhật bài viết.');
+        RealtimeService::postUpdated((int) $post['id']);
+
+        setFlashMessage('success', 'Đã cập nhật bài viết.');
         OldInput::clearDraft('post-edit-' . (int) $post['id']);
         Response::redirect('/post/' . (int) $post['id']);
     }
@@ -184,13 +188,18 @@ final class PostController extends Controller
             return;
         }
 
+        $privacy = (string) $post['privacy'];
+        $authorId = (int) $post['user_id'];
+
         foreach (PostImage::all((int) $post['id']) as $image) {
             UploadService::delete((string) $image['path']);
         }
 
         Post::delete((int) $post['id']);
 
-        Session::flash('success', 'Đã xóa bài viết.');
+        RealtimeService::postDeleted((int) $post['id'], $authorId, $privacy);
+
+        setFlashMessage('success', 'Đã xóa bài viết.');
         Response::redirect('/');
     }
 }

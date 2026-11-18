@@ -25,7 +25,6 @@ final class WebSocketToken
 
     private const PURPOSE_TOKEN = 'koobecaf:ws-token:';
     private const PURPOSE_TICKET = 'koobecaf:ws-ticket:';
-
     // -----------------------------------------------------------------
     // Token đăng nhập
     // -----------------------------------------------------------------

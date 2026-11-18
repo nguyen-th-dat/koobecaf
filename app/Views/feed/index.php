@@ -63,7 +63,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 <?php endif; ?>
 
 <?php if ($posts === []): ?>
-    <div class="card surface-card">
+    <div class="card surface-card" data-feed-empty>
         <div class="empty-state">
             <span class="empty-icon"><i class="bi bi-inbox"></i></span>
             <h3>Chưa có bài viết nào</h3>
@@ -74,10 +74,12 @@ $totalPages = max(1, (int) ceil($total / $perPage));
         </div>
     </div>
 <?php else: ?>
-    <?php foreach ($posts as $post): ?>
-        <?php $data = post_view_data($post, $viewerId); ?>
-        <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
-    <?php endforeach; ?>
+    <div data-feed-list>
+        <?php foreach ($posts as $post): ?>
+            <?php $data = post_view_data($post, $viewerId); ?>
+            <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
+        <?php endforeach; ?>
+    </div>
 
     <?php if ($totalPages > 1): ?>
         <nav aria-label="Phân trang" class="pagination my-3">

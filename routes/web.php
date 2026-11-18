@@ -72,7 +72,7 @@ return static function (Router $router): void {
         $router->get('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start');
         $router->post('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start.post');
 
-        // WebSocket (realtime chat)
+        // WebSocket (realtime chat + feed + thông báo)
         $router->get('/api/ws/session', [\App\Controllers\WebSocketController::class, 'session'], 'api.ws.session');
         $router->get('/api/ws/ticket/{id}', [\App\Controllers\WebSocketController::class, 'ticket'], 'api.ws.ticket');
 
@@ -88,5 +88,9 @@ return static function (Router $router): void {
         $router->get('/api/messages/unread', [\App\Controllers\ApiController::class, 'unreadMessages'], 'api.messages.unread');
         $router->get('/api/feed', [\App\Controllers\ApiController::class, 'feed'], 'api.feed');
         $router->get('/api/posts/{id}/comments', [\App\Controllers\ApiController::class, 'comments'], 'api.posts.comments');
+
+        // Render HTML server-side cho client realtime
+        $router->get('/api/posts/{id}/card', [\App\Controllers\ApiController::class, 'postCard'], 'api.posts.card');
+        $router->get('/api/notifications/{id}/item', [\App\Controllers\ApiController::class, 'notificationItem'], 'api.notifications.item');
     });
 };

@@ -49,6 +49,19 @@ final class Session
         session_regenerate_id(true);
     }
 
+    /**
+     * Xoá toàn bộ dữ liệu phiên nhưng vẫn giữ phiên hoạt động.
+     *
+     * Dùng khi đăng xuất: cần xoá thông tin đăng nhập nhưng vẫn phải truyền
+     * được thông báo "đăng xuất thành công" sang trang kế tiếp. Nếu hủy hẳn
+     * session (Session::destroy()) thì cookie phiên bị xoá và thông báo flash
+     * sẽ không tới được trình duyệt.
+     */
+    public static function clear(): void
+    {
+        $_SESSION = [];
+    }
+
     public static function destroy(): void
     {
         $_SESSION = [];
@@ -57,26 +70,5 @@ final class Session
             setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], (bool) $params['secure'], (bool) $params['httponly']);
         }
         session_destroy();
-    }
-
-    public static function flash(string $key, ?string $message = null): ?string
-    {
-        if ($message !== null) {
-            $_SESSION['_flash'][$key] = $message;
-
-            return null;
-        }
-
-        $value = $_SESSION['_flash'][$key] ?? null;
-        unset($_SESSION['_flash'][$key]);
-
-        return $value;
-    }
-
-    public static function pullFlash(string $key): ?string
-    {
-        $value = self::flash($key);
-
-        return $value;
     }
 }

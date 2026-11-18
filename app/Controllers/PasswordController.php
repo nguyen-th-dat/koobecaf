@@ -6,7 +6,6 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Response;
-use App\Core\Session;
 use App\Core\Validator;
 use App\Core\View;
 use App\Models\PasswordReset;
@@ -45,13 +44,13 @@ final class PasswordController extends Controller
             $sent = $this->sendMail((array) $user, $token);
 
             if (!$sent) {
-                Session::flash('error', 'Không gửi được email. Vui lòng thử lại sau ít phút.');
+                setFlashMessage('error', 'Không gửi được email. Vui lòng thử lại sau ít phút.');
                 Response::redirect('/forgot-password');
             }
         }
 
         // Luôn trả lời giống nhau để không tiết lộ email nào đã đăng ký.
-        Session::flash('success', 'Nếu email này đã được đăng ký, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
+        setFlashMessage('success', 'Nếu email này đã được đăng ký, chúng tôi đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
         Response::redirect('/forgot-password');
     }
 
@@ -98,7 +97,7 @@ final class PasswordController extends Controller
         User::updatePassword($reset['user_id'], $password);
         PasswordReset::markUsed($token);
 
-        Session::flash('success', 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.');
+        setFlashMessage('success', 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.');
         Response::redirect('/login');
     }
 
@@ -126,7 +125,7 @@ final class PasswordController extends Controller
 
     private function invalidToken(): void
     {
-        Session::flash('error', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.');
+        setFlashMessage('error', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.');
         Response::redirect('/forgot-password');
     }
 }

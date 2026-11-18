@@ -149,10 +149,67 @@ if (!function_exists('old_fields')) {
 }
 
 if (!function_exists('flash')) {
-    /** Lấy và xóa thông báo flash. */
+    /**
+     * Lấy và xóa một giá trị flash đơn lẻ.
+     *
+     * @deprecated Dùng setFlashMessage() + flash_messages() của hệ thống Toast.
+     */
     function flash(string $key): ?string
     {
-        return \App\Core\Session::flash($key);
+        $value = \App\Core\Session::get('_flash_' . $key);
+        \App\Core\Session::forget('_flash_' . $key);
+
+        return is_string($value) ? $value : null;
+    }
+}
+
+if (!function_exists('setFlashMessage')) {
+    /**
+     * Lưu một thông báo để hiển thị ở request kế tiếp (sau redirect).
+     *
+     * @param string $type    success | error | warning | info
+     */
+    function setFlashMessage(string $type, string $message): void
+    {
+        \App\Core\Flash::add($type, $message);
+    }
+}
+
+if (!function_exists('flash_messages')) {
+    /**
+     * Lấy toàn bộ thông báo flash đã nhặt (mỗi thông báo chỉ hiển thị một lần).
+     *
+     * @return array<int,array{type:string,message:string}>
+     */
+    function flash_messages(): array
+    {
+        return \App\Core\Flash::pull();
+    }
+}
+
+if (!function_exists('toast_icon')) {
+    /** Icon Bootstrap Icons tương ứng với từng loại thông báo. */
+    function toast_icon(string $type): string
+    {
+        return match (strtolower(trim($type))) {
+            'success' => 'bi-check-circle-fill',
+            'error', 'danger' => 'bi-exclamation-octagon-fill',
+            'warning' => 'bi-exclamation-triangle-fill',
+            default    => 'bi-info-circle-fill',
+        };
+    }
+}
+
+if (!function_exists('toast_title')) {
+    /** Nhãn ngắn gợi ý loại thông báo, dùng cho screen reader. */
+    function toast_title(string $type): string
+    {
+        return match (strtolower(trim($type))) {
+            'success' => 'Thành công',
+            'error', 'danger' => 'Lỗi',
+            'warning' => 'Cảnh báo',
+            default    => 'Thông tin',
+        };
     }
 }
 
@@ -306,6 +363,46 @@ if (!function_exists('post_view_data')) {
             'isOwner'        => $viewerId !== null && (int) $post['user_id'] === $viewerId,
             'permalink'      => url('/p/' . $postId),
         ];
+    }
+}
+
+if (!function_exists('notification_label')) {
+    /**
+     * Nhãn mô tả hành động theo loại thông báo.
+     */
+    function notification_label(string $type): string
+    {
+        return match ($type) {
+            'like'           => 'đã thích bài viết của bạn',
+            'comment'        => 'đã bình luận bài viết của bạn',
+            'reply'          => 'đã trả lời bình luận của bạn',
+            'share'          => 'đã chia sẻ bài viết của bạn',
+            'friend_request' => 'đã gửi lời mời kết bạn',
+            'friend_accepted' => 'đã chấp nhận lời mời kết bạn',
+            'message'        => 'đã gửi cho bạn một tin nhắn',
+            'follow'         => 'đã bắt đầu theo dõi bạn',
+            default          => 'đã tương tác với bạn',
+        };
+    }
+}
+
+if (!function_exists('notification_icon')) {
+    /**
+     * Biểu tượng Bootstrap Icons theo loại thông báo.
+     */
+    function notification_icon(string $type): string
+    {
+        return match ($type) {
+            'like'           => 'bi-hand-thumbs-up-fill',
+            'comment'        => 'bi-chat-fill',
+            'reply'          => 'bi-reply-fill',
+            'share'          => 'bi-share-fill',
+            'friend_request' => 'bi-person-plus-fill',
+            'friend_accepted' => 'bi-person-check-fill',
+            'message'        => 'bi-envelope-fill',
+            'follow'         => 'bi-person-heart',
+            default          => 'bi-bell-fill',
+        };
     }
 }
 

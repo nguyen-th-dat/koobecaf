@@ -36,38 +36,13 @@ async function request(url, options = {}) {
 
 /* =============================================================
    Thông báo nhanh (toast)
+
+   Hệ thống toast nằm trong assets/js/toast.js — hàm showToast(type, message),
+   được nạp trước file này nên luôn sẵn sàng dùng.
+
+   Toàn bộ thông báo từ PHP (flash message) cũng được đẩy vào cùng hàng đợi
+   nên giao diện luôn đồng nhất.
    ============================================================= */
-function toast(message, variant = 'success') {
-    const container = document.getElementById('kbToastContainer') || (() => {
-        const el = document.createElement('div');
-        el.id = 'kbToastContainer';
-        el.className = 'toast-container';
-        document.body.appendChild(el);
-        return el;
-    })();
-
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.setAttribute('role', 'alert');
-    el.innerHTML = `
-        <i class="bi bi-check-circle-fill"></i>
-        <div class="toast-body"></div>
-        <button type="button" class="btn-close" aria-label="Đóng"></button>`;
-    el.querySelector('.toast-body').textContent = message;
-    if (variant === 'danger') {
-        el.style.backgroundColor = 'var(--kb-error)';
-        el.style.color = '#fff';
-    } else if (variant === 'info') {
-        el.style.backgroundColor = 'var(--kb-surface-dark-elevated)';
-    }
-    container.appendChild(el);
-
-    const remove = () => el.remove();
-    el.querySelector('.btn-close').addEventListener('click', remove);
-    setTimeout(remove, 3500);
-}
-
-window.kbToast = toast;
 
 /* =============================================================
    Menu thả xuống
@@ -261,15 +236,6 @@ if (topbar) {
 }
 
 /* =============================================================
-   Đóng cảnh báo
-   ============================================================= */
-document.addEventListener('click', (event) => {
-    const dismiss = event.target.closest('[data-alert-dismiss]');
-    if (!dismiss) return;
-    dismiss.closest('.alert')?.remove();
-});
-
-/* =============================================================
    Xác nhận trước khi xóa
    ============================================================= */
 document.addEventListener('submit', (event) => {
@@ -312,6 +278,14 @@ document.addEventListener('click', (event) => {
         headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme: theme }),
         credentials: 'same-origin',
+    }).then((response) => {
+        if (!response.ok) {
+            showToast('error', 'Không thể lưu giao diện.');
+            return;
+        }
+        showToast('success', theme === 'dark' ? 'Đã chuyển sang giao diện tối.' : 'Đã chuyển sang giao diện sáng.');
+    }).catch(() => {
+        showToast('error', 'Không thể lưu giao diện.');
     });
 });
 
@@ -382,7 +356,7 @@ document.addEventListener('click', async (event) => {
             headers: { 'X-CSRF-TOKEN': csrfToken },
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể thực hiện.', 'danger');
+            showToast('error', payload.message ?? 'Không thể thực hiện.');
             return;
         }
         const card = button.closest('.post-card');
@@ -391,6 +365,7 @@ document.addEventListener('click', async (event) => {
         if (icon) icon.className = payload.data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
         const counter = card?.querySelector('[data-like-count]');
         if (counter) counter.innerHTML = `<i class="bi bi-hand-thumbs-up me-1"></i>${payload.data.like_count}`;
+        showToast('success', payload.data.liked ? 'Đã thích bài viết.' : 'Đã bỏ thích bài viết.');
     }
 
     if (action === 'share') {
@@ -402,20 +377,20 @@ document.addEventListener('click', async (event) => {
             body: JSON.stringify({ content: content, privacy: 'public' }),
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể chia sẻ.', 'danger');
+            showToast('error', payload.message ?? 'Không thể chia sẻ.');
             return;
         }
         const card = button.closest('.post-card');
         const counter = card?.querySelector('[data-share-count]');
         if (counter) counter.innerHTML = `<i class="bi bi-share me-1"></i>${payload.data.share_count}`;
-        toast('Đã chia sẻ bài viết lên trang cá nhân của bạn.');
+        showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
     }
 
     if (action === 'copy-link') {
         const link = new URL(button.dataset.url, window.location.origin).href;
         try {
             await navigator.clipboard.writeText(link);
-            toast('Đã sao chép liên kết bài viết.');
+            showToast('success', 'Đã sao chép liên kết bài viết.');
         } catch (e) {
             window.prompt('Sao chép liên kết:', link);
         }
@@ -462,7 +437,7 @@ document.addEventListener('click', async (event) => {
         headers: { 'X-CSRF-TOKEN': csrfToken },
     });
     if (!payload.success) {
-        toast(payload.message ?? 'Không thể theo dõi.', 'danger');
+        showToast('error', payload.message ?? 'Không thể theo dõi.');
         return;
     }
 
@@ -477,6 +452,8 @@ document.addEventListener('click', async (event) => {
         if (label) label.textContent = following ? 'Đang theo dõi' : 'Theo dõi';
         button.classList.toggle('is-following', following);
     }
+
+    showToast('success', following ? 'Đã theo dõi.' : 'Đã bỏ theo dõi.');
 });
 
 /* =============================================================
@@ -521,10 +498,13 @@ function buildCommentNode(comment) {
 
     const repliesBox = node.querySelector('.comment-replies');
     if (repliesBox) {
-        comment.replies.forEach(reply => repliesBox.appendChild(buildCommentNode(reply)));
+        (comment.replies || []).forEach(reply => repliesBox.appendChild(buildCommentNode(reply)));
     }
     return node;
 }
+
+// Cho realtime.js dựng lại node bình luận khi có bình luận mới.
+window.KBBuildCommentNode = buildCommentNode;
 
 function escapeHtml(value) {
     const div = document.createElement('div');
@@ -563,9 +543,11 @@ document.addEventListener('submit', async (event) => {
     });
 
     if (!payload.success) {
-        toast(payload.message ?? 'Không thể gửi bình luận.', 'danger');
+        showToast('error', payload.message ?? 'Không thể gửi bình luận.');
         return;
     }
+
+    const isReply = Boolean(parentInput && parentInput.value);
 
     input.value = '';
     if (parentInput) parentInput.value = '';
@@ -578,6 +560,7 @@ document.addEventListener('submit', async (event) => {
     const card = form.closest('.post-card');
     const counter = card?.querySelector('[data-comment-count]');
     if (counter) counter.innerHTML = `<i class="bi bi-chat me-1"></i>${payload.data.comment_count}`;
+    showToast('success', isReply ? 'Đã trả lời bình luận.' : 'Đã gửi bình luận.');
 });
 
 document.addEventListener('click', async (event) => {
@@ -623,12 +606,12 @@ document.addEventListener('click', async (event) => {
                 body: JSON.stringify({ content: value }),
             });
             if (!payload.success) {
-                toast(payload.message ?? 'Không thể sửa bình luận.', 'danger');
+                showToast('error', payload.message ?? 'Không thể sửa bình luận.');
                 return;
             }
             textNode.innerHTML = escapeHtml(payload.data.comment.content).replace(/\n/g, '<br>');
             wrapper.replaceWith(textNode);
-            toast('Đã cập nhật bình luận.');
+            showToast('success', 'Đã cập nhật bình luận.');
         });
         return;
     }
@@ -641,7 +624,7 @@ document.addEventListener('click', async (event) => {
             headers: { 'X-CSRF-TOKEN': csrfToken },
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể xóa bình luận.', 'danger');
+            showToast('error', payload.message ?? 'Không thể xóa bình luận.');
             return;
         }
         const card = deleteBtn.closest('.post-card');
@@ -650,7 +633,7 @@ document.addEventListener('click', async (event) => {
         const postId = card?.dataset.postId;
         const container = card?.querySelector('.post-comments');
         if (postId && container) await loadComments(postId, container);
-        toast('Đã xóa bình luận.');
+        showToast('success', 'Đã xóa bình luận.');
     }
 });
 
@@ -754,8 +737,9 @@ if (chatForm && chatMessages) {
 
             input.value = '';
             clearFormDraft(chatForm);
+            showToast('success', 'Đã gửi tin nhắn.');
         } catch (error) {
-            toast(error.message || 'Không thể gửi tin nhắn.', 'danger');
+            showToast('error', error.message || 'Không thể gửi tin nhắn.');
         } finally {
             chatState.sending = false;
         }
@@ -805,6 +789,9 @@ async function refreshBadges() {
 if (Object.keys(badgeSources).length && document.querySelector('[data-badge]')) {
     setInterval(refreshBadges, 15000);
 }
+
+// Cho realtime.js gọi lại khi có sự kiện mới (chat, thông báo…).
+window.KBRefreshBadges = refreshBadges;
 
 /* =============================================================
    Tìm kiếm AJAX
@@ -913,7 +900,7 @@ if (markAllBtn) {
         if (!payload.success) return;
         document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
         markAllBtn.remove();
-        toast('Đã đánh dấu tất cả thông báo đã đọc.');
+        showToast('success', 'Đã đánh dấu tất cả thông báo đã đọc.');
     });
 }
 

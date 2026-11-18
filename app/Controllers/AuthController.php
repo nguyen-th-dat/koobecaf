@@ -82,22 +82,24 @@ final class AuthController extends Controller
             'display_name' => $displayName,
         ]);
 
-        $this->loginUser($userId);
+        $this->loginUser($userId, 'Đăng ký tài khoản thành công!');
     }
 
     public function logout(): void
     {
-        Session::destroy();
-        Session::start();
-        Session::flash('success', 'Bạn đã đăng xuất thành công.');
+        // Xoá dữ liệu đăng nhập nhưng giữ phiên để truyền được thông báo
+        // "đăng xuất thành công" sang trang đăng nhập.
+        Session::clear();
+        Session::regenerate();
+        setFlashMessage('success', 'Bạn đã đăng xuất thành công.');
         Response::redirect('/login');
     }
 
-    private function loginUser(int $userId): void
+    private function loginUser(int $userId, string $message = 'Đăng nhập thành công!'): void
     {
         Session::regenerate();
         Session::set('user_id', $userId);
-        Session::flash('success', 'Đăng nhập thành công!');
+        setFlashMessage('success', $message);
         OldInput::clearDraft('login', 'register');
         Response::redirect('/');
     }

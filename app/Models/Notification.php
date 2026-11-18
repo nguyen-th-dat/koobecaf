@@ -18,6 +18,17 @@ final class Notification
     public const TYPE_FOLLOW = 'follow';
 
     /**
+     * Thông báo đã tồn tại với bộ (user, actor, type, entity) này chưa.
+     */
+    public static function exists(int $userId, int $actorId, string $type, int $entityId = 0): bool
+    {
+        return Database::fetchOne(
+            'SELECT id FROM notifications WHERE user_id = ? AND actor_id = ? AND type = ? AND entity_id = ?',
+            [$userId, $actorId, $type, $entityId]
+        ) !== null;
+    }
+
+    /**
      * Tạo thông báo nếu chưa tồn tại (dựa trên unique key).
      */
     public static function notify(int $userId, int $actorId, string $type, int $entityId = 0, string $data = ''): int

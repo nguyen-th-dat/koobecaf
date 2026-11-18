@@ -11,6 +11,7 @@ use App\Core\Validator;
 use App\Models\Comment;
 use App\Models\Post;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 
 final class CommentController extends Controller
 {
@@ -51,6 +52,8 @@ final class CommentController extends Controller
 
         $comment = Comment::find($commentId);
 
+        RealtimeService::postCommented((int) $post['id'], (int) $userId, (int) $commentId);
+
         Response::success([
             'comment'       => $comment,
             'comment_count' => Post::commentCount((int) $post['id']),
@@ -59,8 +62,9 @@ final class CommentController extends Controller
 
     public function update(array $params): void
     {
+        $userId = auth_id();
         $comment = Comment::find((int) $params['id']);
-        if ($comment === null || (int) $comment['user_id'] !== auth_id()) {
+        if ($comment === null || $userId === null || (int) $comment['user_id'] !== $userId) {
             Response::error('Bạn không có quyền sửa bình luận này.', 403);
         }
 
@@ -79,12 +83,15 @@ final class CommentController extends Controller
 
     public function destroy(array $params): void
     {
+        $userId = auth_id();
         $comment = Comment::find((int) $params['id']);
-        if ($comment === null || (int) $comment['user_id'] !== auth_id()) {
+        if ($comment === null || $userId === null || (int) $comment['user_id'] !== $userId) {
             Response::error('Bạn không có quyền xóa bình luận này.', 403);
         }
 
         Comment::delete((int) $comment['id']);
+
+        RealtimeService::postUncommented((int) $comment['post_id'], $userId);
 
         Response::success(['comment_count' => Post::commentCount((int) $comment['post_id'])]);
     }

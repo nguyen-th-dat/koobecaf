@@ -143,6 +143,34 @@ final class Post
         );
     }
 
+    /**
+     * Danh sách user id sẽ nhận bài viết realtime (tác giả + người theo dõi + bạn bè).
+     *
+     * Phạm vi này khớp với truy vấn feed (`Post::feed`) nên bài mới hiện đúng
+     * ở feed của những người thực sự nhìn thấy nó.
+     *
+     * @return array<int,int>
+     */
+    public static function audience(int $authorId, string $privacy): array
+    {
+        if ($privacy === self::PRIVACY_PRIVATE) {
+            return [$authorId];
+        }
+
+        $rows = Database::fetchAll(
+            "SELECT follower_id AS user_id FROM follows WHERE following_id = ?
+             UNION
+             SELECT friend_id AS user_id FROM friendships WHERE user_id = ? AND status = 'accepted'
+             UNION
+             SELECT user_id AS user_id FROM friendships WHERE friend_id = ? AND status = 'accepted'
+             UNION
+             SELECT ? AS user_id",
+            [$authorId, $authorId, $authorId, $authorId]
+        );
+
+        return array_map(static fn (array $row): int => (int) $row['user_id'], $rows);
+    }
+
     /** Bài viết công khai (dùng cho khách chưa đăng nhập). */
     public static function findPublic(int $limit = 10, int $offset = 0): array
     {

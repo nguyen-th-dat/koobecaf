@@ -1,10 +1,11 @@
 'use strict';
 
 /**
- * Koobecaf — WebSocket server (chat realtime).
+ * Koobecaf — WebSocket server (chat + feed + thông báo realtime).
  *
  * Thay thế cơ chế AJAX polling 5 giây của trang /chat/{id} bằng kết nối
- * WebSocket giữ nguyên (push). Giao thức JSON nhỏ gọn, mọi frame có `type`.
+ * WebSocket giữ nguyên (push), đồng thời phát sự kiện feed/thông báo tới mọi
+ * trang đã đăng nhập. Giao thức JSON nhỏ gọn, mọi frame có `type`.
  *
  * Khởi động:
  *   npm run ws
@@ -16,6 +17,7 @@
 
 const http = require('http');
 const path = require('path');
+const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 
 const { loadEnv } = require('./lib/env');
@@ -114,6 +116,19 @@ function sendToUser(userId, payload) {
     }
     for (const socket of client.sockets) {
         send(socket, payload);
+    }
+}
+
+/** Gửi tới nhiều user cùng lúc (mỗi user nhận đúng một bản). */
+function sendToUsers(userIds, payload) {
+    const seen = new Set();
+    for (const userId of userIds) {
+        const key = String(userId);
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        sendToUser(userId, payload);
     }
 }
 
@@ -369,20 +384,232 @@ async function handleFrame(socket, raw) {
 }
 
 // -----------------------------------------------------------------
+// Sự kiện feed & thông báo (đẩy từ ứng dụng PHP)
+// -----------------------------------------------------------------
+
+/**
+ * Đẩy một bài viết mới tới những người được phép xem.
+ *
+ * `audience` do PHP tính sẵn (tác giả + người theo dõi + bạn bè tương ứng với
+ * mức quyền riêng tư) nên server không cần tự suy luận lại quyền xem.
+ */
+function broadcastPost(payload) {
+    const audience = Array.isArray(payload.audience) ? payload.audience : [];
+    if (audience.length === 0) {
+        return;
+    }
+
+    sendToUsers(audience, {
+        type: 'feed:post',
+        post: payload.post || null,
+    });
+}
+
+/**
+ * Đẩy sự kiện tương tác (like/comment/share) tới người xem bài viết.
+ */
+function broadcastPostEvent(payload) {
+    const audience = Array.isArray(payload.audience) ? payload.audience : [];
+    if (audience.length === 0) {
+        return;
+    }
+
+    sendToUsers(audience, {
+        type: 'feed:event',
+        event: payload.event || 'post:update',        post_id: Number(payload.post_id) || 0,
+        actor: payload.actor || null,
+        stats: payload.stats || null,
+        comment: payload.comment || null,
+    });
+}
+
+/**
+ * Đẩy thông báo mới tới đúng người nhận.
+ */
+function broadcastNotification(payload) {
+    const userId = Number(payload.user_id) || 0;
+    if (userId <= 0) {
+        return;
+    }
+
+    sendToUser(userId, {
+        type: 'notification:new',
+        notification: payload.notification || null,
+        unread_count: Number(payload.unread_count) || 0,
+    });
+}
+
+/** Đẩy sự kiện trạng thái mạng xã hội (follow / kết bạn) tới người liên quan. */
+function broadcastSocial(payload) {
+    const audience = Array.isArray(payload.audience) ? payload.audience : [];
+    if (audience.length === 0) {
+        return;
+    }
+
+    sendToUsers(audience, {
+        type: 'feed:social',
+        event: payload.event || 'follow',
+        actor: payload.actor || null,
+        target: payload.target || null,
+    });
+}
+
+/**
+ * Xử lý body của endpoint nội bộ `/internal/publish`.
+ */
+async function handleInternalPublish(body) {
+    let event = '';
+    let payload = {};
+
+    if (Array.isArray(body)) {
+        // Batch: mảng các sự kiện.
+        for (const item of body) {
+            await dispatchInternalEvent(item);
+        }
+
+        return;
+    }
+
+    if (body && typeof body === 'object') {
+        event = String(body.event || '');
+        payload = body.payload && typeof body.payload === 'object' ? body.payload : {};
+    }
+
+    await dispatchInternalEvent({ event, payload });
+}
+
+async function dispatchInternalEvent(item) {
+    if (!item || typeof item !== 'object') {
+        return;
+    }
+
+    const event = String(item.event || '');
+    const payload = item.payload && typeof item.payload === 'object' ? item.payload : {};
+
+    switch (event) {
+        case 'post.created':
+            broadcastPost(payload);
+            return;
+        case 'post.updated':
+        case 'post.deleted':
+        case 'post.liked':
+        case 'post.unliked':
+        case 'post.commented':
+        case 'post.uncommented':
+        case 'post.shared':
+            // Tên sự kiện nằm ở cấp ngoài payload → gắn vào để client biết
+            // loại tương tác (like / comment / share / deleted…). Payload do
+            // PHP gửi có thể ghi đè lại (ví dụ 'post.liked').
+            broadcastPostEvent(Object.assign({}, payload, { event: payload.event || event }));
+            return;
+        case 'notification.created':
+            broadcastNotification(payload);
+            return;
+        case 'social':
+            broadcastSocial(payload);
+            return;
+        default:
+            log(`bỏ qua sự kiện không hợp lệ: ${event}`);
+    }
+}
+
+// -----------------------------------------------------------------
 // Khởi động server
 // -----------------------------------------------------------------
+
+/**
+ * Kiểm tra chữ ký HMAC của body nội bộ.
+ *
+ * Ứng dụng PHP ký body bằng APP_KEY (`X-KB-Signature` header). Endpoint này
+ * chỉ nên được gọi từ máy chủ ứng dụng, không để lộ ra ngoài.
+ */
+function verifySignature(rawBody, signature) {
+    if (!CONFIG.appKey || typeof signature !== 'string' || signature === '') {
+        return false;
+    }
+
+    const expected = crypto.createHmac('sha256', CONFIG.appKey).update(rawBody).digest('hex');
+    const given = Buffer.from(signature, 'utf8');
+    const expectedBuffer = Buffer.from(expected, 'utf8');
+
+    if (given.length !== expectedBuffer.length) {
+        return false;
+    }
+
+    return crypto.timingSafeEqual(given, expectedBuffer);
+}
+
+function readRequestBody(req, limit = 512 * 1024) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        let size = 0;
+
+        req.on('data', (chunk) => {
+            size += chunk.length;
+            if (size > limit) {
+                reject(new Error('Body quá lớn'));
+                req.destroy();
+
+                return;
+            }
+            chunks.push(chunk);
+        });
+        req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+        req.on('error', reject);
+    });
+}
 
 async function main() {
     db = new Database(CONFIG.db);
 
-    const server = http.createServer((req, res) => {
-        if (req.url === '/health' || req.url === '/healthz') {
+    const server = http.createServer(async (req, res) => {
+        const requestUrl = (req.url || '').split('?')[0];
+
+        if (requestUrl === '/health' || requestUrl === '/healthz') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
                 status: 'ok',
                 clients: clients.size,
                 uptime: Math.round(process.uptime()),
             }));
+
+            return;
+        }
+
+        // Endpoint nội bộ: ứng dụng PHP đẩy sự kiện feed/thông báo vào đây.
+        if (requestUrl === '/internal/publish' && req.method === 'POST') {
+            let raw = '';
+            try {
+                raw = await readRequestBody(req);
+            } catch (error) {
+                res.writeHead(413, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, message: 'Body quá lớn.' }));
+
+                return;
+            }
+
+            const signature = req.headers['x-kb-signature'];
+            if (!verifySignature(raw, Array.isArray(signature) ? signature[0] : signature)) {
+                res.writeHead(401, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, message: 'Chữ ký không hợp lệ.' }));
+
+                return;
+            }
+
+            let body = null;
+            try {
+                body = raw === '' ? {} : JSON.parse(raw);
+            } catch (error) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ ok: false, message: 'JSON không hợp lệ.' }));
+
+                return;
+            }
+
+            await handleInternalPublish(body);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true }));
 
             return;
         }

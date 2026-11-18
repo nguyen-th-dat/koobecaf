@@ -1,0 +1,142 @@
+/* =============================================================
+   Koobecaf — Hệ thống thông báo Toast
+   ------------------------------------------------------------
+   Toast nằm ở góc dưới bên phải. Container dùng `column-reverse` nên
+   toast mới được chèn ở đầu danh sách và hiện ngay dưới cùng, đẩy các
+   toast cũ lên trên theo thứ tự thời gian.
+
+   Màu sắc dùng token sẵn có của app.css (--kb-success, --kb-error…) để
+   toast tự động đổi theo giao diện sáng/tối.
+   ============================================================= */
+
+.toast-container {
+    position: fixed;
+    bottom: var(--kb-space-md);
+    right: var(--kb-space-md);
+    z-index: 1100;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: var(--kb-space-xs);
+    width: min(380px, calc(100vw - var(--kb-space-md) * 2));
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--kb-space-sm);
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--kb-on-dark);
+    background-color: var(--kb-surface-dark);
+    border: 1px solid var(--kb-hairline);
+    border-radius: var(--kb-radius-lg);
+    box-shadow: var(--kb-shadow-pop);
+    pointer-events: auto;
+    animation: kb-toast-in .22s var(--kb-ease-out);
+}
+
+/* Icon theo loại thông báo */
+.toast-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 1.05rem;
+    line-height: 1.4;
+    color: var(--kb-primary-mint);
+}
+
+/* Biến thể thành công / thất bại / cảnh báo / thông tin */
+.toast.is-success {
+    background-color: var(--kb-success);
+    border-color: color-mix(in srgb, var(--kb-success) 70%, transparent);
+    color: #fff;
+}
+
+.toast.is-error {
+    background-color: var(--kb-error);
+    border-color: color-mix(in srgb, var(--kb-error) 70%, transparent);
+    color: #fff;
+}
+
+.toast.is-warning {
+    background-color: var(--kb-warning);
+    border-color: color-mix(in srgb, var(--kb-warning) 70%, transparent);
+    color: #fff;
+}
+
+.toast.is-info {
+    background-color: var(--kb-surface-dark-elevated);
+    border-color: var(--kb-hairline);
+    color: var(--kb-on-dark);
+}
+
+.toast.is-success > .toast-icon,
+.toast.is-error > .toast-icon,
+.toast.is-warning > .toast-icon {
+    color: currentColor;
+}
+
+.toast-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.toast-close {
+    flex-shrink: 0;
+    margin-top: 1px;
+    filter: invert(1);
+    opacity: .75;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+/* Toast đang rời đi */
+.toast.is-leaving {
+    animation: kb-toast-out .18s ease-in forwards;
+}
+
+@keyframes kb-toast-in {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes kb-toast-out {
+    from { opacity: 1; transform: none; }
+    to   { opacity: 0; transform: translateX(16px); }
+}
+
+/* Tôn trọng thiết lập giảm chuyển động của hệ điều hành */
+@media (prefers-reduced-motion: reduce) {
+    .toast,
+    .toast.is-leaving {
+        animation: none;
+    }
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 991.98px) {
+    .toast-container {
+        width: min(420px, calc(100vw - var(--kb-space-lg)));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .toast-container {
+        bottom: calc(var(--kb-mobile-nav-h) + var(--kb-space-sm));
+        right: var(--kb-space-sm);
+        left: var(--kb-space-sm);
+        width: auto;
+        align-items: stretch;
+    }
+
+    .toast {
+        min-width: 0;
+        max-width: none;
+    }
+}
