@@ -24,7 +24,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 | Môi trường | XAMPP (Apache + PHP + MySQL/MariaDB) |
 | Công cụ | Composer, `php -S` (dev server), bộ test tích hợp tự viết |
 
-> Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet. Phần CSS không dùng Bootstrap: toàn bộ token, layout và component được viết tay theo `DESIGN.md` (nền kem `#faf9f5`, nhấn mint `#14806c`, Cormorant Garamond cho tiêu đề, Inter cho nội dung).
+> Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet. Phần CSS không dùng Bootstrap: toàn bộ token, layout và component được viết tay trong `assets/css/app.css` (nền kem `#faf9f5`, nhấn mint `#14806c`, Cormorant Garamond cho tiêu đề, Inter cho nội dung).
 
 ---
 
