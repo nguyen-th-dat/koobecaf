@@ -235,7 +235,7 @@ check('Giu lai noi dung composer sau khi dang that bai', str_contains($res['body
 {
     $res = request('GET', $base . '/posts/create');
     check('Composer co danh dau data-guard', str_contains($res['body'], 'data-guard="Bài viết đang soạn"'));
-    check('Trang dang bai co nut ve bang tin', str_contains($res['body'], 'href="' . url('/') . '"'));
+    check('Trang dang bai co tieu de va nut ve bang tin', str_contains($res['body'], 'Đăng bài viết') && str_contains($res['body'], 'Về bảng tin'));
     check('Trang chu khong con form composer', !str_contains(request('GET', $base . '/')['body'], 'id="postForm"'));
 
     $res = request('GET', $base . '/');
