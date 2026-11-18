@@ -225,12 +225,15 @@ Tổng: **115 kiểm tra tự động — 0 lỗi.**
 php -S localhost:8000 -t . router.php
 
 # Terminal 2
-php tests/smoke.php    http://localhost:8000
-php tests/extended.php http://localhost:8000
-php tests/pages.php    http://localhost:8000
+php tests/smoke.php           http://localhost:8000
+php tests/extended.php        http://localhost:8000
+php tests/password_reset.php http://localhost:8000
+php tests/pages.php           http://localhost:8000
 ```
 
-Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
+Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `PASS: 21 | FAIL: 0`, `FAIL: 0`.
+
+> `tests/password_reset.php` cần `MAIL_DRIVER=log` trong `.env` vì đọc token từ `storage/logs/`.
 
 ## Quy trình cài đặt nhanh (từ đầu)
 
