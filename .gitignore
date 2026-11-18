@@ -32,6 +32,7 @@ PROMT.md
 !/uploads/covers/
 !/uploads/posts/
 /uploads/avatars/*
+!/uploads/avatars/default-avatar.png
 /uploads/covers/*
 /uploads/posts/*
 DESIGN.md
