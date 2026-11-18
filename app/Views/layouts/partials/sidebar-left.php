@@ -17,7 +17,7 @@ $menu = [
 ];
 ?>
 <nav class="side-nav">
-    <ul class="nav flex-column">
+    <ul class="nav flex-column gap-1">
         <?php foreach ($menu as $item): ?>
             <?php
             $active = $item['exact'] ?? false
