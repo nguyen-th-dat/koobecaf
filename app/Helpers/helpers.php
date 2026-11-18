@@ -77,20 +77,27 @@ if (!function_exists('absolute_url')) {
     /**
      * URL tuyệt đối (có scheme + host) — dùng cho link gửi qua email.
      *
-     * Dựa trên host của request hiện tại nên đúng với cả khi chạy PHP built-in
-     * server lẫn Apache trong thư mục con. Khi không có HTTP_HOST (ví dụ CLI)
-     * thì lấy từ APP_URL.
+     * Lấy host từ APP_URL chứ không từ header Host của request, tránh host header
+     * injection (kẻ xấn có thể đổi Host để link đặt lại mật khẩu trỏ về domain
+     * của họ). Phần path lấy từ url() nên vẫn đúng khi app nằm trong thư mục con.
      */
     function absolute_url(string $path = '/'): string
     {
-        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
-        if ($host === '') {
-            return rtrim((string) config('app.url', ''), '/') . url($path);
+        $appUrl = rtrim((string) config('app.url', ''), '/');
+        $scheme = parse_url($appUrl, PHP_URL_SCHEME);
+        $host = parse_url($appUrl, PHP_URL_HOST);
+
+        if (!is_string($scheme) || !is_string($host) || $host === '') {
+            $requestHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
+            if ($requestHost === '') {
+                return url($path);
+            }
+            $secure = ($_SERVER['HTTPS'] ?? '') !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+            $scheme = $secure ? 'https' : 'http';
+            $host = $requestHost;
         }
 
-        $secure = ($_SERVER['HTTPS'] ?? '') !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
-
-        return ($secure ? 'https' : 'http') . '://' . $host . url($path);
+        return $scheme . '://' . $host . url($path);
     }
 }
 
