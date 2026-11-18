@@ -40,11 +40,7 @@ $path = '/' . trim($path, '/');
                     </a>
 
                     <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-expanded="false" aria-label="Tài khoản">
-                        <?php if (!empty($currentUser['avatar_path'])): ?>
-                            <img src="<?= e(upload_url($currentUser['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
-                        <?php else: ?>
-                            <span class="avatar avatar-sm avatar-fallback"><?= e(initials($currentUser['display_name'] ?? '')) ?></span>
-                        <?php endif; ?>
+                        <img src="<?= e(avatar_url($currentUser['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                     </button>
                     <ul class="menu">
                         <li class="menu-header">
