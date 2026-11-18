@@ -1,6 +1,5 @@
 /* =============================================================
    Koobecaf — hệ thống giao diện tự viết (không dùng Bootstrap)
-   Nguồn thiết kế: DESIGN.md
    - Nền kem ấm, màu chủ đạo mint, bề mặt tối cho điểm nhấn
    - Tiêu đề serif hiển thị (Cormorant Garamond), chữ thân sans (Inter)
    - Viền hairline 1px, nâng cấp phẳng (không đổ bóng nặng)
@@ -52,10 +51,9 @@
         --kb-error-soft: #fbeceb;
 
         /* ---- Typography ----
-           Cormorant Garamond là thay thế gần nhất cho Copernicus/Tiempos
-           Headline; Inter là thay thế gần nhất cho StyreneB. */
-        --kb-font-display: "Cormorant Garamond", "Copernicus", "Tiempos Headline", Garamond, "Times New Roman", serif;
-        --kb-font-body: "Inter", "StyreneB", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           Cormorant Garamond cho tiêu đề serif, Inter cho chữ thân. */
+        --kb-font-display: "Cormorant Garamond", Garamond, "Times New Roman", serif;
+        --kb-font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --kb-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
         /* ---- Bo góc ---- */
