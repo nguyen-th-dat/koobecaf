@@ -7,8 +7,9 @@
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
-        <label class="form-label" for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" required autofocus autocomplete="email">
+        <label class="form-label" for="email">Email hoặc username</label>
+        <input type="text" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" placeholder="Email hoặc username" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false">
+        <div class="form-text">Nhập email đã đăng ký hoặc tên người dùng của bạn.</div>
     </div>
 
     <div class="mb-3">

@@ -25,21 +25,23 @@ final class AuthController extends Controller
 
     public function login(): void
     {
-        $email = $this->request->string('email');
+        $identifier = $this->request->string('email');
         $password = (string) $this->request->input('password', '');
 
         $validator = (new Validator($this->request->all()))
-            ->required('email', 'Email')
-            ->email('email')
+            ->required('email', 'Email hoặc username')
             ->required('password', 'Mật khẩu');
 
         if ($validator->fails()) {
             $this->failAuth($validator->firstError(), 'login');
         }
 
-        $user = User::findByEmail($email);
+        $user = str_contains($identifier, '@')
+            ? User::findByEmail($identifier)
+            : User::findByUsername($identifier);
+
         if ($user === null || !password_verify($password, (string) $user['password_hash'])) {
-            $this->failAuth('Email hoặc mật khẩu không đúng.', 'login');
+            $this->failAuth('Email, username hoặc mật khẩu không đúng.', 'login');
         }
 
         $this->loginUser((int) $user['id']);
