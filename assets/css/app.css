@@ -1135,10 +1135,9 @@
         margin-bottom: var(--kb-space-xs);
     }
 
-    /* Cột phải: dính theo cuộn */
+    /* Cột phải: dính theo cuộn (đặt ở lớp responsive) */
     .side-right {
-        position: sticky;
-        top: calc(var(--kb-topbar-h) + var(--kb-space-lg));
+        min-width: 0;
     }
 
     /* ---------------- Biểu tượng tròn thay avatar ---------------- */
