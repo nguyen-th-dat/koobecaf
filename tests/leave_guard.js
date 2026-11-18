@@ -211,7 +211,7 @@ function run(forms) {
     ctx.initGuards();
     email.value = 'a@b.com';
 
-    const dirty = ctx.dirtyGuardForms();
+    const dirty = ctx.losingForms();
     check('Chỉ tính form có dữ liệu', dirty.length === 1 && dirty[0].label === 'Thông tin đăng nhập', JSON.stringify(dirty.map(d => d.label)));
 }
 
@@ -227,7 +227,7 @@ function run(forms) {
     ctx.initGuards();
     content.value = long;
 
-    const dirty = ctx.dirtyGuardForms();
+    const dirty = ctx.losingForms();
     check('Nội dung dài được cắt bớt khi xem trước', dirty.length === 1 && dirty[0].items[0].preview.length <= 61, String(dirty[0]?.items[0].preview.length));
 }
 
@@ -241,7 +241,7 @@ function run(forms) {
     const ctx = run([form]);
     ctx.initGuards();
 
-    check('Field ẩn không bị coi là mất dữ liệu', ctx.dirtyGuardForms().length === 0);
+    check('Field ẩn không bị coi là mất dữ liệu', ctx.losingForms().length === 0);
 }
 
 console.log('\n================================');
