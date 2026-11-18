@@ -2039,12 +2039,13 @@
         visibility: hidden;
     }
 
-    /* Bong bóng bo tròn đều, không dùng góc "đuôi" để tránh rối khi nhóm tin nhắn */
+    /* Bong bóng bo tròn, góc "đuôi" nhỏ lại ở góc dưới (khác với tin của mình) */
     .chat-bubble {
         position: relative;
         background-color: var(--kb-canvas);
         border: 1px solid var(--kb-hairline-soft);
         border-radius: var(--kb-radius-lg);
+        border-bottom-left-radius: var(--kb-radius-xs);
         padding: .55rem .85rem;
         max-width: min(72%, 560px);
         color: var(--kb-body);
@@ -2056,6 +2057,8 @@
         background-color: var(--kb-primary);
         border-color: var(--kb-primary);
         color: var(--kb-primary-contrast);
+        border-bottom-left-radius: var(--kb-radius-lg);
+        border-bottom-right-radius: var(--kb-radius-xs);
         box-shadow: 0 1px 2px color-mix(in srgb, var(--kb-primary) 40%, transparent);
     }
 
@@ -2066,11 +2069,11 @@
 
     /* Tin cuối của nhóm: bo tròn lại góc đuôi để khối liền mạch */
     .chat-bubble-row.group-end .chat-bubble {
-        border-bottom-left-radius: var(--kb-radius-xs);
+        border-bottom-left-radius: var(--kb-radius-lg);
     }
 
     .chat-bubble-row.mine.group-end .chat-bubble {
-        border-bottom-right-radius: var(--kb-radius-xs);
+        border-bottom-right-radius: var(--kb-radius-lg);
     }
 
     @keyframes kb-bubble-in {
@@ -2821,7 +2824,7 @@
         }
 
         .chat-layout {
-            grid-template-columns: 320px minmax(0, 1fr);
+            grid-template-columns: 340px minmax(0, 1fr);
         }
 
         .chat-sidebar {
