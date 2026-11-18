@@ -13,9 +13,11 @@
 <div class="card surface-card">
     <div class="card-body">
         <?php if ($friends === []): ?>
-            <div class="text-center fg-secondary py-4">
-                <i class="bi bi-people d-block mb-2 fs-2xl"></i>
-                Bạn chưa có bạn bè nào. Hãy kết nối với những người thú vị!
+            <div class="empty-state">
+                <span class="empty-icon"><i class="bi bi-people"></i></span>
+                <h3>Bạn chưa có bạn bè nào</h3>
+                <p>Kết nối với những người thú vị qua lời mời hoặc theo dõi họ trên bảng tin.</p>
+                <a class="btn btn-solid mt-2" href="<?= url('/search') ?>"><i class="bi bi-search me-1"></i>Tìm người dùng</a>
             </div>
         <?php else: ?>
             <?php foreach ($friends as $person): ?>
