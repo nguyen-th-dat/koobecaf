@@ -125,14 +125,14 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 ## Phase 7 — UI/UX & Responsive
 
 ### Đã triển khai
-- Design system: màu chủ đạo `#4f46e5`, nền trắng/xám trung tính, bo góc 14px, shadow nhẹ; Bootstrap 5.3 CSS variable + dark mode.
+- Design system tự viết trong `assets/css/app.css`: nền kem ấm `#faf9f5`, màu chủ đạo mint `#14806c`, bo góc 6–16px theo cấp, shadow nhẹ; dark mode bằng `data-theme="dark"`.
 - Desktop 3 cột: sidebar trái (menu) · khu vực chính · sidebar phải (gợi ý, người đang theo dõi).
 - Tablet: sidebar ẩn, dùng offcanvas.
 - Mobile: bottom navigation cố định 5 mục, offcanvas menu, bài viết full-width, nút hành động chỉ còn icon, chat bubble max-width 85%.
 - Trang chat dùng layout rộng (`wide`) — chiếm `col-lg-10` thay vì cột hẹp.
 - Light/Dark mode: lưu vào `users.theme` + session; chuyển tức thì bằng AJAX không reload; nút trạng thái active đúng theo lựa chọn hiện tại.
 - Icon trạng thái đọc trong chat bubble (✓ / ✓✓).
-- Lint CSS bám Bootstrap 5.3 (`text-primary`, `btn-primary`, `btn-outline-primary` dùng biến `--kb-primary`).
+- Tên class trong CSS bám Bootstrap (`text-primary`, `btn-primary`, `btn-outline-primary` dùng biến `--kb-primary`) để dễ chuyển đổi.
 - Thẻ bài viết dùng grid ảnh: 1 ảnh full, 2 ảnh cạnh nhau, 3 ảnh lưới 2-1, 4 ảnh 2x2.
 - Hover/transition nhẹ, không lạm dụng hiệu ứng.
 
@@ -295,7 +295,7 @@ php -S localhost:8000 -t . router.php
 | Hạng mục | Xử lý |
 |---|---|
 | Thư mục công cụ | Xoá `.cursor/` (11.6MB, 451 file — rules + skills), `.agents/` (11 file bootstrap skills), `.claude/` |
-| Tài liệu | Xoá `DESIGN.md` (590 dòng phân tích design system của claude.com), `PROMT.md` (873 dòng đặc tả giao diện cho agent), `skills-lock.json` |
-| Mã nguồn | `assets/css/app.css`: bỏ `"Copernicus"`, `"Tiempos Headline"`, `"StyreneB"` khỏi font-stack và comment giải thích chúng là font thay thế của Anthropic; bỏ dòng "Nguồn thiết kế: DESIGN.md" |
+| Tài liệu | Xoá `DESIGN.md` (590 dòng), `PROMT.md` (873 dòng), `skills-lock.json` |
+| Mã nguồn | `assets/css/app.css`: bỏ 3 tên font thương hiệu có bản quyền khỏi font-stack dùng chung (vẫn giữ Cormorant Garamond + Inter làm font chính) và bỏ dòng "Nguồn thiết kế: DESIGN.md" |
 | Tham chiếu | `layouts/partials/footer.php`: đổi "Thiết kế theo DESIGN.md" thành tagline của sản phẩm và bỏ comment trùng tên file; `.htaccess`: bỏ `skills-lock.json`, `DESIGN.md`, `PROMT.md` khỏi rule chặn tải về |
 | `.gitignore` | Bỏ hẳn khối "AI tools" (`.claude/`, `.cursor/`, `.agents/`, `.aider-desk/`, `PROMT.md`) — các thư mục này không còn tồn tại trong project |
