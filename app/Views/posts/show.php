@@ -9,8 +9,8 @@ $viewerId = auth_id();
 $data = post_view_data($post, $viewerId);
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h5 mb-0"><i class="bi bi-chat-square-text me-2"></i>Bài viết</h1>
-    <a class="btn btn-sm btn-outline-secondary" href="<?= url('/') ?>"><i class="bi bi-arrow-left"></i> Trở lại</a>
+    <h1 class="h3 mb-0"><i class="bi bi-chat-square-text me-2"></i>Bài viết</h1>
+    <a class="btn btn-outline btn-sm" href="<?= url('/') ?>"><i class="bi bi-arrow-left"></i> Trở lại</a>
 </div>
 
 <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
@@ -26,13 +26,13 @@ $data = post_view_data($post, $viewerId);
                     <textarea name="content" class="form-control form-control-sm" rows="2" placeholder="Viết bình luận..." maxlength="2000" required></textarea>
                     <input type="hidden" name="parent_id" value="">
                 </div>
-                <button class="btn btn-primary btn-sm align-self-start" type="submit">Gửi</button>
+                <button class="btn btn-solid btn-sm align-self-start" type="submit">Gửi</button>
             </form>
         <?php endif; ?>
 
         <div class="comment-list">
             <?php if ($comments === []): ?>
-                <p class="text-secondary small mb-0">Chưa có bình luận nào.</p>
+                <p class="fg-secondary small mb-0">Chưa có bình luận nào.</p>
             <?php else: ?>
                 <?php foreach ($comments as $comment): ?>
                     <?= view_partial(dirname(__DIR__) . '/partials/comment-item.php', ['comment' => $comment]) ?>
