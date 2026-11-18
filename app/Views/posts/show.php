@@ -15,7 +15,7 @@ $data = post_view_data($post, $viewerId);
 
 <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
 
-<div class="card surface-card mb-3">
+<div class="card surface-card mb-3" id="comments">
     <div class="card-body">
         <h2 class="h6 mb-3"><i class="bi bi-chat-left-text me-2"></i>Bình luận (<?= count($comments) ?>)</h2>
 
@@ -28,6 +28,11 @@ $data = post_view_data($post, $viewerId);
                 </div>
                 <button class="btn btn-solid btn-sm align-self-start" type="submit">Gửi</button>
             </form>
+        <?php else: ?>
+            <div class="comment-login-prompt mb-3">
+                <p class="fg-secondary small mb-2">Đăng nhập để tham gia thảo luận với bài viết này.</p>
+                <a class="btn btn-solid btn-sm" href="<?= url('/login') ?>"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a>
+            </div>
         <?php endif; ?>
 
         <div class="comment-list">
