@@ -550,6 +550,3 @@ Gợi ý (chưa triển khai):
 
 ---
 
-## 12. Giấy phép
-
-MIT — xem `composer.json`.
