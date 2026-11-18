@@ -72,11 +72,21 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
 
         <?php if (is_auth() && empty($wide)): ?>
             <aside class="app-rail app-rail-right">
-                <?php require __DIR__ . '/partials/sidebar-right.php'; ?>
+                <?php if (!empty($rightRail)): ?>
+                    <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
+                <?php else: ?>
+                    <?php require __DIR__ . '/partials/sidebar-right.php'; ?>
+                <?php endif; ?>
             </aside>
         <?php endif; ?>
     </div>
 </div>
+
+<?php if (!empty($rightRail)): ?>
+    <div class="app-rail-inline<?= is_auth() ? ' is-duplicate' : '' ?>">
+        <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
+    </div>
+<?php endif; ?>
 
 <?php if (is_auth()): ?>
     <?php require __DIR__ . '/partials/mobile-nav.php'; ?>

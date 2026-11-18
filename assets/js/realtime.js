@@ -284,7 +284,7 @@
         }
 
         const stats = payload.stats || {};
-        const card = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+        const card = document.querySelector(`.post-card[data-post-id="${postId}"], .post-detail[data-post-id="${postId}"]`);
         if (!card) {
             return;
         }
@@ -324,8 +324,15 @@
         }
 
         const counter = card.querySelector(selector);
-        if (counter) {
+        if (!counter) {
+            return;
+        }
+
+        // Thẻ bài viết có sẵn biểu tượng trong số liệu, trang chi tiết thì không.
+        if (counter.querySelector('i')) {
             counter.innerHTML = `<i class="bi ${iconClass} me-1"></i>${value}`;
+        } else {
+            counter.textContent = value;
         }
     }
 

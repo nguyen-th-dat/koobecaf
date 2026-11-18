@@ -184,7 +184,7 @@ function isOverflowing(el) {
 }
 
 /**
- * Kẹp nội dung dài ở CLAMP_LINES dòng và chèn nút "Xem thêm" nếu bị cắt.
+ * Kẹp nội dung dài và chèn nút "Xem thêm" nếu bị cắt.
  *
  * Phải đo trong lúc đang áp dụng clamp: khi bỏ clamp, chiều cao phần tử bằng
  * chiều cao nội dung nên scrollHeight luôn bằng clientHeight.
@@ -203,9 +203,9 @@ function clampPostText(el) {
     button.textContent = 'Xem thêm';
 
     button.addEventListener('click', () => {
-        const collapsed = el.classList.contains('is-clamped');
-        el.classList.toggle('is-clamped', !collapsed);
-        button.textContent = collapsed ? 'Xem thêm' : 'Thu gọn';
+        const wasClamped = el.classList.contains('is-clamped');
+        el.classList.toggle('is-clamped', !wasClamped);
+        button.textContent = wasClamped ? 'Thu gọn' : 'Xem thêm';
     });
 
     el.insertAdjacentElement('afterend', button);
@@ -341,6 +341,23 @@ if (imageInput && previewBox) {
 }
 
 /* =============================================================
+   Cập nhật số liệu tương tác (thích / bình luận / chia sẻ)
+
+   Cột số liệu ở thẻ bài viết có sẵn biểu tượng, còn ở trang chi tiết thì
+   biểu tượng nằm ở phần tử anh em — nên giữ nguyên cấu trúc đang có.
+   ============================================================= */
+function setCounter(el, value, iconClass) {
+    if (!el) {
+        return;
+    }
+    if (el.querySelector('i')) {
+        el.innerHTML = `<i class="bi ${iconClass} me-1"></i>${value}`;
+    } else {
+        el.textContent = value;
+    }
+}
+
+/* =============================================================
    Like / Share / Copy link
    ============================================================= */
 document.addEventListener('click', async (event) => {
@@ -359,16 +376,23 @@ document.addEventListener('click', async (event) => {
             showToast('error', payload.message ?? 'Không thể thực hiện.');
             return;
         }
-        const card = button.closest('.post-card');
+        const card = button.closest('.post-card, .post-detail');
         button.classList.toggle('active', payload.data.liked);
         const icon = button.querySelector('i');
         if (icon) icon.className = payload.data.liked ? 'bi bi-hand-thumbs-up-fill' : 'bi bi-hand-thumbs-up';
-        const counter = card?.querySelector('[data-like-count]');
-        if (counter) counter.innerHTML = `<i class="bi bi-hand-thumbs-up me-1"></i>${payload.data.like_count}`;
+        setCounter(card?.querySelector('[data-like-count]'), payload.data.like_count, 'bi-hand-thumbs-up');
         showToast('success', payload.data.liked ? 'Đã thích bài viết.' : 'Đã bỏ thích bài viết.');
     }
 
     if (action === 'share') {
+        // Trang chi tiết có sẵn hộp chia sẻ — mở ra thay vì hỏi bằng prompt.
+        const shareBox = document.querySelector('[data-share-box]');
+        if (shareBox) {
+            shareBox.classList.remove('d-none');
+            shareBox.querySelector('textarea')?.focus();
+            return;
+        }
+
         const content = window.prompt('Chia sẻ bài viết này (không bắt buộc):', '');
         if (content === null) return;
         const payload = await request(apiUrl(`/posts/${postId}/share`), {
@@ -380,9 +404,8 @@ document.addEventListener('click', async (event) => {
             showToast('error', payload.message ?? 'Không thể chia sẻ.');
             return;
         }
-        const card = button.closest('.post-card');
-        const counter = card?.querySelector('[data-share-count]');
-        if (counter) counter.innerHTML = `<i class="bi bi-share me-1"></i>${payload.data.share_count}`;
+        const card = button.closest('.post-card, .post-detail');
+        setCounter(card?.querySelector('[data-share-count]'), payload.data.share_count, 'bi-share');
         showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
     }
 
@@ -477,6 +500,20 @@ async function loadComments(postId, container) {
     payload.data.comments.forEach(comment => list.appendChild(buildCommentNode(comment)));
 }
 
+/** Làm mới danh sách bình luận ở trang chi tiết bài viết. */
+async function refreshDetailComments(list) {
+    const postId = list.dataset.commentList;
+    if (!postId) return;
+    const payload = await request(apiUrl(`/api/posts/${postId}/comments`));
+    if (!payload.success) return;
+    list.innerHTML = '';
+    if (!payload.data.comments.length) {
+        list.innerHTML = '<div class="empty-state post-detail-empty"><span class="empty-icon"><i class="bi bi-chat-heart"></i></span><h3>Chưa có bình luận nào</h3><p>Hãy là người đầu tiên trò chuyện về bài viết này.</p></div>';
+        return;
+    }
+    payload.data.comments.forEach(comment => list.appendChild(buildCommentNode(comment)));
+}
+
 function buildCommentNode(comment) {
     const node = document.createElement('div');
     node.className = 'comment-item d-flex gap-2 py-2';
@@ -490,7 +527,7 @@ function buildCommentNode(comment) {
         <div class="flex-grow-1 min-w-0">
             <div class="comment-bubble">
                 <a class="fw-semibold fg-body-emphasis text-decoration-none" href="${comment.author.profile_url}">${escapeHtml(comment.author.display_name)}</a>
-                <p class="mb-0 comment-text">${escapeHtml(comment.content).replace(/\n/g, '<br>')}</p>
+                <p class="mb-0 comment-text" data-comment-text>${escapeHtml(comment.content).replace(/\n/g, '<br>')}</p>
             </div>
             <div class="small fg-secondary mt-1 d-flex align-items-center gap-2">
                 <span>${timeAgo(comment.created_at)}</span>
@@ -563,22 +600,29 @@ document.addEventListener('submit', async (event) => {
     input.value = '';
     if (parentInput) parentInput.value = '';
     clearFormDraft(form);
+
+    const card = form.closest('.post-card, .post-detail');
     const container = form.closest('.post-comments');
     if (container) {
         await loadComments(postId, container);
         container.classList.remove('d-none');
+    } else {
+        // Trang chi tiết: danh sách bình luận render sẵn từ server.
+        const list = form.closest('.post-detail-comments')?.querySelector('[data-comment-list]');
+        if (list) {
+            await refreshDetailComments(list);
+        }
     }
-    const card = form.closest('.post-card');
-    const counter = card?.querySelector('[data-comment-count]');
-    if (counter) counter.innerHTML = `<i class="bi bi-chat me-1"></i>${payload.data.comment_count}`;
+    setCounter(card?.querySelector('[data-comment-count]'), payload.data.comment_count, 'bi-chat');
     showToast('success', isReply ? 'Đã trả lời bình luận.' : 'Đã gửi bình luận.');
 });
 
 document.addEventListener('click', async (event) => {
     const replyBtn = event.target.closest('.comment-reply-btn');
     if (replyBtn) {
-        const card = replyBtn.closest('.post-card');
-        const form = card?.querySelector('.comment-form');
+        // Ô nhập nằm trong khung bình luận chứ không phải trong thẻ bài viết.
+        const scope = replyBtn.closest('.post-comments, .post-detail-comments, .post-card, .post-detail');
+        const form = scope?.querySelector('.comment-form');
         if (!form) return;
         const parentInput = form.querySelector('input[name="parent_id"]');
         if (parentInput) parentInput.value = replyBtn.dataset.commentId;
@@ -587,6 +631,7 @@ document.addEventListener('click', async (event) => {
             input.focus();
             input.placeholder = 'Trả lời bình luận...';
         }
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
 
@@ -638,14 +683,133 @@ document.addEventListener('click', async (event) => {
             showToast('error', payload.message ?? 'Không thể xóa bình luận.');
             return;
         }
-        const card = deleteBtn.closest('.post-card');
-        const counter = card?.querySelector('[data-comment-count]');
-        if (counter) counter.innerHTML = `<i class="bi bi-chat me-1"></i>${payload.data.comment_count}`;
+        const card = deleteBtn.closest('.post-card, .post-detail');
+        setCounter(card?.querySelector('[data-comment-count]'), payload.data.comment_count, 'bi-chat');
         const postId = card?.dataset.postId;
         const container = card?.querySelector('.post-comments');
-        if (postId && container) await loadComments(postId, container);
+        if (postId && container) {
+            await loadComments(postId, container);
+        } else {
+            // Trang chi tiết: danh sách bình luận nằm ở khu bình luận riêng.
+            const list = deleteBtn.closest('.post-detail-comments')?.querySelector('[data-comment-list]');
+            if (list) await refreshDetailComments(list);
+        }
         showToast('success', 'Đã xóa bình luận.');
     }
+});
+
+/* =============================================================
+   Trang chi tiết bài viết
+   - Thanh tiến độ đọc
+   - Lightbox xem ảnh
+   - Hộp chia sẻ nhanh
+   ============================================================= */
+
+/* ---- Thanh tiến độ đọc ---- */
+const readProgress = document.querySelector('[data-read-progress]');
+if (readProgress) {
+    const readBar = readProgress.querySelector('[data-read-bar]');
+    const updateReadProgress = () => {
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = total > 0 ? Math.min(1, Math.max(0, window.scrollY / total)) : 0;
+        if (readBar) readBar.style.width = (ratio * 100).toFixed(2) + '%';
+    };
+    updateReadProgress();
+    window.addEventListener('scroll', updateReadProgress, { passive: true });
+    window.addEventListener('resize', updateReadProgress);
+}
+
+/* ---- Lightbox xem ảnh ---- */
+const lightbox = document.querySelector('[data-lightbox-view]');
+if (lightbox) {
+    const lightboxImage = lightbox.querySelector('[data-lightbox-image]');
+    const lightboxCaption = lightbox.querySelector('[data-lightbox-caption]');
+    const triggers = Array.from(document.querySelectorAll('[data-lightbox]'));
+    let currentIndex = 0;
+
+    const showImage = (index) => {
+        if (triggers.length === 0) return;
+        currentIndex = (index + triggers.length) % triggers.length;
+        const src = triggers[currentIndex].dataset.lightbox;
+        if (lightboxImage) lightboxImage.src = src;
+        if (lightboxCaption) {
+            lightboxCaption.textContent = `${currentIndex + 1} / ${triggers.length}`;
+        }
+    };
+
+    const openLightbox = (index) => {
+        showImage(index);
+        lightbox.hidden = false;
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeLightbox = () => {
+        lightbox.hidden = true;
+        document.body.style.overflow = '';
+    };
+
+    triggers.forEach((trigger, index) => {
+        trigger.addEventListener('click', () => openLightbox(index));
+    });
+
+    lightbox.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+    lightbox.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => showImage(currentIndex - 1));
+    lightbox.querySelector('[data-lightbox-next]')?.addEventListener('click', () => showImage(currentIndex + 1));
+
+    lightbox.addEventListener('click', (event) => {
+        if (event.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (lightbox.hidden) return;
+        if (event.key === 'Escape') closeLightbox();
+        if (event.key === 'ArrowLeft') showImage(currentIndex - 1);
+        if (event.key === 'ArrowRight') showImage(currentIndex + 1);
+    });
+}
+
+/* ---- Hộp chia sẻ nhanh ---- */
+const shareBox = document.querySelector('[data-share-box]');
+if (shareBox) {
+    document.querySelectorAll('[data-share-close]').forEach(button => {
+        button.addEventListener('click', () => shareBox.classList.add('d-none'));
+    });
+
+    const shareForm = shareBox.querySelector('[data-share-form]');
+    shareForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const textarea = shareForm.querySelector('textarea[name="content"]');
+        const content = textarea?.value.trim() ?? '';
+        const postId = shareForm.dataset.shareForm;
+
+        const payload = await request(apiUrl(`/posts/${postId}/share`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ content: content, privacy: 'public' }),
+        });
+        if (!payload.success) {
+            showToast('error', payload.message ?? 'Không thể chia sẻ.');
+            return;
+        }
+
+        if (textarea) textarea.value = '';
+        shareBox.classList.add('d-none');
+        setCounter(
+            document.querySelector('.post-detail [data-share-count]'),
+            payload.data.share_count,
+            'bi-share'
+        );
+        showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
+    });
+}
+
+/* ---- Gửi bình luận nhanh bằng Ctrl + Enter ---- */
+document.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.key !== 'Enter') return;
+    const textarea = event.target;
+    if (!textarea || textarea.tagName !== 'TEXTAREA') return;
+    const form = textarea.closest('.comment-form');
+    if (form) form.requestSubmit();
 });
 
 /* =============================================================

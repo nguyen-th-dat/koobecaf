@@ -30,13 +30,23 @@ final class PostController extends Controller
             return;
         }
 
+        $postId = (int) $post['id'];
+        $authorId = (int) $post['user_id'];
+
         $this->view('posts/show', [
-            'title'   => 'Bài viết',
-            'post'    => $post,
-            'images'  => PostImage::all($post['id']),
-            'comments' => \App\Models\Comment::forPost((int) $post['id']),
-            'isOwner' => Post::canManage($post, $viewerId),
-            'canonicalUrl' => url('/p/' . (int) $post['id']),
+            'title'    => 'Bài viết',
+            'post'     => $post,
+            'images'   => PostImage::all($postId),
+            'comments' => \App\Models\Comment::forPost($postId),
+            'isOwner'  => Post::canManage($post, $viewerId),
+            'author'   => \App\Models\User::find($authorId),
+            'isFollowing' => $viewerId !== null
+                && $viewerId !== $authorId
+                && \App\Models\Follow::isFollowing($viewerId, $authorId),
+            'likers'   => \App\Models\Like::usersByPost($postId, 8),
+            'related'  => Post::byUser($authorId, $viewerId, 4),
+            'rightRail' => 'post-rail',
+            'canonicalUrl' => url('/p/' . $postId),
             'metaTags' => $this->openGraphTags($post),
         ]);
     }
