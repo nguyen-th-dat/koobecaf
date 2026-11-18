@@ -14,7 +14,7 @@ $path = '/' . trim($path, '/');
 <header class="topbar sticky-top">
     <div class="container-fluid">
         <div class="d-flex align-items-center gap-2">
-            <button class="btn icon-btn d-none lg:d-inline-flex" type="button" data-bs-toggle="drawer" data-bs-target="#mobileSidebar" aria-label="Menu">
+            <button class="btn icon-btn lg:d-none" type="button" data-drawer-toggle="#mobileSidebar" aria-label="Menu">
                 <i class="bi bi-list"></i>
             </button>
 
@@ -39,7 +39,7 @@ $path = '/' . trim($path, '/');
                         <span class="badge-dot<?= $unreadNotifications > 0 ? '' : ' d-none' ?>" data-badge="notifications"><?= $unreadNotifications > 99 ? '99+' : (int) $unreadNotifications ?></span>
                     </a>
 
-                    <button class="btn icon-btn" type="button" data-bs-toggle="menu" data-bs-placement="bottom-end" aria-expanded="false" aria-label="Tài khoản">
+                    <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-expanded="false" aria-label="Tài khoản">
                         <?php if (!empty($currentUser['avatar_path'])): ?>
                             <img src="<?= e(upload_url($currentUser['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                         <?php else: ?>
