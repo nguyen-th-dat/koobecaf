@@ -15,8 +15,8 @@ $originalImages = $meta['originalImages'];
         <div class="shared-header d-flex align-items-center gap-2 px-3 pt-3">
             <img src="<?= e(upload_url($post['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
             <div class="min-w-0">
-                <a class="fw-semibold text-body text-decoration-none" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
-                <small class="text-secondary d-block">đã chia sẻ · <?= e(time_ago($post['created_at'])) ?></small>
+                <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
+                <small class="fg-secondary d-block">đã chia sẻ · <?= e(time_ago($post['created_at'])) ?></small>
             </div>
         </div>
     <?php endif; ?>
@@ -32,10 +32,10 @@ $originalImages = $meta['originalImages'];
             <?php if (!$meta['isShared'] || $original === null): ?>
                 <div class="d-flex justify-content-between align-items-start gap-2">
                     <div class="min-w-0">
-                        <a class="fw-semibold text-body text-decoration-none" href="<?= url('/u/' . $post['username']) ?>">
+                        <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $post['username']) ?>">
                             <?= e($post['display_name']) ?>
                         </a>
-                        <div class="small text-secondary">
+                        <div class="small fg-secondary">
                             <span>@<?= e($post['username']) ?></span> ·
                             <span><?= e(time_ago($post['created_at'])) ?></span>
                             <?php if ($post['privacy'] !== 'public'): ?>
@@ -44,32 +44,30 @@ $originalImages = $meta['originalImages'];
                         </div>
                     </div>
                     <?php if ($meta['isOwner']): ?>
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-light icon-btn" data-bs-toggle="dropdown" aria-label="Tuỳ chọn">
-                                <i class="bi bi-three-dots"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="<?= url('/posts/' . (int) $post['id'] . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form action="<?= url('/posts/' . (int) $post['id'] . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này?">
-                                        <?= \App\Core\Csrf::field() ?>
-                                        <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Xóa bài viết</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
+                        <button class="btn icon-btn" type="button" data-bs-toggle="menu" data-bs-placement="bottom-end" aria-label="Tuỳ chọn">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="menu">
+                            <li><a class="menu-item" href="<?= url('/posts/' . (int) $post['id'] . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
+                            <li><hr class="menu-divider"></li>
+                            <li>
+                                <form action="<?= url('/posts/' . (int) $post['id'] . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này?">
+                                    <?= \App\Core\Csrf::field() ?>
+                                    <button type="submit" class="menu-item fg-danger w-100"><i class="bi bi-trash me-2"></i>Xóa bài viết</button>
+                                </form>
+                            </li>
+                        </ul>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
 
             <?php if ($meta['isShared'] && $original !== null): ?>
-                <div class="shared-original border rounded p-3 mt-2">
+                <div class="shared-original p-3 mt-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <img src="<?= e(upload_url($original['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
                         <div>
-                            <a class="fw-semibold text-body text-decoration-none" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
-                            <small class="text-secondary d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
+                            <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
+                            <small class="fg-secondary d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
                         </div>
                     </div>
                     <?php if (trim((string) $original['content']) !== ''): ?>
@@ -101,23 +99,23 @@ $originalImages = $meta['originalImages'];
         </div>
     </div>
 
-    <div class="post-stats d-flex align-items-center gap-3 px-3 pb-2 small text-secondary">
+    <div class="post-stats d-flex align-items-center gap-3 px-3 pb-2 small fg-secondary">
         <span data-like-count><i class="bi bi-hand-thumbs-up me-1"></i><?= (int) $meta['likeCount'] ?></span>
         <span data-comment-count><i class="bi bi-chat me-1"></i><?= (int) $meta['commentCount'] ?></span>
         <span data-share-count><i class="bi bi-share me-1"></i><?= (int) $meta['shareCount'] ?></span>
     </div>
 
     <div class="post-actions d-flex border-top">
-        <button class="btn btn-light flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>" data-action="like" data-post-id="<?= (int) $post['id'] ?>">
+        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>" data-action="like" data-post-id="<?= (int) $post['id'] ?>">
             <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
         </button>
-        <button class="btn btn-light flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
+        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
             <i class="bi bi-chat"></i> <span>Bình luận</span>
         </button>
-        <button class="btn btn-light flex-fill border-0 rounded-0 action-btn" data-action="share" data-post-id="<?= (int) $post['id'] ?>">
+        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="share" data-post-id="<?= (int) $post['id'] ?>">
             <i class="bi bi-share"></i> <span>Chia sẻ</span>
         </button>
-        <button class="btn btn-light flex-fill border-0 rounded-0 action-btn" data-action="copy-link" data-url="<?= e($meta['permalink']) ?>">
+        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="copy-link" data-url="<?= e($meta['permalink']) ?>">
             <i class="bi bi-link-45deg"></i> <span>Sao chép link</span>
         </button>
     </div>
@@ -128,7 +126,7 @@ $originalImages = $meta['originalImages'];
                 <img src="<?= e(upload_url(auth_user()['avatar_path'] ?? null) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
                 <input type="text" name="content" class="form-control form-control-sm" placeholder="Viết bình luận..." maxlength="2000" required>
                 <input type="hidden" name="parent_id" value="">
-                <button class="btn btn-primary btn-sm" type="submit">Gửi</button>
+                <button class="btn btn-solid btn-sm" type="submit">Gửi</button>
             </form>
         <?php endif; ?>
         <div class="comment-list p-2" data-comment-list="<?= (int) $post['id'] ?>"></div>
