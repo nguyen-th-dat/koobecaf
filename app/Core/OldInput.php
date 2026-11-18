@@ -71,7 +71,6 @@ final class OldInput
         $merged = array_values(array_unique(array_merge(is_array($current) ? $current : [], $keys)));
 
         Session::set('_draft_cleared', $merged);
-        self::$clearedDrafts = $merged;
     }
 
     /** @return array<int,string> */
