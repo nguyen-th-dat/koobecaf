@@ -141,7 +141,7 @@ final class ProfileController extends Controller
         }
 
         User::updateProfile($userId, $data);
-        Session::flash('success', 'Cập nhật hồ sơ thành công.');
+        setFlashMessage('success', 'Cập nhật hồ sơ thành công.');
         OldInput::clearDraft('profile');
         Response::redirect('/settings/profile');
     }
@@ -173,7 +173,7 @@ final class ProfileController extends Controller
         }
 
         User::updatePassword($userId, $new);
-        Session::flash('success', 'Đổi mật khẩu thành công.');
+        setFlashMessage('success', 'Đổi mật khẩu thành công.');
         Response::redirect('/settings/profile');
     }
 
