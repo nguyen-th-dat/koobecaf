@@ -1,6 +1,6 @@
 <?php
 /**
- * Chân trang nền tối — điểm nhấn cuối trang theo DESIGN.md.
+ * Chân trang nền tối — điểm nhấn cuối trang.
  */
 ?>
 <footer class="site-footer">
@@ -44,7 +44,7 @@
         <hr class="my-4" style="border-color: rgba(250, 249, 245, .14);">
         <div class="d-flex justify-content-between flex-wrap gap-2 small">
             <span>© <?= date('Y') ?> Koobecaf</span>
-            <span>Thiết kế theo DESIGN.md</span>
+            <span>Chia sẻ khoảnh khắc, kết nối bạn bè.</span>
         </div>
     </div>
 </footer>
