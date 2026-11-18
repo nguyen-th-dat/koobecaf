@@ -214,6 +214,7 @@ koobecaf/
 │   ├── form_persistence.php        # 16 kiểm tra giữ giá trị form sau khi validate thất bại
 │   ├── draft_cleared.php           # 9 kiểm tra cơ chế báo xoá nháp sau khi gửi thành công
 │   ├── draft_engine.js             # 14 kiểm tra logic lưu nháp phía trình duyệt (Node)
+│   ├── leave_guard.js              # 13 kiểm tra logic cảnh báo rời trang (Node)
 │   ├── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
 │   └── check_classes.php           # Kiểm tra class trong CSS có được định nghĩa
 │
