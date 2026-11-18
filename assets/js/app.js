@@ -36,7 +36,25 @@ async function request(url, options = {}) {
 
 /* =============================================================
    Thông báo nhanh (toast)
+
+   Toast hiển thị ở góc phải dưới. Container dùng `flex-direction: column-reverse`
+   nên toast mới được chèn vào đầu danh sách và hiện phía trên các toast cũ —
+   các toast cũ bị đẩy lên trên theo thứ tự thời gian.
    ============================================================= */
+const TOAST_ICONS = {
+    success: 'bi-check-circle-fill',
+    danger: 'bi-exclamation-octagon-fill',
+    warning: 'bi-exclamation-triangle-fill',
+    info: 'bi-info-circle-fill',
+};
+
+const TOAST_DURATION = {
+    success: 3500,
+    danger: 5000,
+    warning: 5000,
+    info: 3500,
+};
+
 function toast(message, variant = 'success') {
     const container = document.getElementById('kbToastContainer') || (() => {
         const el = document.createElement('div');
@@ -46,25 +64,30 @@ function toast(message, variant = 'success') {
         return el;
     })();
 
+    const type = Object.hasOwn(TOAST_ICONS, variant) ? variant : 'info';
+
     const el = document.createElement('div');
-    el.className = 'toast';
-    el.setAttribute('role', 'alert');
+    el.className = 'toast is-' + type;
+    el.setAttribute('role', type === 'danger' ? 'alert' : 'status');
     el.innerHTML = `
-        <i class="bi bi-check-circle-fill"></i>
+        <i class="bi ${TOAST_ICONS[type]}"></i>
         <div class="toast-body"></div>
         <button type="button" class="btn-close" aria-label="Đóng"></button>`;
     el.querySelector('.toast-body').textContent = message;
-    if (variant === 'danger') {
-        el.style.backgroundColor = 'var(--kb-error)';
-        el.style.color = '#fff';
-    } else if (variant === 'info') {
-        el.style.backgroundColor = 'var(--kb-surface-dark-elevated)';
-    }
-    container.appendChild(el);
 
-    const remove = () => el.remove();
+    // Chèn đầu danh sách → hiển thị ngay dưới cùng, đẩy các toast cũ lên trên.
+    container.prepend(el);
+
+    const remove = () => {
+        if (!el.isConnected) return;
+        el.classList.add('is-leaving');
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+        // Dự phòng trình duyệt không hỗ trợ animation
+        setTimeout(() => el.remove(), 300);
+    };
+
     el.querySelector('.btn-close').addEventListener('click', remove);
-    setTimeout(remove, 3500);
+    setTimeout(remove, TOAST_DURATION[type]);
 }
 
 window.kbToast = toast;

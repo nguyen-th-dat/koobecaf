@@ -88,6 +88,8 @@
 
         /* ---- Độ sâu hậu thiên ---- */
         --kb-topbar-h-sm: 56px;
+        /* Chiều cao thanh điều hướng dưới (mobile) — dùng để nâng toast */
+        --kb-mobile-nav-h: 56px;
 
         /* ---- Bố cục máy tính ---- */
         --kb-shell-max: 1400px;
@@ -753,14 +755,17 @@
         color: var(--kb-primary-contrast);
     }
 
-    /* ---------------- Thông báo nhanh ---------------- */
+    /* ---------------- Thông báo nhanh ----------------
+       Toast nằm ở góc phải dưới, các toast mới xuất hiện phía trên
+       toast cũ (column-reverse) nên danh sách lần lượt đẩy lên trên. */
     .toast-container {
         position: fixed;
-        top: var(--kb-space-md);
+        bottom: var(--kb-space-md);
         right: var(--kb-space-md);
         z-index: 1100;
         display: flex;
-        flex-direction: column;
+        flex-direction: column-reverse;
+        align-items: flex-end;
         gap: var(--kb-space-xs);
         pointer-events: none;
     }
@@ -769,6 +774,7 @@
         display: flex;
         align-items: center;
         gap: var(--kb-space-sm);
+        width: fit-content;
         min-width: 240px;
         max-width: 360px;
         padding: 12px 16px;
@@ -786,6 +792,33 @@
         color: var(--kb-primary-mint);
     }
 
+    /* Biến thể thành công / thất bại / thông tin */
+    .toast.is-success {
+        background-color: var(--kb-success);
+        color: #fff;
+    }
+
+    .toast.is-danger {
+        background-color: var(--kb-error);
+        color: #fff;
+    }
+
+    .toast.is-warning {
+        background-color: var(--kb-warning);
+        color: #fff;
+    }
+
+    .toast.is-info {
+        background-color: var(--kb-surface-dark-elevated);
+        color: var(--kb-on-dark);
+    }
+
+    .toast.is-success > i,
+    .toast.is-danger > i,
+    .toast.is-warning > i {
+        color: currentColor;
+    }
+
     .toast-body {
         flex: 1 1 auto;
     }
@@ -796,8 +829,18 @@
     }
 
     @keyframes toast-in {
-        from { opacity: 0; transform: translateY(-8px); }
+        from { opacity: 0; transform: translateY(8px); }
         to   { opacity: 1; transform: none; }
+    }
+
+    /* Toast đang rời đi */
+    .toast.is-leaving {
+        animation: toast-out .18s ease-in forwards;
+    }
+
+    @keyframes toast-out {
+        from { opacity: 1; transform: none; }
+        to   { opacity: 0; transform: translateY(8px); }
     }
 
     /* ---------------- Hộp thoại cảnh báo rời trang ---------------- */
@@ -2522,6 +2565,19 @@
 @media (max-width: 575.98px) {
     .app-shell {
         padding: var(--kb-space-md) var(--kb-space-sm) var(--kb-space-xxl);
+    }
+
+    /* Toast ở đáy phải nằm trên thanh điều hướng mobile */
+    .toast-container {
+        bottom: calc(var(--kb-mobile-nav-h) + var(--kb-space-sm));
+        left: var(--kb-space-sm);
+        right: var(--kb-space-sm);
+        align-items: stretch;
+    }
+
+    .toast {
+        max-width: none;
+        min-width: 0;
     }
 
     .profile-cover {
