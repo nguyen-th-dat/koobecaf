@@ -35,7 +35,7 @@
         <hr class="my-4" style="border-color: rgba(250, 249, 245, .14);">
         <div class="d-flex justify-content-between flex-wrap gap-2 small">
             <span>© <?= date('Y') ?> Koobecaf</span>
-            <span>Màu chủ đạo mint · Thiết kế theo DESIGN.md</span>
+            <span>Thiết kế theo DESIGN.md</span>
         </div>
     </div>
 </footer>
