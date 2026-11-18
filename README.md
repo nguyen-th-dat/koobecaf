@@ -402,9 +402,10 @@ Bộ test là script PHP thuần, gọi HTTP tới ứng dụng đang chạy. Kh
 php -S localhost:8000 -t . router.php
 
 # Terminal 2
-php tests/smoke.php     http://localhost:8000   # 54 kiểm tra end-to-end
-php tests/extended.php  http://localhost:8000   # 40 kiểm tra biên
-php tests/pages.php     http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
+php tests/smoke.php        http://localhost:8000   # 54 kiểm tra end-to-end
+php tests/extended.php     http://localhost:8000   # 40 kiểm tra biên
+php tests/password_reset.php http://localhost:8000 # 21 kiểm tra quên/đặt lại mật khẩu
+php tests/pages.php        http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
 
 Kết quả mong đợi:
@@ -412,8 +413,11 @@ Kết quả mong đợi:
 ```
 PASS: 54 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
+PASS: 21 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
+
+> `password_reset.php` đọc token từ file log của `storage/logs/`, nên cần đặt `MAIL_DRIVER=log` trong `.env` khi chạy test.
 
 Xem `PROGRESS.md` để biết chi tiết từng hạng mục đã kiểm thử.
 

@@ -12,7 +12,7 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 |---|---|---|
 | 1 | Analysis & Design (kiến trúc, DB, ERD) | ✅ Hoàn thành |
 | 2 | Project Foundation (Composer, .env, PDO, Router, MVC, Layout) | ✅ Hoàn thành |
-| 3 | Authentication & Profile (+ upload avatar/cover) | ✅ Hoàn thành |
+| 3 | Authentication & Profile (+ upload avatar/cover, quên/đặt lại mật khẩu qua email) | ✅ Hoàn thành |
 | 4 | Social Features (Feed, Post, Like, Comment, Share, Friend, Follow) | ✅ Hoàn thành |
 | 5 | Communication (Chat + Notifications + AJAX polling) | ✅ Hoàn thành |
 | 6 | Search & Notifications (search user/post, unread count) | ✅ Hoàn thành |
@@ -67,6 +67,14 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 - Trang hồ sơ `/u/{username}` với 6 tab (bài viết, bình luận, đã chia sẻ, bạn bè, người theo dõi, đang theo dõi).
 - Sửa hồ sơ: tên hiển thị, tiểu sử, avatar, ảnh bìa.
 - Đổi mật khẩu: yêu cầu mật khẩu hiện tại.
+- Quên mật khẩu (`/forgot-password`) + đặt lại mật khẩu (`/reset-password?token=...`):
+    - `app/Services/MailService.php` bọc PHPMailer 7.2; hỗ trợ `MAIL_DRIVER=smtp` (gửi thật) và `MAIL_DRIVER=log` (ghi vào `storage/logs/` khi dev).
+    - `config/mail.php` đọc cấu hình SMTP từ `.env`.
+    - Bảng `password_resets`: token random 32 byte, lưu bản hash SHA-256, hết hạn 60 phút, đánh dấu đã dùng sau khi đặt lại.
+    - `app/Models/PasswordReset.php`: tạo token (vô hiệu hóa token cũ), tìm token hợp lệ, đánh dấu đã dùng.
+    - `app/Views/emails/reset-password.php`: template HTML email (style inline, không phụ thuộc CSS ngoài).
+    - Phản hồi luôn giống nhau dù email có tồn tại hay không, tránh tiết lộ tài khoản đã đăng ký.
+    - Link trong email dựng từ `APP_URL` (`absolute_url()`), không dùng header `Host` để chống host header injection.
 - Upload an toàn (`app/Services/UploadService.php`): MIME thực qua `finfo`, allowlist extension, giới hạn 5MB, tên file ngẫu nhiên, thư mục riêng `avatars/`, `covers/`, `posts/`.
 - `uploads/.htaccess` chặn thực thi PHP + chặn autoindex.
 - Xóa file cũ khi thay avatar/cover mới.
@@ -138,9 +146,10 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 |---|---|---|
 | `tests/smoke.php` | 54 kiểm tra end-to-end: đăng ký, đăng nhập, đăng xuất, post CRUD, like/unlike, comment/reply, share nội bộ, copy link, friend request/accept/decline/cancel, follow/unfollow, chat send/read, **bắt đầu chat mới (tìm kiếm người dùng + `/chat/start` bằng GET)**, notifications, search, theme, profile | **PASS: 54 / FAIL: 0** |
 | `tests/extended.php` | 40 kiểm tra biên: upload ảnh thật, MIME/extension sai bị từ chối, bài private/followers/public, sửa-xóa bài của người khác bị chặn, sửa bình luận người khác bị chặn, đổi mật khẩu, đổi theme, truy cập hội thoại không thuộc về mình, CSRF thiếu token bị từ chối, **regression**: reply lồng nhau, link thông báo reply, số bài viết thống kê khớp tab, các trang chính không lỗi PHP | **PASS: 40 / FAIL: 0** |
+| `tests/password_reset.php` | 21 kiểm tra luồng quên mật khẩu: form gửi email, link quên mật khẩu trên trang login, email chứa token, mở form đặt lại mật khẩu, xác nhận mật khẩu không khớp bị từ chối, đặt lại thành công, đăng nhập được bằng mật khẩu mới, token đã dùng không tái sử dụng, email không tồn tại không bị tiết lộ, email sai bị từ chối, token giả bị từ chối | **PASS: 21 / FAIL: 0** |
 | `tests/pages.php` | Render toàn bộ route (khách + đã đăng nhập) và toàn bộ endpoint API; bắt lỗi/warning PHP | **FAIL: 0** |
 
-Tổng: **94 kiểm tra tự động — 0 lỗi.**
+Tổng: **115 kiểm tra tự động — 0 lỗi.**
 
 ### Tối ưu & bảo trì
 - Prepared statement cho toàn bộ truy vấn có dữ liệu người dùng.
