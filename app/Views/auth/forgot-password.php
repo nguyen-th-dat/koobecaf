@@ -3,7 +3,7 @@
     <p class="fg-secondary mb-0">Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu.</p>
 </div>
 
-<form action="<?= url('/forgot-password') ?>" method="post" novalidate data-draft="forgot-password" data-old-fields="<?= e(old_fields(['email'])) ?>">
+<form action="<?= url('/forgot-password') ?>" method="post" novalidate data-draft="forgot-password" data-leave="clear" data-old-fields="<?= e(old_fields(['email'])) ?>">
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
