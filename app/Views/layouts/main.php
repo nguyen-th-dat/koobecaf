@@ -6,6 +6,9 @@
 $currentUser = auth_user();
 $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
+
+/** Dữ liệu realtime WebSocket — chỉ có ở các trang chat. */
+$ws = $ws ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="vi" data-theme="<?= e($theme) ?>">
@@ -28,7 +31,12 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
-<body data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>" data-cleared-drafts="<?= e(implode(',', \App\Core\OldInput::clearedDrafts())) ?>">
+<body data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>" data-cleared-drafts="<?= e(implode(',', \App\Core\OldInput::clearedDrafts())) ?>"
+      data-ws-enabled="<?= !empty($ws['enabled']) ? '1' : '0' ?>"
+      data-ws-url="<?= e($ws['url'] ?? '') ?>"
+      data-ws-token="<?= e($ws['token'] ?? '') ?>"
+      data-ws-ticket="<?= e($ws['ticket'] ?? '') ?>"
+      data-ws-conversation-id="<?= (int) ($ws['conversation_id'] ?? ($conversationId ?? 0)) ?>">
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 
 <div class="app-shell">
@@ -61,5 +69,8 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <?php require __DIR__ . '/partials/footer.php'; ?>
 
 <script src="<?= asset('js/app.js') ?>"></script>
+<?php if (!empty($ws['enabled'])): ?>
+<script src="<?= asset('js/realtime.js') ?>"></script>
+<?php endif; ?>
 </body>
 </html>
