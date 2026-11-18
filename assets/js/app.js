@@ -872,14 +872,11 @@ document.querySelectorAll('.notification-item').forEach(item => {
    - Nội dung KHÔNG lưu nháp được (mật khẩu, ảnh đã chọn...) →
      thực sự mất, nên hiện hộp thoại liệt kê cụ thể những gì sẽ mất.
 
-   Mỗi form khai báo một trong ba thuộc tính:
-     data-draft="<key>"    → nội dung được lưu nháp, không cần cảnh báo
-     data-guard="<nhãn>"   → nội dung được giữ trong phiên, chỉ báo nhẹ
-     data-lose="<nhãn>"    → nội dung KHÔNG giữ được, cần hộp thoại cảnh báo
-
-   Trong một form có data-draft, những field KHÔNG lưu được (file, mật khẩu)
-   vẫn cần cảnh báo. Đánh dấu chúng bằng:
-     data-lose-fields="images[],avatar"    → chỉ các field này mới cần cảnh báo
+   Mỗi form khai báo:
+     data-draft="<key>"    → nội dung được lưu nháp, khôi phục lại khi tải trang
+     data-leave="keep"     → rời trang vẫn giữ nháp (nội dung dài, đáng giữ)
+     data-leave="clear"    → rời trang là xoá sạch nháp, không hỏi (nội dung ngắn)
+     data-lose-fields="a,b"→ các field này không khôi phục được, sẽ hỏi trước
    ============================================================= */
 const LEAVE_FIELD_LABELS = {
     content: 'Nội dung',
@@ -910,12 +907,17 @@ function guardForms() {
     return Array.from(document.querySelectorAll('form[data-guard]'));
 }
 
-/** Form có nội dung được lưu nháp — rời trang không mất gì. */
+/** Form có nội dung được lưu nháp — khôi phục lại khi tải trang. */
 function draftForms() {
     return Array.from(document.querySelectorAll('form[data-draft]'));
 }
 
-/** Form có nội dung KHÔNG giữ được — cần hộp thoại cảnh báo. */
+/**
+ * Form có nội dung KHÔNG giữ được — cần hộp thoại cảnh báo.
+ *
+ * Gồm hai loại: form đánh dấu data-lose, và field không lưu nháp được
+ * (file, mật khẩu) của các form khác.
+ */
 function loseForms() {
     return Array.from(document.querySelectorAll('form[data-lose]'));
 }
@@ -1031,11 +1033,11 @@ function fieldPreview(el) {
 }
 
 /**
- * Tóm tắt nội dung THỰC SỰ mất khi rời trang.
+ * Nội dung nào thực sự mất khi rời trang.
  *
- * Chỉ form đánh dấu data-lose mới được tính: nội dung của các form này không
- * được lưu nháp nên rời trang là mất hẳn. Form có data-draft thì chỉ các field
- * không lưu nháp được (data-lose-fields) mới cần cảnh báo.
+ * - Form data-leave="keep": nội dung được giữ lại qua nháp → không mất.
+ * - Form data-leave="clear": nội dung bị xoá khi rời → KHÔNG hỏi, chỉ xoá.
+ * - Field không lưu nháp được (file, mật khẩu) trong mọi form → thực sự mất.
  *
  * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
  */
@@ -1074,6 +1076,25 @@ function losingForms() {
 
         return { form, label, items };
     }).filter(item => item.items.length > 0);
+}
+
+/**
+ * Xoá sạch nháp của các form không giữ nội dung khi rời trang.
+ *
+ * Chính sách theo từng form:
+ *   data-leave="keep"  → giữ nháp, không xoá
+ *   data-leave="clear" → xoá nháp
+ *   (không khai báo)   → xoá nháp (mặc định: rời trang là sạch)
+ */
+function purgeEphemeralDrafts() {
+    draftForms().forEach(form => {
+        if (form.dataset.leave === 'keep') return;
+
+        removeDraftEverywhere(form.dataset.draft);
+
+        const hint = form.querySelector('[data-draft-hint]');
+        if (hint) hint.hidden = true;
+    });
 }
 
 /* ---------------- Hộp thoại ---------------- */
