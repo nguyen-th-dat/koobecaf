@@ -21,18 +21,18 @@ $totalPages = max(1, (int) ceil($total / $perPage));
                 <div class="image-preview d-flex flex-wrap gap-2 mt-2 d-none" id="imagePreview"></div>
 
                 <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top">
-                    <label class="btn btn-light btn-sm mb-0" for="postImages">
+                    <label class="btn btn-subtle btn-sm mb-0" for="postImages">
                         <i class="bi bi-image me-1"></i>Ảnh
                         <input type="file" id="postImages" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="d-none">
                     </label>
 
                     <div class="d-flex align-items-center gap-2">
-                        <select name="privacy" class="form-select form-select-sm w-auto" aria-label="Quyền riêng tư">
+                        <select name="privacy" class="form-control form-control-sm w-auto" aria-label="Quyền riêng tư">
                             <option value="public">Công khai</option>
                             <option value="followers">Người theo dõi</option>
                             <option value="private">Riêng tư</option>
                         </select>
-                        <button class="btn btn-primary btn-sm" type="submit">Đăng</button>
+                        <button class="btn btn-solid btn-sm" type="submit">Đăng</button>
                     </div>
                 </div>
             </form>
@@ -41,18 +41,18 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 <?php else: ?>
     <div class="card surface-card mb-3 text-center">
         <div class="card-body py-4">
-            <h1 class="h4 mb-2">Chào mừng đến Koobecaf</h1>
-            <p class="text-secondary">Kết nối với bạn bè, chia sẻ khoảnh khắc và trò chuyện trực tiếp.</p>
-            <a class="btn btn-primary" href="<?= url('/register') ?>">Tạo tài khoản</a>
-            <a class="btn btn-outline-secondary" href="<?= url('/login') ?>">Đăng nhập</a>
+            <h1 class="h2 mb-2">Chào mừng đến Koobecaf</h1>
+            <p class="fg-secondary">Kết nối với bạn bè, chia sẻ khoảnh khắc và trò chuyện trực tiếp.</p>
+            <a class="btn btn-solid" href="<?= url('/register') ?>">Tạo tài khoản</a>
+            <a class="btn btn-outline" href="<?= url('/login') ?>">Đăng nhập</a>
         </div>
     </div>
 <?php endif; ?>
 
 <?php if ($posts === []): ?>
     <div class="card surface-card">
-        <div class="card-body text-center text-secondary py-5">
-            <i class="bi bi-inbox display-6 d-block mb-2"></i>
+        <div class="card-body text-center fg-secondary py-5">
+            <i class="bi bi-inbox d-block mb-2 fs-2xl"></i>
             Chưa có bài viết nào. Hãy là người đầu tiên đăng!
         </div>
     </div>
@@ -65,11 +65,11 @@ $totalPages = max(1, (int) ceil($total / $perPage));
     <?php if ($totalPages > 1): ?>
         <nav aria-label="Phân trang" class="d-flex justify-content-center gap-2 my-3">
             <?php if ($page > 1): ?>
-                <a class="btn btn-outline-secondary btn-sm" href="?page=<?= $page - 1 ?>"><i class="bi bi-chevron-left"></i> Trước</a>
+                <a class="btn btn-outline btn-sm" href="?page=<?= $page - 1 ?>"><i class="bi bi-chevron-left"></i> Trước</a>
             <?php endif; ?>
-            <span class="btn btn-light btn-sm disabled">Trang <?= (int) $page ?>/<?= $totalPages ?></span>
+            <span class="btn btn-subtle btn-sm disabled">Trang <?= (int) $page ?>/<?= $totalPages ?></span>
             <?php if ($page < $totalPages): ?>
-                <a class="btn btn-outline-secondary btn-sm" href="?page=<?= $page + 1 ?>">Sau <i class="bi bi-chevron-right"></i></a>
+                <a class="btn btn-outline btn-sm" href="?page=<?= $page + 1 ?>">Sau <i class="bi bi-chevron-right"></i></a>
             <?php endif; ?>
         </nav>
     <?php endif; ?>
