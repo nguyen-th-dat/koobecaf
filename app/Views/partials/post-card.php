@@ -111,14 +111,23 @@ $originalImages = $meta['originalImages'];
     </div>
 
     <div class="post-actions d-flex border-top">
-        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>" data-action="like" data-post-id="<?= (int) $post['id'] ?>">
-            <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
-        </button>
+        <?php if (is_auth()): ?>
+            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>" data-action="like" data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
+            </button>
+            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="share" data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-share"></i> <span>Chia sẻ</span>
+            </button>
+        <?php else: ?>
+            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= url('/login') ?>" title="Đăng nhập để thích bài viết này">
+                <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
+            </a>
+            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= url('/login') ?>" title="Đăng nhập để chia sẻ bài viết này">
+                <i class="bi bi-share"></i> <span>Chia sẻ</span>
+            </a>
+        <?php endif; ?>
         <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
             <i class="bi bi-chat"></i> <span>Bình luận</span>
-        </button>
-        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="share" data-post-id="<?= (int) $post['id'] ?>">
-            <i class="bi bi-share"></i> <span>Chia sẻ</span>
         </button>
         <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="copy-link" data-url="<?= e($meta['permalink']) ?>">
             <i class="bi bi-link-45deg"></i> <span>Sao chép link</span>

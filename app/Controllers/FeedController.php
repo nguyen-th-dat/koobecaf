@@ -16,7 +16,7 @@ final class FeedController extends Controller
         $perPage = (int) config('app.per_page', 10);
 
         if ($viewerId === null) {
-            $posts = Post::findPublic(1, $page * $perPage);
+            $posts = Post::findPublic($perPage, ($page - 1) * $perPage);
             $total = Post::countPublic();
         } else {
             $posts = Post::feed($viewerId, $perPage, ($page - 1) * $perPage);

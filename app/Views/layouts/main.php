@@ -32,7 +32,7 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 
 <div class="app-shell">
-    <div class="app-grid<?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?>">
+    <div class="app-grid<?= is_auth() ? '' : ' is-guest' ?><?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?>">
         <?php if (is_auth()): ?>
             <aside class="app-rail app-rail-left">
                 <?php require __DIR__ . '/partials/sidebar-left.php'; ?>

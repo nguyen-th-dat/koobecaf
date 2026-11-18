@@ -19,9 +19,11 @@ $navActive = static function (string $prefix) use ($path): string {
 <header class="topbar sticky-top">
     <div class="container-fluid">
         <div class="topbar-inner">
-            <button class="btn icon-btn lg:d-none" type="button" data-drawer-toggle="#mobileSidebar" aria-label="Menu">
-                <i class="bi bi-list"></i>
-            </button>
+            <?php if (is_auth()): ?>
+                <button class="btn icon-btn lg:d-none" type="button" data-drawer-toggle="#mobileSidebar" aria-label="Menu">
+                    <i class="bi bi-list"></i>
+                </button>
+            <?php endif; ?>
 
             <a class="brand" href="<?= url('/') ?>">
                 <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">

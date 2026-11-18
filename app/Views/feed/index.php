@@ -39,12 +39,25 @@ $totalPages = max(1, (int) ceil($total / $perPage));
         </div>
     </div>
 <?php else: ?>
-    <div class="card surface-card mb-3 text-center">
-        <div class="card-body py-4">
-            <h1 class="h2 mb-2">Chào mừng đến Koobecaf</h1>
-            <p class="fg-secondary">Kết nối với bạn bè, chia sẻ khoảnh khắc và trò chuyện trực tiếp.</p>
-            <a class="btn btn-solid" href="<?= url('/register') ?>">Tạo tài khoản</a>
-            <a class="btn btn-outline" href="<?= url('/login') ?>">Đăng nhập</a>
+    <div class="card surface-card welcome-card mb-3">
+        <div class="card-body">
+            <span class="welcome-mark"><i class="bi bi-cup-hot-fill"></i></span>
+            <h1 class="welcome-title">Chào mừng đến Koobecaf</h1>
+            <p class="welcome-lead">
+                Nơi kết nối bạn bè, chia sẻ khoảnh khắc và trò chuyện trực tiếp —
+                tất cả trong một nơi duy nhất.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <a class="btn btn-solid" href="<?= url('/register') ?>"><i class="bi bi-person-plus me-1"></i>Tạo tài khoản</a>
+                <a class="btn btn-outline" href="<?= url('/login') ?>"><i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập</a>
+            </div>
+
+            <ul class="welcome-features">
+                <li><i class="bi bi-camera"></i> Chia sẻ khoảnh khắc</li>
+                <li><i class="bi bi-chat-heart"></i> Trò chuyện riêng tư</li>
+                <li><i class="bi bi-people"></i> Kết nối bạn bè</li>
+            </ul>
         </div>
     </div>
 <?php endif; ?>

@@ -1222,7 +1222,71 @@
         min-width: 0;
     }
 
-    /* Tiêu đề trang: serif hiển thị, không viền, có gạch mint bên trái */
+    /* Khách chưa đăng nhập: không có 2 cột phụ nên cột chính bị giãn quá rộng.
+       Giới hạn bề rộng đọc ở ~680px và canh giữa. */
+    .app-grid.is-guest {
+        grid-template-columns: minmax(0, 680px);
+        justify-content: center;
+    }
+
+    /* ---------------- Trang chủ khách: thẻ chào mừng ---------------- */
+    .welcome-card {
+        overflow: hidden;
+        background: linear-gradient(150deg, var(--kb-surface-card) 0%, var(--kb-primary-soft) 140%);
+    }
+
+    .welcome-card .card-body {
+        padding: var(--kb-space-xl);
+    }
+
+    .welcome-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        margin-bottom: var(--kb-space-md);
+        border-radius: var(--kb-radius-lg);
+        background-color: var(--kb-primary);
+        color: var(--kb-primary-contrast);
+        font-size: 1.35rem;
+    }
+
+    .welcome-title {
+        margin-bottom: var(--kb-space-xs);
+        font-size: 2rem;
+        letter-spacing: -.02em;
+    }
+
+    .welcome-lead {
+        margin: 0;
+        max-width: 46ch;
+        color: var(--kb-muted);
+    }
+
+    .welcome-features {
+        list-style: none;
+        margin: var(--kb-space-lg) 0 0;
+        padding: var(--kb-space-md) 0 0;
+        border-top: 1px solid var(--kb-hairline);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--kb-space-md);
+        color: var(--kb-muted);
+        font-size: 14px;
+    }
+
+    .welcome-features li {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .welcome-features i {
+        color: var(--kb-primary);
+    }
+
+    /* ---------------- Tiêu đề trang: serif hiển thị, không viền, có gạch mint bên trái */
     .page-head {
         display: flex;
         align-items: baseline;
