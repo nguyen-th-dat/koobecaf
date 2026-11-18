@@ -37,60 +37,12 @@ async function request(url, options = {}) {
 /* =============================================================
    Thông báo nhanh (toast)
 
-   Toast hiển thị ở góc phải dưới. Container dùng `flex-direction: column-reverse`
-   nên toast mới được chèn vào đầu danh sách và hiện phía trên các toast cũ —
-   các toast cũ bị đẩy lên trên theo thứ tự thời gian.
+   Hệ thống toast nằm trong assets/js/toast.js — hàm showToast(type, message),
+   được nạp trước file này nên luôn sẵn sàng dùng.
+
+   Toàn bộ thông báo từ PHP (flash message) cũng được đẩy vào cùng hàng đợi
+   nên giao diện luôn đồng nhất.
    ============================================================= */
-const TOAST_ICONS = {
-    success: 'bi-check-circle-fill',
-    danger: 'bi-exclamation-octagon-fill',
-    warning: 'bi-exclamation-triangle-fill',
-    info: 'bi-info-circle-fill',
-};
-
-const TOAST_DURATION = {
-    success: 3500,
-    danger: 5000,
-    warning: 5000,
-    info: 3500,
-};
-
-function toast(message, variant = 'success') {
-    const container = document.getElementById('kbToastContainer') || (() => {
-        const el = document.createElement('div');
-        el.id = 'kbToastContainer';
-        el.className = 'toast-container';
-        document.body.appendChild(el);
-        return el;
-    })();
-
-    const type = Object.hasOwn(TOAST_ICONS, variant) ? variant : 'info';
-
-    const el = document.createElement('div');
-    el.className = 'toast is-' + type;
-    el.setAttribute('role', type === 'danger' ? 'alert' : 'status');
-    el.innerHTML = `
-        <i class="bi ${TOAST_ICONS[type]}"></i>
-        <div class="toast-body"></div>
-        <button type="button" class="btn-close" aria-label="Đóng"></button>`;
-    el.querySelector('.toast-body').textContent = message;
-
-    // Chèn đầu danh sách → hiển thị ngay dưới cùng, đẩy các toast cũ lên trên.
-    container.prepend(el);
-
-    const remove = () => {
-        if (!el.isConnected) return;
-        el.classList.add('is-leaving');
-        el.addEventListener('animationend', () => el.remove(), { once: true });
-        // Dự phòng trình duyệt không hỗ trợ animation
-        setTimeout(() => el.remove(), 300);
-    };
-
-    el.querySelector('.btn-close').addEventListener('click', remove);
-    setTimeout(remove, TOAST_DURATION[type]);
-}
-
-window.kbToast = toast;
 
 /* =============================================================
    Menu thả xuống
@@ -405,7 +357,7 @@ document.addEventListener('click', async (event) => {
             headers: { 'X-CSRF-TOKEN': csrfToken },
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể thực hiện.', 'danger');
+            showToast('error', payload.message ?? 'Không thể thực hiện.');
             return;
         }
         const card = button.closest('.post-card');
@@ -425,20 +377,20 @@ document.addEventListener('click', async (event) => {
             body: JSON.stringify({ content: content, privacy: 'public' }),
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể chia sẻ.', 'danger');
+            showToast('error', payload.message ?? 'Không thể chia sẻ.');
             return;
         }
         const card = button.closest('.post-card');
         const counter = card?.querySelector('[data-share-count]');
         if (counter) counter.innerHTML = `<i class="bi bi-share me-1"></i>${payload.data.share_count}`;
-        toast('Đã chia sẻ bài viết lên trang cá nhân của bạn.');
+        showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
     }
 
     if (action === 'copy-link') {
         const link = new URL(button.dataset.url, window.location.origin).href;
         try {
             await navigator.clipboard.writeText(link);
-            toast('Đã sao chép liên kết bài viết.');
+            showToast('success', 'Đã sao chép liên kết bài viết.');
         } catch (e) {
             window.prompt('Sao chép liên kết:', link);
         }
@@ -485,7 +437,7 @@ document.addEventListener('click', async (event) => {
         headers: { 'X-CSRF-TOKEN': csrfToken },
     });
     if (!payload.success) {
-        toast(payload.message ?? 'Không thể theo dõi.', 'danger');
+        showToast('error', payload.message ?? 'Không thể theo dõi.');
         return;
     }
 
@@ -586,7 +538,7 @@ document.addEventListener('submit', async (event) => {
     });
 
     if (!payload.success) {
-        toast(payload.message ?? 'Không thể gửi bình luận.', 'danger');
+        showToast('error', payload.message ?? 'Không thể gửi bình luận.');
         return;
     }
 
@@ -646,12 +598,12 @@ document.addEventListener('click', async (event) => {
                 body: JSON.stringify({ content: value }),
             });
             if (!payload.success) {
-                toast(payload.message ?? 'Không thể sửa bình luận.', 'danger');
+                showToast('error', payload.message ?? 'Không thể sửa bình luận.');
                 return;
             }
             textNode.innerHTML = escapeHtml(payload.data.comment.content).replace(/\n/g, '<br>');
             wrapper.replaceWith(textNode);
-            toast('Đã cập nhật bình luận.');
+            showToast('success', 'Đã cập nhật bình luận.');
         });
         return;
     }
@@ -664,7 +616,7 @@ document.addEventListener('click', async (event) => {
             headers: { 'X-CSRF-TOKEN': csrfToken },
         });
         if (!payload.success) {
-            toast(payload.message ?? 'Không thể xóa bình luận.', 'danger');
+            showToast('error', payload.message ?? 'Không thể xóa bình luận.');
             return;
         }
         const card = deleteBtn.closest('.post-card');
@@ -673,7 +625,7 @@ document.addEventListener('click', async (event) => {
         const postId = card?.dataset.postId;
         const container = card?.querySelector('.post-comments');
         if (postId && container) await loadComments(postId, container);
-        toast('Đã xóa bình luận.');
+        showToast('success', 'Đã xóa bình luận.');
     }
 });
 
@@ -778,7 +730,7 @@ if (chatForm && chatMessages) {
             input.value = '';
             clearFormDraft(chatForm);
         } catch (error) {
-            toast(error.message || 'Không thể gửi tin nhắn.', 'danger');
+            showToast('error', error.message || 'Không thể gửi tin nhắn.');
         } finally {
             chatState.sending = false;
         }
@@ -936,7 +888,7 @@ if (markAllBtn) {
         if (!payload.success) return;
         document.querySelectorAll('.notification-item.unread').forEach(el => el.classList.remove('unread'));
         markAllBtn.remove();
-        toast('Đã đánh dấu tất cả thông báo đã đọc.');
+        showToast('success', 'Đã đánh dấu tất cả thông báo đã đọc.');
     });
 }
 
