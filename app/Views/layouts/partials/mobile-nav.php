@@ -8,7 +8,7 @@ if ($base !== '' && str_starts_with($path, $base)) {
 }
 $path = '/' . trim($path, '/');
 ?>
-<nav class="mobile-nav d-lg-none">
+<nav class="mobile-nav lg:d-none">
     <a class="<?= $path === '/' ? 'active' : '' ?>" href="<?= url('/') ?>"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
     <a class="<?= str_starts_with($path, '/u/') ? 'active' : '' ?>" href="<?= url('/u/' . (auth_user()['username'] ?? '')) ?>"><i class="bi bi-person"></i><span>Cá nhân</span></a>
     <a class="<?= $path === '/chat' ? 'active' : '' ?>" href="<?= url('/chat') ?>">
@@ -22,12 +22,12 @@ $path = '/' . trim($path, '/');
     <a class="<?= str_starts_with($path, '/settings') ? 'active' : '' ?>" href="<?= url('/settings/profile') ?>"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
 </nav>
 
-<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileSidebarLabel">Koobecaf</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+<dialog class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="drawer-header">
+        <h5 class="drawer-title" id="mobileSidebarLabel">Koobecaf</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="drawer" aria-label="Đóng"></button>
     </div>
-    <div class="offcanvas-body">
+    <div class="drawer-body">
         <?php require __DIR__ . '/sidebar-left.php'; ?>
     </div>
-</div>
+</dialog>
