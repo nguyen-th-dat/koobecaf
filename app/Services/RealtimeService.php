@@ -41,6 +41,7 @@ final class RealtimeService
         WsPublisher::publish('post.deleted', [
             'audience' => Post::audience($authorId, $privacy),
             'post_id'  => $postId,
+            'event'    => 'post.deleted',
         ]);
     }
 
@@ -55,6 +56,7 @@ final class RealtimeService
         WsPublisher::publish('post.updated', [
             'audience' => Post::audience((int) $post['user_id'], (string) $post['privacy']),
             'post_id'  => $postId,
+            'event'    => 'post.updated',
             'stats'    => self::stats($postId),
         ]);
     }
@@ -111,6 +113,7 @@ final class RealtimeService
         WsPublisher::publish($event, array_merge([
             'audience' => Post::audience((int) $post['user_id'], (string) $post['privacy']),
             'post_id'  => $postId,
+            'event'    => $event,
             'actor'    => self::userPayload($actorId),
             'stats'    => self::stats($postId),
         ], $extra));
@@ -167,9 +170,42 @@ final class RealtimeService
             'created_at'   => (string) $post['created_at'],
             'author'       => self::userPayload((int) $post['user_id'], $post),
             'images'       => $images,
+            'original'     => self::originalPayload($post),
             'url'          => url('/post/' . $postId),
             'permalink'    => url('/p/' . $postId),
             'stats'        => self::stats($postId),
+        ];
+    }
+
+    /**
+     * Payload bài viết gốc của một bài chia sẻ (null nếu không phải bài chia sẻ).
+     *
+     * @param array<string,mixed> $post
+     * @return array<string,mixed>|null
+     */
+    private static function originalPayload(array $post): ?array
+    {
+        $originalId = $post['shared_post_id'] !== null ? (int) $post['shared_post_id'] : 0;
+        if ($originalId <= 0) {
+            return null;
+        }
+
+        $original = Post::find($originalId);
+        if ($original === null) {
+            return null;
+        }
+
+        $images = [];
+        foreach (\App\Models\PostImage::all($originalId) as $image) {
+            $images[] = upload_url((string) $image['path']);
+        }
+
+        return [
+            'id'           => $originalId,
+            'content'      => (string) $original['content'],
+            'created_at'   => (string) $original['created_at'],
+            'author'       => self::userPayload((int) $original['user_id'], $original),
+            'images'       => $images,
         ];
     }
 
