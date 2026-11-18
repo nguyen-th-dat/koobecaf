@@ -240,7 +240,40 @@ koobecaf/
 
 ---
 
-## 5. Hướng dẫn cài đặt
+## 5. Hướng dẫn cài đặt và chạy
+
+### 5.0. Cài nhanh (môi trường phát triển)
+
+Sau khi đã cài PHP 8.2+, MySQL/MariaDB và Composer, chạy các lệnh sau từ
+thư mục muốn lưu dự án:
+
+**Clone bằng Git:**
+
+```bash
+git clone https://github.com/nguyen-th-dat/koobecaf.git
+```
+
+Hoặc tải bản phát hành mới nhất tại
+[GitHub Releases](https://github.com/nguyen-th-dat/koobecaf/releases/latest), giải nén
+vào thư mục dự án rồi chạy các lệnh sau:
+
+```bash
+cd koobecaf
+composer install
+copy .env.example .env       # Windows PowerShell
+# cp .env.example .env       # Linux/macOS
+php database/install.php
+composer serve
+```
+
+Mở [http://localhost:8000](http://localhost:8000). Trước khi chạy
+`database/install.php`, hãy bảo đảm MySQL đang chạy và thông tin `DB_*` trong
+`.env` đúng. Lệnh cài database mặc định tạo database `koobecaf`, nạp cấu trúc
+bảng và dữ liệu mẫu.
+
+> Nếu dùng XAMPP, có thể bỏ qua `composer serve` và chạy ứng dụng qua Apache
+> theo hướng dẫn bên dưới. `npm install` là **không bắt buộc** vì Bootstrap
+> Icons đã được vendor sẵn trong `assets/vendor/`.
 
 ### 5.1. Cài đặt XAMPP
 
@@ -300,6 +333,15 @@ composer install
 Composer chỉ dùng để sinh file autoload PSR-4 (`vendor/autoload.php`). Không có dependency ngoài lề thư viện.
 
 > Nếu không dùng Composer, file `app/bootstrap.php` đã có sẵn `spl_autoload_register()` fallback và vẫn chạy bình thường.
+
+`package.json` chỉ cần dùng khi muốn cập nhật lại Bootstrap Icons:
+
+```bash
+npm install
+```
+
+Sau đó cần chép phiên bản icon mong muốn vào `assets/vendor/bootstrap-icons/`.
+Không cần chạy bước này để khởi động ứng dụng.
 
 ### 5.4. Tạo database
 
