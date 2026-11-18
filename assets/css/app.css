@@ -1337,6 +1337,35 @@
         object-fit: cover;
     }
 
+    .image-preview .preview-item {
+        line-height: 0;
+    }
+
+    .image-preview .preview-remove {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid var(--kb-hairline);
+        background-color: var(--kb-surface-card);
+        color: var(--kb-body);
+        font-size: .7rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        cursor: pointer;
+        transition: background-color .15s ease, color .15s ease;
+    }
+
+    .image-preview .preview-remove:hover {
+        background-color: var(--kb-error);
+        color: #fff;
+    }
+
     /* Ô soạn bài: viền nhẹ, không viền sẵn để nhẹ nhàng hơn */
     .composer-input {
         border-color: transparent;

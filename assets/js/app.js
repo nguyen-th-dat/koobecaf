@@ -257,21 +257,48 @@ document.addEventListener('click', (event) => {
 const imageInput = document.getElementById('postImages');
 const previewBox = document.getElementById('imagePreview');
 if (imageInput && previewBox) {
-    imageInput.addEventListener('change', () => {
+    let selectedFiles = [];
+
+    const syncInputFiles = () => {
+        const transfer = new DataTransfer();
+        selectedFiles.forEach(file => transfer.items.add(file));
+        imageInput.files = transfer.files;
+    };
+
+    const renderPreview = () => {
         previewBox.innerHTML = '';
-        previewBox.classList.toggle('d-none', imageInput.files.length === 0);
-        Array.from(imageInput.files).forEach(file => {
+        previewBox.classList.toggle('d-none', selectedFiles.length === 0);
+        selectedFiles.forEach((file, index) => {
             const wrapper = document.createElement('div');
-            wrapper.className = 'position-relative';
+            wrapper.className = 'position-relative preview-item';
+
+            const objectUrl = URL.createObjectURL(file);
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(file);
+            img.src = objectUrl;
+            img.alt = '';
             img.className = 'rounded border';
-            img.style.height = '80px';
-            img.style.width = '80px';
-            img.style.objectFit = 'cover';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'preview-remove';
+            removeBtn.setAttribute('aria-label', 'Xóa ảnh');
+            removeBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+            removeBtn.addEventListener('click', () => {
+                URL.revokeObjectURL(objectUrl);
+                selectedFiles.splice(index, 1);
+                syncInputFiles();
+                renderPreview();
+            });
+
             wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
             previewBox.appendChild(wrapper);
         });
+    };
+
+    imageInput.addEventListener('change', () => {
+        selectedFiles = Array.from(imageInput.files);
+        renderPreview();
     });
 }
 
