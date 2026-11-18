@@ -8,7 +8,7 @@
 <div class="card surface-card mb-3">
     <div class="card-body">
         <h2 class="h6 mb-3"><i class="bi bi-person-badge me-2"></i>Thông tin cá nhân</h2>
-        <form action="<?= url('/settings/profile') ?>" method="post" enctype="multipart/form-data" data-draft="profile" data-guard="Thông tin hồ sơ" data-old-fields="<?= e(old_fields(['display_name', 'bio'])) ?>">
+        <form action="<?= url('/settings/profile') ?>" method="post" enctype="multipart/form-data" data-draft="profile" data-leave="keep" data-lose-fields="avatar,cover" data-lose-label="Ảnh đã chọn" data-old-fields="<?= e(old_fields(['display_name', 'bio'])) ?>">
             <?= \App\Core\Csrf::field() ?>
 
             <div class="row g-3">
@@ -55,7 +55,7 @@
 <div class="card surface-card mb-3">
     <div class="card-body">
         <h2 class="h6 mb-3"><i class="bi bi-key me-2"></i>Đổi mật khẩu</h2>
-        <form action="<?= url('/settings/password') ?>" method="post">
+        <form action="<?= url('/settings/password') ?>" method="post" data-guard="Mật khẩu đang đổi">
             <?= \App\Core\Csrf::field() ?>
 
             <div class="mb-3">
