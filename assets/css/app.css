@@ -451,8 +451,11 @@
         cursor: pointer;
     }
 
-    /* ---------------- Thẻ ---------------- */
-    .card {
+    /* ---------------- Thẻ ----------------
+       .card và .surface-card là cùng một khái niệm: nền kem + viền hairline.
+       Giữ cả hai để markup không gãy, nhưng chỉ có một định nghĩa style. */
+    .card,
+    .surface-card {
         background-color: var(--kb-surface-card);
         border: 1px solid var(--kb-hairline);
         border-radius: var(--kb-radius-lg);
@@ -464,10 +467,12 @@
         padding: var(--kb-space-lg);
     }
 
-    .surface-card {
-        background-color: var(--kb-surface-card);
+    /* Thẻ nổi trên nền kem: dùng nền canvas + viền mảnh, tạo nhịp xen kẽ */
+    .card-outline {
+        background-color: var(--kb-canvas);
         border: 1px solid var(--kb-hairline);
         border-radius: var(--kb-radius-lg);
+        color: var(--kb-body);
     }
 
     /* ---------------- Điều hướng ---------------- */
@@ -1069,7 +1074,7 @@
     .app-shell {
         max-width: var(--kb-shell-max);
         margin: 0 auto;
-        padding: var(--kb-space-xl) var(--kb-space-lg) var(--kb-space-xxl);
+        padding: var(--kb-space-xl) var(--kb-space-lg) var(--kb-space-section);
     }
 
     .app-grid {
@@ -1081,10 +1086,30 @@
 
     .app-rail {
         display: none;
+        min-width: 0;
     }
 
     .app-main {
         min-width: 0;
+    }
+
+    /* Tiêu đề trang: serif hiển thị, không viền, có gạch mint bên trái */
+    .page-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--kb-space-md);
+        margin-bottom: var(--kb-space-lg);
+    }
+
+    .page-head h1 {
+        margin: 0;
+        font-size: 1.875rem;
+        letter-spacing: -.015em;
+    }
+
+    .page-head h1 i {
+        color: var(--kb-primary);
     }
 
     /* Cột trái: điều hướng dọc dính */
@@ -1099,17 +1124,18 @@
         font-weight: 500;
         font-size: 14px;
         text-decoration: none;
+        transition: background-color .15s ease, color .15s ease;
     }
 
     .side-nav .nav-link:hover {
-        background-color: var(--kb-surface-card);
+        background-color: var(--kb-surface-soft);
         color: var(--kb-ink);
         text-decoration: none;
     }
 
     .side-nav .nav-link.active {
-        background-color: var(--kb-surface-card);
-        color: var(--kb-ink);
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
     }
 
     .side-nav .nav-link i {
@@ -1121,23 +1147,64 @@
         color: var(--kb-primary);
     }
 
-    .rail-section {
-        padding: var(--kb-space-md) var(--kb-space-sm);
+    /* Khối "gợi ý" trong cột trái */
+    .rail-card {
+        background-color: var(--kb-surface-card);
+        border: 1px solid var(--kb-hairline);
+        border-radius: var(--kb-radius-lg);
+        padding: var(--kb-space-md);
+        margin-top: var(--kb-space-lg);
     }
 
     .rail-title {
         font-family: var(--kb-font-body);
         font-weight: 600;
-        font-size: 12px;
-        letter-spacing: 1.2px;
+        font-size: 11px;
+        letter-spacing: 1.4px;
         text-transform: uppercase;
         color: var(--kb-muted-soft);
-        margin-bottom: var(--kb-space-xs);
+        margin-bottom: var(--kb-space-sm);
     }
 
-    /* Cột phải: dính theo cuộn (đặt ở lớp responsive) */
-    .side-right {
+    /* ---------------- Hàng người dùng (dùng chung nhiều nơi) ---------------- */
+    .person-row {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .55rem 0;
+    }
+
+    .person-row + .person-row {
+        border-top: 1px solid var(--kb-hairline-soft);
+    }
+
+    .person-meta {
         min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .person-name {
+        display: block;
+        font-weight: 500;
+        color: var(--kb-ink);
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .person-name:hover {
+        color: var(--kb-primary);
+        text-decoration: none;
+    }
+
+    .person-handle {
+        display: block;
+        font-size: 13px;
+        color: var(--kb-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* ---------------- Biểu tượng tròn thay avatar ---------------- */

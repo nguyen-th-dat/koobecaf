@@ -33,7 +33,6 @@ $navActive = static function (string $prefix) use ($path): string {
                     <a class="nav-link<?= $navActive('/') ?>" href="<?= url('/') ?>">Bảng tin</a>
                     <a class="nav-link<?= $navActive('/search') ?>" href="<?= url('/search') ?>">Khám phá</a>
                     <a class="nav-link<?= $navActive('/chat') ?>" href="<?= url('/chat') ?>">Trò chuyện</a>
-                    <a class="nav-link<?= $navActive('/notifications') ?>" href="<?= url('/notifications') ?>">Thông báo</a>
                 </nav>
             <?php endif; ?>
 
@@ -42,15 +41,10 @@ $navActive = static function (string $prefix) use ($path): string {
                 <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
             </form>
 
-            <div class="d-flex align-items-center gap-1 ms-auto">
+            <div class="d-flex align-items-center gap-2 ms-auto">
                 <?php if (is_auth()): ?>
-                    <a class="btn icon-btn position-relative" href="<?= url('/chat') ?>" aria-label="Tin nhắn">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="badge-dot<?= $unreadMessages > 0 ? '' : ' d-none' ?>" data-badge="messages"><?= $unreadMessages > 99 ? '99+' : (int) $unreadMessages ?></span>
-                    </a>
-                    <a class="btn icon-btn position-relative" href="<?= url('/notifications') ?>" aria-label="Thông báo">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge-dot<?= $unreadNotifications > 0 ? '' : ' d-none' ?>" data-badge="notifications"><?= $unreadNotifications > 99 ? '99+' : (int) $unreadNotifications ?></span>
+                    <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/') ?>#composer">
+                        <i class="bi bi-pencil-square"></i><span>Đăng bài</span>
                     </a>
 
                     <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-expanded="false" aria-label="Tài khoản">
@@ -63,6 +57,7 @@ $navActive = static function (string $prefix) use ($path): string {
                         </li>
                         <li><hr class="menu-divider"></li>
                         <li><a class="menu-item" href="<?= url('/u/' . ($currentUser['username'] ?? '')) ?>"><i class="bi bi-person me-2"></i>Trang cá nhân</a></li>
+                        <li><a class="menu-item" href="<?= url('/notifications') ?>"><i class="bi bi-bell me-2"></i>Thông báo<?= $unreadNotifications > 0 ? ' (' . $unreadNotifications . ')' : '' ?></a></li>
                         <li><a class="menu-item" href="<?= url('/settings/profile') ?>"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
                         <li><hr class="menu-divider"></li>
                         <li>
