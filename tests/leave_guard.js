@@ -10,13 +10,16 @@ const vm = require('vm');
 
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'app.js'), 'utf8');
 
-const start = appJs.indexOf('/* =============================================================\n   Cảnh báo rời trang');
+// Chuẩn hoá line-ending để không phụ thuộc CRLF/LF trên đĩa.
+const normalized = appJs.replace(/\r\n/g, '\n');
+
+const start = normalized.indexOf('/* =============================================================\n   Cảnh báo rời trang');
 if (start === -1) {
     console.error('[FAIL] Không tìm thấy khối code cảnh báo rời trang trong app.js');
     process.exit(1);
 }
-const end = appJs.indexOf('/* =============================================================\n   Lưu nháp form');
-const guardCode = appJs.slice(start, end === -1 ? undefined : end);
+const end = normalized.indexOf('/* =============================================================\n   Lưu nháp form');
+const guardCode = normalized.slice(start, end === -1 ? undefined : end);
 
 let passed = 0;
 let failed = 0;
@@ -103,7 +106,7 @@ function makeContext(forms) {
 
 function run(forms) {
     const context = makeContext(forms);
-    vm.runInContext(guardCode + '\n;({ initGuards, dirtyGuardForms, isFieldDirty, guardForms });', context);
+    vm.runInContext(guardCode + '\n;({ initGuards, losingForms, isFieldDirty, guardForms });', context);
     return context;
 }
 
@@ -117,7 +120,7 @@ function run(forms) {
     const ctx = run([form]);
     ctx.initGuards();
 
-    check('Form rỗng không bị coi là mất dữ liệu', ctx.dirtyGuardForms().length === 0);
+    check('Form rỗng không bị coi là mất dữ liệu', ctx.losingForms().length === 0);
 }
 
 // ------------------------------------------------------------------
@@ -131,7 +134,7 @@ function run(forms) {
     ctx.initGuards();
     content.value = 'Xin chào';
 
-    const dirty = ctx.dirtyGuardForms();
+    const dirty = ctx.losingForms();
     check('Form có nội dung bị coi là mất dữ liệu', dirty.length === 1);
     check('Xác định đúng nhãn form', dirty.length === 1 && dirty[0].label === 'Bài viết đang soạn', dirty.length ? dirty[0].label : '');
     check('Liệt kê field bị mất', dirty.length === 1 && dirty[0].items.length === 1, JSON.stringify(dirty[0]?.items));
@@ -149,7 +152,7 @@ function run(forms) {
     const ctx = run([form]);
     ctx.initGuards();
 
-    check('Giá trị mặc định không bị coi là mất dữ liệu', ctx.dirtyGuardForms().length === 0);
+    check('Giá trị mặc định không bị coi là mất dữ liệu', ctx.losingForms().length === 0);
 }
 
 // ------------------------------------------------------------------
@@ -164,7 +167,7 @@ function run(forms) {
     ctx.initGuards();
     displayName.value = 'Ten Da Sua';
 
-    check('Sửa giá trị thì bị coi là mất dữ liệu', ctx.dirtyGuardForms().length === 1);
+    check('Sửa giá trị thì bị coi là mất dữ liệu', ctx.losingForms().length === 1);
 }
 
 // ------------------------------------------------------------------
@@ -177,7 +180,7 @@ function run(forms) {
     const ctx = run([form]);
     ctx.initGuards();
 
-    check('Giá trị do server render lại vẫn được cảnh báo', ctx.dirtyGuardForms().length === 1);
+    check('Giá trị do server render lại vẫn được cảnh báo', ctx.losingForms().length === 1);
 }
 
 // ------------------------------------------------------------------
@@ -190,7 +193,7 @@ function run(forms) {
     const ctx = run([form]);
     ctx.initGuards();
 
-    const dirty = ctx.dirtyGuardForms();
+    const dirty = ctx.losingForms();
     check('File đã chọn bị coi là mất dữ liệu', dirty.length === 1);
     check('Hiển thị số lượng tệp đã chọn', dirty.length === 1 && dirty[0].items[0].preview.includes('tệp'), JSON.stringify(dirty[0]?.items));
 }
