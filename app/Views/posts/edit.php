@@ -11,20 +11,20 @@
 
 <div class="card surface-card">
     <div class="card-body">
-        <form action="<?= url('/posts/' . (int) $post['id'] . '/update') ?>" method="post" enctype="multipart/form-data">
+        <form action="<?= url('/posts/' . (int) $post['id'] . '/update') ?>" method="post" enctype="multipart/form-data" data-draft="post-edit-<?= (int) $post['id'] ?>" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
             <?= \App\Core\Csrf::field() ?>
 
             <div class="mb-3">
                 <label class="form-label" for="content">Nội dung</label>
-                <textarea class="form-control" id="content" name="content" rows="5" maxlength="5000" required><?= e($post['content']) ?></textarea>
+                <textarea class="form-control" id="content" name="content" rows="5" maxlength="5000" required><?= e(old('content', $post['content'])) ?></textarea>
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="privacy">Quyền riêng tư</label>
                 <select class="form-control" id="privacy" name="privacy">
-                    <option value="public" <?= $post['privacy'] === 'public' ? 'selected' : '' ?>>Công khai</option>
-                    <option value="followers" <?= $post['privacy'] === 'followers' ? 'selected' : '' ?>>Người theo dõi</option>
-                    <option value="private" <?= $post['privacy'] === 'private' ? 'selected' : '' ?>>Riêng tư</option>
+                    <option value="public" <?= old('privacy', $post['privacy']) === 'public' ? 'selected' : '' ?>>Công khai</option>
+                    <option value="followers" <?= old('privacy', $post['privacy']) === 'followers' ? 'selected' : '' ?>>Người theo dõi</option>
+                    <option value="private" <?= old('privacy', $post['privacy']) === 'private' ? 'selected' : '' ?>>Riêng tư</option>
                 </select>
             </div>
 
