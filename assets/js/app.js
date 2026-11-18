@@ -1,9 +1,7 @@
 /**
  * Koobecaf - JavaScript giao diện và tương tác AJAX.
+ * Không phụ thuộc framework: menu, drawer, toast và alert được viết tay.
  */
-import * as bootstrap from '../vendor/bootstrap/js/bootstrap.bundle.min.js';
-
-window.bootstrap = bootstrap;
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 const baseUrl = document.body.dataset.baseUrl ?? '/';
@@ -36,34 +34,180 @@ async function request(url, options = {}) {
     return payload;
 }
 
+/* =============================================================
+   Thông báo nhanh (toast)
+   ============================================================= */
 function toast(message, variant = 'success') {
     const container = document.getElementById('kbToastContainer') || (() => {
         const el = document.createElement('div');
         el.id = 'kbToastContainer';
-        el.className = 'toast-container position-fixed top-0 end-0 p-3';
-        el.style.zIndex = '1090';
+        el.className = 'toast-container';
         document.body.appendChild(el);
         return el;
     })();
 
     const el = document.createElement('div');
-    el.className = 'toast align-items-center border-0';
+    el.className = 'toast';
     el.setAttribute('role', 'alert');
     el.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body"></div>
-            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
-        </div>`;
+        <div class="toast-body"></div>
+        <button type="button" class="btn-close" aria-label="Đóng"></button>`;
     el.querySelector('.toast-body').textContent = message;
+    if (variant === 'danger') {
+        el.style.backgroundColor = 'var(--kb-error)';
+        el.style.color = '#fff';
+    }
     container.appendChild(el);
-    const toastEl = new bootstrap.Toast(el, { delay: 3500 });
-    toastEl.show();
-    el.addEventListener('hidden.bs.toast', () => el.remove());
+
+    const remove = () => el.remove();
+    el.querySelector('.btn-close').addEventListener('click', remove);
+    setTimeout(remove, 3500);
 }
 
 window.kbToast = toast;
 
-/* ---------- Xác nhận trước khi xóa ---------- */
+/* =============================================================
+   Menu thả xuống
+   ============================================================= */
+const openMenus = [];
+
+function positionMenu(menu, toggle, placement) {
+    const rect = toggle.getBoundingClientRect();
+    const menuRect = menu.getBoundingClientRect();
+    const gap = 6;
+    const margin = 12;
+
+    let top = rect.bottom + gap;
+    let left = placement === 'bottom-end' ? rect.right - menuRect.width : rect.left;
+
+    // Giữ menu nằm trong khung nhìn
+    if (top + menuRect.height > window.innerHeight - margin) {
+        const above = rect.top - gap - menuRect.height;
+        top = above >= margin ? above : Math.max(margin, window.innerHeight - menuRect.height - margin);
+    }
+    left = Math.min(Math.max(margin, left), window.innerWidth - menuRect.width - margin);
+
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.left = `${Math.round(left)}px`;
+}
+
+function openMenu(menu, toggle, placement) {
+    closeMenus();
+    menu.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    // Ẩn tạm thời để tránh nháy menu ở góc trước khi định vị
+    menu.style.visibility = 'hidden';
+    positionMenu(menu, toggle, placement);
+    menu.style.visibility = '';
+    openMenus.push({ menu, toggle, placement });
+}
+
+function closeMenus() {
+    openMenus.splice(0).forEach(({ menu, toggle }) => {
+        menu.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    });
+}
+
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-menu-toggle]');
+    if (toggle) {
+        const target = toggle.dataset.menuTarget;
+        const menu = target
+            ? document.querySelector(target)
+            : toggle.parentElement.querySelector('.menu');
+        if (!menu) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (menu.classList.contains('is-open')) {
+            closeMenus();
+        } else {
+            openMenu(menu, toggle, toggle.dataset.menuPlacement || 'bottom-start');
+        }
+        return;
+    }
+
+    if (!event.target.closest('.menu')) {
+        closeMenus();
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeMenus();
+    }
+});
+
+window.addEventListener('resize', () => {
+    openMenus.forEach(({ menu, toggle, placement }) => positionMenu(menu, toggle, placement));
+});
+
+/* =============================================================
+   Ngăn kéo (drawer)
+   ============================================================= */
+const drawerBackdrop = (() => {
+    const el = document.createElement('div');
+    el.className = 'drawer-backdrop';
+    document.body.appendChild(el);
+    return el;
+})();
+
+let openDrawer = null;
+
+function showDrawer(drawer) {
+    if (!drawer) return;
+    if (openDrawer && openDrawer !== drawer) {
+        hideDrawer();
+    }
+    drawer.classList.add('is-open');
+    drawerBackdrop.classList.add('is-open');
+    document.body.classList.add('has-drawer');
+    openDrawer = drawer;
+}
+
+function hideDrawer() {
+    if (!openDrawer) return;
+    openDrawer.classList.remove('is-open');
+    drawerBackdrop.classList.remove('is-open');
+    document.body.classList.remove('has-drawer');
+    openDrawer = null;
+}
+
+drawerBackdrop.addEventListener('click', hideDrawer);
+
+document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-drawer-toggle]');
+    if (toggle) {
+        event.preventDefault();
+        showDrawer(document.querySelector(toggle.dataset.drawerToggle));
+        return;
+    }
+
+    const dismiss = event.target.closest('[data-drawer-dismiss]');
+    if (dismiss) {
+        event.preventDefault();
+        hideDrawer();
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        hideDrawer();
+    }
+});
+
+/* =============================================================
+   Đóng cảnh báo
+   ============================================================= */
+document.addEventListener('click', (event) => {
+    const dismiss = event.target.closest('[data-alert-dismiss]');
+    if (!dismiss) return;
+    dismiss.closest('.alert')?.remove();
+});
+
+/* =============================================================
+   Xác nhận trước khi xóa
+   ============================================================= */
 document.addEventListener('submit', (event) => {
     const form = event.target;
     const message = form.dataset.confirm;
@@ -72,7 +216,9 @@ document.addEventListener('submit', (event) => {
     }
 });
 
-/* ---------- Hiện/ẩn mật khẩu ---------- */
+/* =============================================================
+   Hiện/ẩn mật khẩu
+   ============================================================= */
 document.addEventListener('click', (event) => {
     const button = event.target.closest('[data-toggle-password]');
     if (!button) return;
@@ -85,12 +231,14 @@ document.addEventListener('click', (event) => {
         : '<i class="bi bi-eye-slash"></i>';
 });
 
-/* ---------- Chọn giao diện ---------- */
+/* =============================================================
+   Chọn giao diện
+   ============================================================= */
 document.addEventListener('click', (event) => {
     const button = event.target.closest('.theme-btn');
     if (!button) return;
     const theme = button.dataset.theme;
-    document.documentElement.setAttribute('data-bs-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
     const input = document.getElementById('themeInput');
     if (input) input.value = theme;
     document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
@@ -103,7 +251,9 @@ document.addEventListener('click', (event) => {
     });
 });
 
-/* ---------- Xem trước ảnh trước khi đăng ---------- */
+/* =============================================================
+   Xem trước ảnh trước khi đăng
+   ============================================================= */
 const imageInput = document.getElementById('postImages');
 const previewBox = document.getElementById('imagePreview');
 if (imageInput && previewBox) {
@@ -125,7 +275,9 @@ if (imageInput && previewBox) {
     });
 }
 
-/* ---------- Like / Share / Copy link ---------- */
+/* =============================================================
+   Like / Share / Copy link
+   ============================================================= */
 document.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-action]');
     if (!button) return;
@@ -191,7 +343,9 @@ document.addEventListener('click', async (event) => {
     }
 });
 
-/* ---------- Follow ---------- */
+/* =============================================================
+   Follow
+   ============================================================= */
 document.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-action="follow"], .follow-btn');
     if (!button) return;
@@ -219,7 +373,9 @@ document.addEventListener('click', async (event) => {
     }
 });
 
-/* ---------- Bình luận ---------- */
+/* =============================================================
+   Bình luận
+   ============================================================= */
 async function loadComments(postId, container) {
     const list = container.querySelector('[data-comment-list]');
     if (!list) return;
@@ -391,7 +547,9 @@ document.addEventListener('click', async (event) => {
     }
 });
 
-/* ---------- Chat polling ---------- */
+/* =============================================================
+   Chat polling
+   ============================================================= */
 const chatMessages = document.querySelector('.chat-messages');
 const chatForm = document.getElementById('chatForm');
 
@@ -452,7 +610,9 @@ if (chatForm && chatMessages) {
     }, 5000);
 }
 
-/* ---------- Badge cập nhật ---------- */
+/* =============================================================
+   Badge cập nhật
+   ============================================================= */
 const badgeSources = {
     messages: '/api/messages/unread',
     notifications: '/api/notifications/unread',
@@ -474,7 +634,9 @@ if (Object.keys(badgeSources).length && document.querySelector('[data-badge]')) 
     setInterval(refreshBadges, 15000);
 }
 
-/* ---------- Tìm kiếm AJAX ---------- */
+/* =============================================================
+   Tìm kiếm AJAX
+   ============================================================= */
 const searchInput = document.querySelector('.search-form input[name="q"]');
 if (searchInput) {
     let searchTimer = null;
@@ -521,7 +683,9 @@ if (searchInput) {
     });
 }
 
-/* ---------- Tìm kiếm người dùng để bắt đầu chat mới ---------- */
+/* =============================================================
+   Tìm kiếm người dùng để bắt đầu chat mới
+   ============================================================= */
 const chatSearchInput = document.getElementById('chatUserSearch');
 const chatSearchResults = document.getElementById('chatSearchResults');
 
@@ -556,7 +720,7 @@ if (chatSearchInput && chatSearchResults) {
                         <i class="bi bi-chat-dots fg-secondary"></i>
                     </a>
                 </li>`).join('') + '</ul>';
-            chatSearchResults.classList.remove('d-none');
+            chatSearch Results.classList.remove('d-none');
         }, 300);
     });
 
@@ -567,7 +731,9 @@ if (chatSearchInput && chatSearchResults) {
     });
 }
 
-/* ---------- Đánh dấu thông báo đã đọc ---------- */
+/* =============================================================
+   Đánh dấu thông báo đã đọc
+   ============================================================= */
 const markAllBtn = document.getElementById('markAllRead');
 if (markAllBtn) {
     markAllBtn.addEventListener('click', async () => {
@@ -583,7 +749,7 @@ if (markAllBtn) {
 }
 
 document.querySelectorAll('.notification-item').forEach(item => {
-    item.querySelector('a').addEventListener('click', () => {
+    item.querySelector('a')?.addEventListener('click', () => {
         request(apiUrl(`/notifications/${item.dataset.notificationId}/read`), {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken },
