@@ -7,14 +7,13 @@ $currentUser = auth_user();
 $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-bs-theme="<?= e($theme) ?>">
+<html lang="vi" data-theme="<?= e($theme) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= e(\App\Core\Csrf::token()) ?>">
     <title><?= e($title ?? 'Koobecaf') ?> · <?= e(config('app.name', 'Koobecaf')) ?></title>
     <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
-    <link rel="stylesheet" href="<?= asset('vendor/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
@@ -37,6 +36,6 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     </p>
 </div>
 
-<script type="module" src="<?= asset('js/app.js') ?>"></script>
+<script src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>
