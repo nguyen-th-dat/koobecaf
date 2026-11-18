@@ -67,8 +67,8 @@ $friendStatus = $friendStatus ?? 'none';
             <p class="mb-2 mt-3"><?= nl2br(e($user['bio'])) ?></p>
         <?php endif; ?>
 
-        <div class="small fg-secondary mb-3">
-            <i class="bi bi-calendar3 me-1"></i>Tham gia <?= e(format_date($user['created_at'], 'd/m/Y')) ?>
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="chip"><i class="bi bi-calendar3"></i>Tham gia <?= e(format_date($user['created_at'], 'd/m/Y')) ?></span>
         </div>
 
         <div class="d-flex gap-4 profile-stats">
@@ -90,9 +90,18 @@ $friendStatus = $friendStatus ?? 'none';
 </ul>
 
 <?php if ($tab === 'posts'): ?>
-    <?php if ($posts === []): ?>
-        <div class="card surface-card"><div class="card-body text-center fg-secondary py-5">Chưa có bài viết nào.</div></div>
-    <?php else: ?>
+        <?php if ($posts === []): ?>
+            <div class="card surface-card">
+                <div class="empty-state">
+                    <span class="empty-icon"><i class="bi bi-journal-text"></i></span>
+                    <h3>Chưa có bài viết nào</h3>
+                    <p><?= $isSelf ? 'Hãy chia sẻ khoảnh khắc đầu tiên của bạn.' : $user['display_name'] . ' chưa đăng bài viết nào.' ?></p>
+                    <?php if ($isSelf): ?>
+                        <a class="btn btn-solid mt-2" href="<?= url('/') ?>#composer"><i class="bi bi-pencil-square me-1"></i>Viết bài ngay</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php else: ?>
         <?php foreach ($posts as $post): ?>
             <?php $data = post_view_data($post, $viewerId); ?>
             <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
