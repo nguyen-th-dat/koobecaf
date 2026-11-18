@@ -4820,15 +4820,6 @@
     .profile-name {
         font-size: 1.9rem;
     }
-
-    /* ---- Hộp thoại chia sẻ: ẩn nhãn tab, chỉ còn biểu tượng ---- */
-    .share-modal-tab span {
-        display: none;
-    }
-
-    .share-modal-tab {
-        padding: 8px 10px;
-    }
 }
 
 @media (max-width: 767.98px) {
@@ -4882,6 +4873,14 @@
     }
 
     /* ---- Hộp thoại chia sẻ trên mobile ---- */
+    .share-modal-tab span {
+        display: none;
+    }
+
+    .share-modal-tab {
+        padding: 8px 10px;
+    }
+
     .share-modal {
         padding: 0;
         align-items: flex-end;

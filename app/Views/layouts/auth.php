@@ -18,8 +18,8 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
-    <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <link rel="stylesheet" href="<?= asset('css/toast.css') ?>">
+    <link rel="stylesheet" href="<?= asset_versioned('css/app.css') ?>">
+    <link rel="stylesheet" href="<?= asset_versioned('css/toast.css') ?>">
 </head>
 <body class="auth-body" data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>" data-cleared-drafts="<?= e(implode(',', \App\Core\OldInput::clearedDrafts())) ?>">
 
@@ -63,7 +63,7 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
 
 <?php require __DIR__ . '/partials/toast.php'; ?>
 
-<script src="<?= asset('js/toast.js') ?>"></script>
-<script src="<?= asset('js/app.js') ?>"></script>
+<script src="<?= asset_versioned('js/toast.js') ?>"></script>
+<script src="<?= asset_versioned('js/app.js') ?>"></script>
 </body>
 </html>

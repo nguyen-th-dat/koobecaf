@@ -73,6 +73,24 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('asset_versioned')) {
+    /**
+     * URL tài nguyên kèm phiên bản theo mtime của file.
+     *
+     * Trình duyệt cache mạnh (JS/CSS) sẽ không dùng lại bản cũ khi file thay
+     * đổi — nhờ vậy không phải xoá cache thủ công sau mỗi lần sửa.
+     */
+    function asset_versioned(string $path): string
+    {
+        $relative = ltrim($path, '/');
+        $file = dirname(__DIR__, 2) . '/assets/' . $relative;
+
+        $version = is_file($file) ? (string) filemtime($file) : '';
+
+        return asset($path) . ($version === '' ? '' : '?v=' . $version);
+    }
+}
+
 if (!function_exists('absolute_url')) {
     /**
      * URL tuyệt đối (có scheme + host) — dùng cho link gửi qua email.
