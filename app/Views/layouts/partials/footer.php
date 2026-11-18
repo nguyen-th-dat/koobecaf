@@ -5,7 +5,7 @@
 ?>
 <footer class="site-footer">
     <div class="container-fluid">
-        <div class="row g-4">
+        <div class="row g-3">
             <div class="col-12 md:col-6 lg:col-6">
                 <a class="brand mb-3" href="<?= url('/') ?>">
                     <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>

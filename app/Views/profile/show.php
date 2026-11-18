@@ -100,28 +100,28 @@ $friendStatus = $friendStatus ?? 'none';
     <?php endif; ?>
 <?php elseif ($tab === 'comments'): ?>
     <div class="card surface-card">
-        <div class="card-body">
-            <?php if ($comments === []): ?>
-                <p class="fg-secondary mb-0">Chưa có bình luận nào.</p>
-            <?php else: ?>
-                <?php foreach ($comments as $comment): ?>
-                    <div class="d-flex gap-2 py-2 border-bottom">
-                        <img src="<?= e(avatar_url($comment['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
-                        <div class="min-w-0">
-                            <div class="d-flex align-items-center gap-2">
-                                <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $comment['username']) ?>"><?= e($comment['display_name']) ?></a>
-                                <small class="fg-secondary">@<?= e($comment['username']) ?></small>
+            <div class="card-body">
+                <?php if ($comments === []): ?>
+                    <p class="fg-secondary mb-0">Chưa có bình luận nào.</p>
+                <?php else: ?>
+                    <?php foreach ($comments as $comment): ?>
+                        <div class="person-row align-items-start">
+                            <img src="<?= e(avatar_url($comment['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
+                            <div class="person-meta">
+                                <div class="d-flex align-items-baseline gap-2">
+                                    <a class="person-name" href="<?= url('/u/' . $comment['username']) ?>"><?= e($comment['display_name']) ?></a>
+                                    <small class="fg-secondary">@<?= e($comment['username']) ?></small>
+                                </div>
+                                <p class="mb-1 mt-1 small"><?= nl2br(e($comment['content'])) ?></p>
+                                <small class="fg-secondary">
+                                    <a class="fg-secondary" href="<?= url('/post/' . (int) $comment['post_id']) ?>">Bài viết #<?= (int) $comment['post_id'] ?></a>
+                                    · <?= e(time_ago($comment['created_at'])) ?>
+                                </small>
                             </div>
-                            <p class="mb-1"><?= nl2br(e($comment['content'])) ?></p>
-                            <small class="fg-secondary">
-                                <a class="fg-secondary" href="<?= url('/post/' . (int) $comment['post_id']) ?>">Bài viết #<?= (int) $comment['post_id'] ?></a>
-                                · <?= e(time_ago($comment['created_at'])) ?>
-                            </small>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
     </div>
 <?php elseif ($tab === 'shared'): ?>
     <div class="card surface-card">
@@ -167,19 +167,9 @@ $friendStatus = $friendStatus ?? 'none';
             <?php if ($people === []): ?>
                 <p class="fg-secondary mb-0">Chưa có dữ liệu.</p>
             <?php else: ?>
-                <ul class="list-unified">
-                    <?php foreach ($people as $person): ?>
-                        <li class="d-flex align-items-center gap-2 py-2">
-                            <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
-                            <div class="flex-grow-1 min-w-0">
-                                <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
-                                    <?= e($person['display_name']) ?>
-                                </a>
-                                <small class="fg-secondary">@<?= e($person['username']) ?></small>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                <?php foreach ($people as $person): ?>
+                    <?= view_partial(dirname(__DIR__) . '/partials/person-row.php', ['person' => $person]) ?>
+                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>

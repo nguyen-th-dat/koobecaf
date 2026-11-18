@@ -344,6 +344,21 @@ document.addEventListener('click', async (event) => {
 });
 
 /* =============================================================
+   Điều hướng tới ô soạn bài viết
+   ============================================================= */
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href$="#composer"]');
+    if (!link) return;
+
+    event.preventDefault();
+    const composer = document.getElementById('composer');
+    if (!composer) return;
+
+    composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('postContent')?.focus();
+});
+
+/* =============================================================
    Follow
    ============================================================= */
 document.addEventListener('click', async (event) => {
@@ -651,14 +666,12 @@ if (searchInput) {
             return;
         }
         searchResults.innerHTML = '<ul class="list-unified">' + users.map(user => `
-            <li>
-                <a class="d-flex align-items-center gap-2 p-2 fg-body text-decoration-none" href="${user.profile_url}">
-                    <img src="${user.avatar_url || apiUrl('/uploads/avatars/default-avatar.png')}" alt="" class="avatar avatar-sm">
-                    <div class="min-w-0">
-                        <div class="fw-semibold text-truncate">${escapeHtml(user.display_name)}</div>
-                        <small class="fg-secondary">@${escapeHtml(user.username)}</small>
-                    </div>
-                </a>
+            <li class="person-row">
+                <img src="${user.avatar_url || apiUrl('/uploads/avatars/default-avatar.png')}" alt="" class="avatar avatar-sm">
+                <div class="person-meta">
+                    <a class="person-name" href="${user.profile_url}">${escapeHtml(user.display_name)}</a>
+                    <span class="person-handle">@${escapeHtml(user.username)}</span>
+                </div>
             </li>`).join('') + '</ul>';
         searchResults.classList.remove('d-none');
     };
@@ -710,17 +723,16 @@ if (chatSearchInput && chatSearchResults) {
                 return;
             }
             chatSearchResults.innerHTML = '<ul class="list-unified">' + users.map(user => `
-                <li>
-                    <a class="d-flex align-items-center gap-2 p-2 fg-body text-decoration-none" href="${user.chat_url}">
+                <li class="person-row">
+                    <a class="d-flex align-items-center gap-2 text-decoration-none" href="${user.chat_url}">
                         <img src="${user.avatar_url || apiUrl('/uploads/avatars/default-avatar.png')}" alt="" class="avatar avatar-sm">
-                        <div class="min-w-0 flex-grow-1">
-                            <div class="fw-semibold text-truncate">${escapeHtml(user.display_name)}</div>
-                            <small class="fg-secondary">@${escapeHtml(user.username)}</small>
+                        <div class="person-meta">
+                            <span class="person-name">${escapeHtml(user.display_name)}</span>
+                            <span class="person-handle">@${escapeHtml(user.username)}</span>
                         </div>
-                        <i class="bi bi-chat-dots fg-secondary"></i>
                     </a>
                 </li>`).join('') + '</ul>';
-            chatSearchhResults.classList.remove('d-none');
+            chatSearchResults.classList.remove('d-none');
         }, 300);
     });
 

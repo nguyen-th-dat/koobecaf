@@ -16,8 +16,8 @@ $labels = [
     'follow'         => 'đã bắt đầu theo dõi bạn',
 ];
 ?>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0"><i class="bi bi-bell me-2"></i>Thông báo</h1>
+<div class="page-head">
+    <h1><i class="bi bi-bell"></i>Thông báo</h1>
     <?php if ($unread > 0): ?>
         <button class="btn btn-outline btn-sm" id="markAllRead"><i class="bi bi-check2-all me-1"></i>Đánh dấu đã đọc</button>
     <?php endif; ?>
@@ -33,10 +33,10 @@ $labels = [
         <?php else: ?>
             <ul class="list-unified notification-list">
                 <?php foreach ($notifications as $notification): ?>
-                    <li class="notification-item d-flex gap-2 py-2<?= (int) $notification['is_read'] === 0 ? ' unread' : '' ?>"
+                    <li class="notification-item d-flex gap-3 py-3<?= (int) $notification['is_read'] === 0 ? ' unread' : '' ?>"
                         data-notification-id="<?= (int) $notification['id'] ?>">
                         <img src="<?= e(avatar_url($notification['actor_avatar_path'])) ?>" alt="" class="avatar avatar-md">
-                        <div class="flex-grow-1 min-w-0">
+                        <div class="person-meta">
                             <div class="small">
                                 <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $notification['actor_username']) ?>">
                                     <?= e($notification['actor_display_name']) ?>

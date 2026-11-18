@@ -15,8 +15,8 @@ $originalImages = $meta['originalImages'];
         <div class="shared-header d-flex align-items-center gap-2 px-3 pt-3">
             <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
             <div class="min-w-0">
-                <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
-                <small class="fg-secondary d-block">đã chia sẻ · <?= e(time_ago($post['created_at'])) ?></small>
+                <a class="post-author" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
+                <small class="post-meta d-block">đã chia sẻ · <?= e(time_ago($post['created_at'])) ?></small>
             </div>
         </div>
     <?php endif; ?>
@@ -32,10 +32,10 @@ $originalImages = $meta['originalImages'];
             <?php if (!$meta['isShared'] || $original === null): ?>
                 <div class="d-flex justify-content-between align-items-start gap-2">
                     <div class="min-w-0">
-                        <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $post['username']) ?>">
+                        <a class="post-author" href="<?= url('/u/' . $post['username']) ?>">
                             <?= e($post['display_name']) ?>
                         </a>
-                        <div class="small fg-secondary">
+                        <div class="post-meta">
                             <span>@<?= e($post['username']) ?></span> ·
                             <span><?= e(time_ago($post['created_at'])) ?></span>
                             <?php if ($post['privacy'] !== 'public'): ?>
@@ -65,9 +65,9 @@ $originalImages = $meta['originalImages'];
                 <div class="shared-original p-3 mt-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
-                        <div>
-                            <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
-                            <small class="fg-secondary d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
+                        <div class="min-w-0">
+                            <a class="post-author" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
+                            <small class="post-meta d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
                         </div>
                     </div>
                     <?php if (trim((string) $original['content']) !== ''): ?>

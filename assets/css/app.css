@@ -773,6 +773,7 @@
     .align-items-start { align-items: flex-start !important; }
     .align-items-center { align-items: center !important; }
     .align-items-end { align-items: flex-end !important; }
+    .align-items-baseline { align-items: baseline !important; }
     .align-self-start { align-self: flex-start !important; }
     .align-self-center { align-self: center !important; }
     .align-self-end { align-self: flex-end !important; }
@@ -781,7 +782,6 @@
     .gap-2 { gap: 8px !important; }
     .gap-3 { gap: 16px !important; }
     .gap-4 { gap: 24px !important; }
-
     /* ---- Lưới ---- */
     .row {
         display: flex;
@@ -1014,23 +1014,29 @@
         color: var(--kb-body);
         text-decoration: none;
         white-space: nowrap;
+        transition: background-color .15s ease, color .15s ease;
     }
 
     .topbar-nav .nav-link:hover {
-        background-color: var(--kb-surface-card);
+        background-color: var(--kb-surface-soft);
         color: var(--kb-ink);
         text-decoration: none;
     }
 
     .topbar-nav .nav-link.active {
-        background-color: var(--kb-surface-card);
-        color: var(--kb-ink);
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
     }
 
     .search-form {
         position: relative;
         max-width: 420px;
         flex: 1 1 auto;
+    }
+
+    /* Nút CTA nhỏ góc trên bên phải */
+    .topbar-cta {
+        display: none;
     }
 
     .search-results {
@@ -1232,12 +1238,36 @@
     /* ---------------- Bài viết ---------------- */
     .post-card {
         overflow: visible;
+        transition: border-color .15s ease;
+    }
+
+    .post-card:hover {
+        border-color: var(--kb-surface-cream-strong);
+    }
+
+    /* Tên tác giả: sans đậm vừa, không phải serif (serif dành cho tiêu đề) */
+    .post-author {
+        font-family: var(--kb-font-body);
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--kb-ink);
+        text-decoration: none;
+    }
+
+    .post-author:hover {
+        color: var(--kb-primary);
+        text-decoration: none;
+    }
+
+    .post-meta {
+        font-size: 13px;
+        color: var(--kb-muted);
     }
 
     .post-text {
         white-space: pre-wrap;
         word-break: break-word;
-        line-height: 1.55;
+        line-height: 1.6;
         color: var(--kb-body);
         font-size: 16px;
     }
@@ -1274,7 +1304,7 @@
     }
 
     .post-actions .action-btn:hover {
-        background-color: var(--kb-surface-cream-strong);
+        background-color: var(--kb-canvas);
         color: var(--kb-ink);
     }
 
@@ -1296,6 +1326,19 @@
         height: 80px;
         width: 80px;
         object-fit: cover;
+    }
+
+    /* Ô soạn bài: viền nhẹ, không viền sẵn để nhẹ nhàng hơn */
+    .composer-input {
+        border-color: transparent;
+        background-color: var(--kb-canvas);
+        resize: vertical;
+        min-height: 68px;
+        line-height: 1.55;
+    }
+
+    .composer-input:focus {
+        border-color: var(--kb-primary);
     }
 
     /* ---------------- Bình luận ---------------- */
@@ -1564,10 +1607,14 @@
     /* ---------------- Chân trang bề mặt tối ---------------- */
     .site-footer {
         margin-top: var(--kb-space-section);
-        padding: var(--kb-space-xxl) 0;
+        padding: var(--kb-space-xxl) 0 var(--kb-space-xl);
         background-color: var(--kb-surface-dark);
         color: var(--kb-on-dark-soft);
         font-size: 14px;
+    }
+
+    .site-footer .container-fluid {
+        max-width: var(--kb-shell-max);
     }
 
     .site-footer .brand {
@@ -1583,7 +1630,7 @@
         color: var(--kb-on-dark);
         font-family: var(--kb-font-body);
         font-weight: 600;
-        font-size: 12px;
+        font-size: 11px;
         letter-spacing: 1.5px;
         text-transform: uppercase;
         margin-bottom: var(--kb-space-sm);
@@ -1607,6 +1654,12 @@
 
     .site-footer li {
         margin-bottom: var(--kb-space-xs);
+    }
+
+    /* Nhịp sáng/tối: khối tối xen giữa các bề mặt kem */
+    .site-footer hr {
+        border-color: rgba(250, 249, 245, .12);
+        margin: var(--kb-space-xl) 0 var(--kb-space-lg);
     }
 
     /* ---------------- Trạng thái nút động ---------------- */
@@ -1688,10 +1741,16 @@
 
         .app-rail-right {
             display: block;
+            position: sticky;
+            top: calc(var(--kb-topbar-h) + var(--kb-space-lg));
         }
 
         .app-grid.is-wide {
             grid-template-columns: var(--kb-rail-left) minmax(0, 1fr);
+        }
+
+        .topbar-cta {
+            display: inline-flex;
         }
     }
 

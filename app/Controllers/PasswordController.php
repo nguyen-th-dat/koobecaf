@@ -78,7 +78,13 @@ final class PasswordController extends Controller
     {
         $token = $this->request->string('token');
         $password = (string) $this->request->input('password', '');
-        $passwordConfirm = (string) $this->request->input('password_confirmation', '');
+
+        $reset = PasswordReset::findValid($token);
+        if ($reset === null) {
+            $this->invalidToken();
+
+            return;
+        }
 
         $validator = (new Validator($this->request->all()))
             ->required('password', 'Mật khẩu')
@@ -87,13 +93,6 @@ final class PasswordController extends Controller
 
         if ($validator->fails()) {
             $this->fail($validator->firstError(), '/reset-password?token=' . urlencode($token));
-        }
-
-        $reset = PasswordReset::findValid($token);
-        if ($reset === null) {
-            $this->invalidToken();
-
-            return;
         }
 
         User::updatePassword($reset['user_id'], $password);

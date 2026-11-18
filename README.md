@@ -37,6 +37,8 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Quản lý phiên bằng PHP Session, **regenerate Session ID** sau khi đăng nhập/đăng ký.
 - Cookie phiên an toàn (`HttpOnly`, `SameSite=Lax`, `Secure` khi bật `SESSION_SECURE`).
 - Đổi mật khẩu (yêu cầu xác nhận mật khẩu hiện tại).
+- **Quên mật khẩu**: gửi email qua PHPMailer chứa link đặt lại mật khẩu (token random 32 byte, lưu dạng SHA-256, hết hạn sau 60 phút, dùng một lần).
+- **Đặt lại mật khẩu**: token hợp lệ mới cho đổi mật khẩu; phản hồi luôn giống nhau dù email có tồn tại hay không để không tiết lộ tài khoản đã đăng ký.
 
 ### 2.2. Hồ sơ cá nhân (Profile)
 - Trang cá nhân theo username: `/u/{username}`.
@@ -126,25 +128,28 @@ koobecaf/
 │   │   ├── AuthMiddleware.php     # Yêu cầu đăng nhập
 │   │   ├── GuestMiddleware.php    # Chặn người đã đăng nhập
 │   │   └── Middleware.php
-│   ├── Models/                    # 12 model tương ứng 12 bảng
+│   ├── Models/                    # 13 model tương ứng 13 bảng
 │   │   ├── Comment.php  Conversation.php  Follow.php  Friendship.php
 │   │   ├── Like.php      Message.php     Notification.php
-│   │   ├── Post.php      PostImage.php   Share.php     User.php
-│   ├── Controllers/               # 13 controller
+│   │   ├── PasswordReset.php  Post.php    PostImage.php   Share.php
+│   │   └── User.php
+│   ├── Controllers/               # 14 controller
 │   │   ├── ApiController.php       AuthController.php     ChatController.php
 │   │   ├── CommentController.php  FeedController.php     FollowController.php
 │   │   ├── FriendController.php   LikeController.php     NotificationController.php
-│   │   ├── PostController.php     ProfileController.php   SearchController.php
-│   │   └── ShareController.php
+│   │   ├── PasswordController.php PostController.php     ProfileController.php
+│   │   ├── SearchController.php   ShareController.php
 │   ├── Services/
+│   │   ├── MailService.php         # Gửi email qua PHPMailer (SMTP hoặc driver log)
 │   │   ├── NotificationService.php # Sinh thông báo theo loại sự kiện
 │   │   └── UploadService.php       # Upload ảnh an toàn
 │   ├── Helpers/
-│   │   └── helpers.php             # e(), url(), asset(), time_ago(), auth_user()...
+│   │   └── helpers.php             # e(), url(), absolute_url(), asset(), time_ago()...
 │   └── Views/
 │       ├── layouts/                # main.php, auth.php + partials (topbar, sidebars, mobile-nav, flash)
 │       ├── partials/               # post-card.php, comment-item.php
-│       ├── auth/                   # login.php, register.php
+│       ├── auth/                   # login.php, register.php, forgot-password.php, reset-password.php
+│       ├── emails/                 # reset-password.php (template HTML cho email)
 │       ├── feed/                   # index.php
 │       ├── posts/                  # show.php, edit.php, likes.php
 │       ├── profile/                # show.php, edit.php
@@ -156,7 +161,8 @@ koobecaf/
 │
 ├── config/
 │   ├── app.php                     # Tên app, múi giờ, per-page, key mã hóa
-│   └── database.php                # Thông tin kết nối MySQL
+│   ├── database.php                # Thông tin kết nối MySQL
+│   └── mail.php                    # Cấu hình SMTP (host, port, auth, encryption, from)
 │
 ├── database/
 │   ├── install.php                # Script cài đặt gốc: tạo DB + nạp schema & dữ liệu mẫu
@@ -319,6 +325,16 @@ DB_PASSWORD=
 
 SESSION_NAME=koobecaf_session
 SESSION_SECURE=false
+
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=tls
+MAIL_FROM_EMAIL=no-reply@koobecaf.local
+MAIL_FROM_NAME=Koobecaf
+MAIL_DEBUG=false
 ```
 
 | Biến | Ý nghĩa |
@@ -327,6 +343,14 @@ SESSION_SECURE=false
 | `APP_URL` | URL gốc dùng cho permalink & Open Graph. |
 | `APP_BASE_PATH` | Nếu ứng dụng nằm trong thư mục con (Cách A), điền `/koobecaf`. |
 | `SESSION_SECURE` | `true` khi chạy qua HTTPS (đặt cookie `Secure`). |
+| `MAIL_DRIVER` | `smtp` = gửi mail thật. `log` = ghi nội dung email vào `storage/logs/` (dùng khi dev chưa có SMTP). |
+| `MAIL_HOST` / `MAIL_PORT` | Địa chỉ SMTP server và cổng (`587` cho STARTTLS, `465` cho SSL). |
+| `MAIL_USERNAME` / `MAIL_PASSWORD` | Tài khoản xác thực SMTP. Với Gmail cần dùng **App Password**, không dùng mật khẩu thường. |
+| `MAIL_ENCRYPTION` | `tls` (khuyến nghị), `ssl` hoặc để trống. |
+| `MAIL_FROM_EMAIL` | Địa chỉ người gửi — nên dùng địa chỉ đã xác thực với SMTP server, nếu không email sẽ vào spam. |
+| `MAIL_DEBUG` | `true` = in log giao tiếp SMTP ra màn hình (chỉ dùng khi debug). |
+
+> **Gmail:** bật [Xác thực 2 bước](https://myaccount.google.com/security), tạo App Password rồi điền vào `MAIL_USERNAME` (email đầy đủ) và `MAIL_PASSWORD` (mã App Password 16 ký tự).
 
 ### 5.6. Phân quyền thư mục
 
@@ -484,6 +508,8 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 | Phân quyền | Kiểm tra ở backend cho mọi thao tác: sở hữu bài viết/bình luận, quyền xem theo `privacy`, thành viên cuộc trò chuyện, quyền xóa bài viết đã bị xóa |
 | SQL integrity | FK + UNIQUE + CHECK logic ở tầng ứng dụng: cấm tự follow, cấm tự kết bạn, cấm Like trùng |
 | Rò rỉ thông tin | `APP_DEBUG=false` ở production, lỗi ghi vào `storage/logs/`, không hiển thị stack trace cho người dùng |
+| Quên mật khẩu | Token random 32 byte, database chỉ lưu bản SHA-256; hết hạn 60 phút; dùng một lần rồi vô hiệu hóa; phản hồi giống nhau dù email có tồn tại hay không |
+| Link đặt lại mật khẩu | Host lấy từ `APP_URL` (không dùng header `Host` của request) để chống host header injection |
 | Cấu hình | `.env` nằm ngoài Git (`.gitignore`), `.htaccess` chặn autoindex + lộ phiên bản Apache |
 
 ---
