@@ -79,7 +79,22 @@ class FakeForm {
         this.dispatch(type);
     }
 
+    appendChild(child) {
+        this.appended = child;
+        return child;
+    }
+
+    querySelector(selector) {
+        const found = this.querySelectorAll(selector);
+        return found.length > 0 ? found[0] : null;
+    }
+
     querySelectorAll(selector) {
+        // Node con do code tự tạo (vd chỉ báo "đã lưu nháp").
+        if (selector === '[data-draft-hint]') {
+            return this.appended ? [this.appended] : [];
+        }
+
         // Selector liệt kê nhiều loại field: input[name], textarea[name], select[name]
         if (selector.includes(',')) {
             return this.fields.filter(f => /^(input|textarea|select)$/.test(f.tag || 'input'));
@@ -103,6 +118,16 @@ function makeContext(form, storage) {
     const document = {
         body: { dataset: {} },
         querySelectorAll: () => (form ? [form] : []),
+        querySelector: () => null,
+        createElement: () => ({
+            className: '',
+            dataset: {},
+            hidden: true,
+            innerHTML: '',
+            textContent: '',
+            setAttribute() {},
+            appendChild() {},
+        }),
     };
 
     const context = {
@@ -152,7 +177,7 @@ function runDraftEngine(form, storage) {
     email.value = 'user@example.com';
     email.dispatch('input');
 
-    const saved = JSON.parse(storage.getItem('kb:draft:login'));
+    const saved = JSON.parse(storage.getItem('kb:draft:0:login'));
     check('Lưu nháp vào localStorage khi nhập', saved !== null && saved[0].value === 'user@example.com', JSON.stringify(saved));
     check('Nháp lưu đúng tên field', saved !== null && saved[0].name === 'email');
 }
@@ -164,7 +189,7 @@ function runDraftEngine(form, storage) {
     const email = new FakeElement('email', 'email', '');
     const form = new FakeForm([email], { draft: 'login' });
     const storage = makeStorage({
-        'kb:draft:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'saved@example.com' }]),
+        'kb:draft:0:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'saved@example.com' }]),
     });
 
     const ctx = runDraftEngine(form, storage);
@@ -180,7 +205,7 @@ function runDraftEngine(form, storage) {
     const email = new FakeElement('email', 'email', 'server@example.com');
     const form = new FakeForm([email], { draft: 'login', oldFields: 'email' });
     const storage = makeStorage({
-        'kb:draft:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'draft@example.com' }]),
+        'kb:draft:0:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'draft@example.com' }]),
     });
 
     const ctx = runDraftEngine(form, storage);
@@ -197,7 +222,7 @@ function runDraftEngine(form, storage) {
     const displayName = new FakeElement('display_name', 'text', '');
     const form = new FakeForm([email, displayName], { draft: 'register', oldFields: 'email' });
     const storage = makeStorage({
-        'kb:draft:register': JSON.stringify([
+        'kb:draft:0:register': JSON.stringify([
             { name: 'email', kind: 'value', value: 'draft@example.com' },
             { name: 'display_name', kind: 'value', value: 'Nguyen Van A' },
         ]),
@@ -226,7 +251,7 @@ function runDraftEngine(form, storage) {
 
     content.dispatch('input');
 
-    const saved = JSON.parse(storage.getItem('kb:draft:composer'));
+    const saved = JSON.parse(storage.getItem('kb:draft:0:composer'));
     const names = saved.map(item => item.name);
     check('Không lưu field password', !names.includes('password'), names.join(','));
     check('Không lưu field file', !names.includes('images[]'), names.join(','));
@@ -241,14 +266,14 @@ function runDraftEngine(form, storage) {
     const email = new FakeElement('email', 'email', 'a@b.com');
     const form = new FakeForm([email], { draft: 'login' });
     const storage = makeStorage({
-        'kb:draft:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'x@y.com' }]),
+        'kb:draft:0:login': JSON.stringify([{ name: 'email', kind: 'value', value: 'x@y.com' }]),
     });
 
     const ctx = runDraftEngine(form, storage);
     ctx.document.body.dataset.clearedDrafts = 'login,register';
     ctx.initDrafts();
 
-    check('Xoá nháp sau khi form thành công', storage.getItem('kb:draft:login') === null);
+    check('Xoá nháp sau khi form thành công', storage.getItem('kb:draft:0:login') === null);
 }
 
 // ------------------------------------------------------------------
@@ -257,7 +282,7 @@ function runDraftEngine(form, storage) {
 {
     const email = new FakeElement('email', 'email', '');
     const form = new FakeForm([email], { draft: 'login' });
-    const storage = makeStorage({ 'kb:draft:login': '{khong phai json' });
+    const storage = makeStorage({ 'kb:draft:0:login': '{khong phai json' });
 
     let threw = false;
     try {
