@@ -1773,45 +1773,6 @@
         min-height: 420px;
     }
 
-    /* ---- Mobile: ở trang danh sách thì ẩn vùng trò chuyện ---- */
-    .chat-layout[data-view="list"] .chat-main {
-        display: none;
-    }
-
-    /* Nút "nhắn tin mới" chỉ hiện trên mobile */
-    .chat-layout[data-view="list"] .chat-new-chat-btn {
-        display: inline-flex;
-    }
-
-    /* Mobile: vùng tìm người trượt lên từ dưới khi bấm "nhắn tin mới" */
-    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main {
-        display: flex;
-        position: fixed;
-        inset: 0;
-        z-index: 1040;
-        border-radius: 0;
-        border: 0;
-    }
-
-    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-color: rgba(20, 20, 19, .45);
-        backdrop-filter: blur(2px);
-    }
-
-    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main .card-body {
-        position: relative;
-        z-index: 1;
-        background-color: var(--kb-surface-card);
-        padding-top: calc(var(--kb-topbar-h) + var(--kb-space-md));
-    }
-
-    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-start-close {
-        display: inline-flex;
-    }
-
     /* ---- Mobile: mở một cuộc trò chuyện — ẩn danh sách, hiện vùng đọc ---- */
     .chat-layout[data-view="conversation"] {
         height: calc(100dvh - var(--kb-topbar-h) - 84px);
@@ -3268,6 +3229,46 @@
 
     .topbar-inner {
         gap: var(--kb-space-sm);
+    }
+
+    /* ---- Trò chuyện trên mobile ---- */
+    /* Ở trang danh sách, vùng đọc ẩn hẳn để danh sách chiếm trọn màn hình */
+    .chat-layout[data-view="list"] .chat-main {
+        display: none;
+    }
+
+    /* Nút "nhắn tin mới" chỉ hiện trên mobile */
+    .chat-layout[data-view="list"] .chat-new-chat-btn {
+        display: inline-flex;
+    }
+
+    /* Bảng tìm người trượt lên từ dưới khi bấm "nhắn tin mới" */
+    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 1040;
+        border-radius: 0;
+        border: 0;
+    }
+
+    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: rgba(20, 20, 19, .45);
+        backdrop-filter: blur(2px);
+    }
+
+    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-main .card-body {
+        position: relative;
+        z-index: 1;
+        background-color: var(--kb-surface-card);
+        padding-top: calc(var(--kb-topbar-h) + var(--kb-space-md));
+    }
+
+    .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-start-close {
+        display: inline-flex;
     }
 
     .search-form {
