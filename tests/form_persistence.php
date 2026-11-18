@@ -213,10 +213,11 @@ $res = request('GET', $base . '/posts/' . $postId . '/edit');
 check('Giu lai quyen rieng tu sau khi sua that bai', str_contains($res['body'], '<option value="followers" selected>'), 'khong thay option selected');
 
 // ------------------------------------------------------------------
-// 5. Trang chu: giu lai noi dung composer khi dang bai that bai
+// 5. Trang dang bai: giu lai noi dung composer khi dang bai that bai
 // ------------------------------------------------------------------
-$res = request('GET', $base . '/');
+$res = request('GET', $base . '/posts/create');
 $token = csrfToken($res['body']);
+check('Trang dang bai render khong loi', $res['status'] === 200, 'status=' . $res['status']);
 
 $res = request('POST', $base . '/posts', ['form' => [
     '_token'  => $token,
@@ -225,15 +226,19 @@ $res = request('POST', $base . '/posts', ['form' => [
 ]]);
 check('Dang bai that bai chuyen huong', $res['status'] === 302, 'status=' . $res['status']);
 
-$res = request('GET', $base . '/');
+$res = request('GET', $base . '/posts/create');
 check('Giu lai noi dung composer sau khi dang that bai', str_contains($res['body'], str_repeat('b', 5001)), 'khong tim thay noi dung da nhap');
 
 // ------------------------------------------------------------------
-// 11. Trang chu (da dang nhap) co guard cho composer
+// 11. Trang dang bai (da dang nhap) co guard cho composer
 // ------------------------------------------------------------------
 {
-    $res = request('GET', $base . '/');
+    $res = request('GET', $base . '/posts/create');
     check('Composer co danh dau data-guard', str_contains($res['body'], 'data-guard="Bài viết đang soạn"'));
+    check('Trang dang bai co nut ve bang tin', str_contains($res['body'], 'href="' . $base . '/'));
+    check('Trang chu khong con form composer', !str_contains(request('GET', $base . '/')['body'], 'id="postForm"'));
+
+    $res = request('GET', $base . '/');
     check('Form dang xuat co danh dau data-leave-guard', str_contains($res['body'], 'data-leave-guard="Đăng xuất"'));
 }
 
