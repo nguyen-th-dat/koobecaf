@@ -800,6 +800,91 @@
         to   { opacity: 1; transform: none; }
     }
 
+    /* ---------------- Hộp thoại cảnh báo rời trang ---------------- */
+    .leave-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--kb-space-md);
+        background-color: color-mix(in srgb, var(--kb-surface-dark) 55%, transparent);
+        backdrop-filter: blur(2px);
+    }
+
+    .leave-modal[hidden] {
+        display: none;
+    }
+
+    .leave-modal-card {
+        width: 100%;
+        max-width: 420px;
+        padding: var(--kb-space-lg);
+        background-color: var(--kb-canvas);
+        border: 1px solid var(--kb-hairline);
+        border-radius: var(--kb-radius-lg);
+        box-shadow: var(--kb-shadow-pop);
+        animation: leave-modal-in .18s var(--kb-ease-out);
+    }
+
+    .leave-modal-title {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        margin-bottom: var(--kb-space-xs);
+        font-family: var(--kb-font-display);
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 1.2;
+        color: var(--kb-ink);
+    }
+
+    .leave-modal-title i {
+        font-size: 1.1rem;
+        color: var(--kb-warning);
+    }
+
+    .leave-modal-text {
+        margin-bottom: var(--kb-space-md);
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--kb-body);
+    }
+
+    .leave-modal-list {
+        margin: 0 0 var(--kb-space-md);
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--kb-space-xs);
+    }
+
+    .leave-modal-item {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        font-size: 13px;
+        color: var(--kb-body-strong);
+    }
+
+    .leave-modal-item i {
+        color: var(--kb-primary);
+        font-size: .9rem;
+    }
+
+    .leave-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--kb-space-xs);
+    }
+
+    @keyframes leave-modal-in {
+        from { opacity: 0; transform: translateY(6px) scale(.98); }
+        to   { opacity: 1; transform: none; }
+    }
+
     /* ---------------- Huy hiệu ---------------- */
     .badge {
         display: inline-flex;
