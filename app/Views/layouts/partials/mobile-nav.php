@@ -22,12 +22,12 @@ $path = '/' . trim($path, '/');
     <a class="<?= str_starts_with($path, '/settings') ? 'active' : '' ?>" href="<?= url('/settings/profile') ?>"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
 </nav>
 
-<dialog class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+<div class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
     <div class="drawer-header">
         <h5 class="drawer-title" id="mobileSidebarLabel">Koobecaf</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="drawer" aria-label="Đóng"></button>
+        <button type="button" class="btn-close" data-drawer-dismiss aria-label="Đóng"></button>
     </div>
     <div class="drawer-body">
         <?php require __DIR__ . '/sidebar-left.php'; ?>
     </div>
-</dialog>
+</div>
