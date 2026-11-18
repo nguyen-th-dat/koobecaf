@@ -257,11 +257,14 @@ php -S localhost:8000 -t . router.php
 # Terminal 2
 php tests/smoke.php           http://localhost:8000
 php tests/extended.php        http://localhost:8000
-php tests/password_reset.php http://localhost:8000
+php tests/password_reset.php  http://localhost:8000
+php tests/form_persistence.php http://localhost:8000
+php tests/draft_cleared.php   http://localhost:8000
+node tests/draft_engine.js
 php tests/pages.php           http://localhost:8000
 ```
 
-Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `PASS: 21 | FAIL: 0`, `FAIL: 0`.
+Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `PASS: 21 | FAIL: 0`, `PASS: 16 | FAIL: 0`, `PASS: 9 | FAIL: 0`, `PASS: 14 | FAIL: 0`, `FAIL: 0`.
 
 > `tests/password_reset.php` cần `MAIL_DRIVER=log` trong `.env` vì đọc token từ `storage/logs/`.
 
@@ -299,3 +302,15 @@ php -S localhost:8000 -t . router.php
 | Mã nguồn | `assets/css/app.css`: bỏ 3 tên font thương hiệu có bản quyền khỏi font-stack dùng chung (vẫn giữ Cormorant Garamond + Inter làm font chính) và bỏ dòng "Nguồn thiết kế: DESIGN.md" |
 | Tham chiếu | `layouts/partials/footer.php`: đổi "Thiết kế theo DESIGN.md" thành tagline của sản phẩm và bỏ comment trùng tên file; `.htaccess`: bỏ `skills-lock.json`, `DESIGN.md`, `PROMT.md` khỏi rule chặn tải về |
 | `.gitignore` | Bỏ hẳn khối "AI tools" (`.claude/`, `.cursor/`, `.agents/`, `.aider-desk/`, `PROMT.md`) — các thư mục này không còn tồn tại trong project |
+
+## Đợt giữ giá trị form (không mất dữ liệu khi nhập / tải trang / gửi lỗi)
+
+| Hạng mục | Xử lý |
+|---|---|
+| Lỗi sẵn có | `AuthController::fail()` lưu key đã gắn tiền tố `_old.` vào `$_SESSION['_old']` trong khi `old()` đọc `$_SESSION['_old.' . $key]` → giá trị đã nhập ở form đăng nhập/đăng ký không bao giờ được khôi phục |
+| Tầng server | Thêm `app/Core/OldInput.php`: lưu giá trị cũ vào session, "nhặt" sang bộ nhớ tạm ở request kế tiếp rồi xoá khỏi session (chỉ dùng một lần). `Controller::fail()` / `failBack()` thu thập field cần giữ lại; `old()` và `old_fields()` đọc từ đây |
+| Áp dụng | `AuthController` (đăng nhập/đăng ký), `PasswordController` (quên mật khẩu), `PostController` (soạn & sửa bài viết), `ProfileController` (hồ sơ, đổi mật khẩu) — validate thất bại không còn làm mất dữ liệu đã nhập |
+| Tầng trình duyệt | Thêm engine lưu nháp trong `assets/js/app.js`: form có `data-draft="<key>"` tự lưu `localStorage` (debounce 200ms), khôi phục khi tải trang và khi quay lại từ bfcache. Không lưu field password / file / hidden / CSRF token. `localStorage` bị chặn hoặc hỏng không gây lỗi |
+| Ưu tiên | Field do server render từ `old()` thắng nháp cũ (đánh dấu qua `data-old-fields`); các field còn lại lấy giá trị nháp vì đó là trạng thái mới nhất |
+| Xoá nháp | Form gửi thành công thì server gửi `data-cleared-drafts` xuống `<body>` để trình duyệt xoá nháp, tránh tự điền lại nội dung đã đăng |
+| Kiểm thử | Thêm `tests/form_persistence.php` (16), `tests/draft_cleared.php` (9), `tests/draft_engine.js` (14 — chạy bằng Node, không cần server). Tổng 154 kiểm tra PHP + 14 kiểm tra JS, đều 0 lỗi |
