@@ -2064,6 +2064,15 @@
         margin-top: var(--kb-space-xs);
     }
 
+    /* Tin cuối của nhóm: bo tròn lại góc đuôi để khối liền mạch */
+    .chat-bubble-row.group-end .chat-bubble {
+        border-bottom-left-radius: var(--kb-radius-xs);
+    }
+
+    .chat-bubble-row.mine.group-end .chat-bubble {
+        border-bottom-right-radius: var(--kb-radius-xs);
+    }
+
     @keyframes kb-bubble-in {
         from { opacity: 0; transform: translateY(6px); }
         to   { opacity: 1; transform: none; }
