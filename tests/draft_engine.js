@@ -10,13 +10,16 @@ const vm = require('vm');
 
 const appJs = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'app.js'), 'utf8');
 
+// Chuẩn hoá line-ending để không phụ thuộc CRLF/LF trên đĩa.
+const normalized = appJs.replace(/\r\n/g, '\n');
+
 // Chỉ lấy phần code lưu nháp để test độc lập với DOM của trang.
-const start = appJs.indexOf('/* =============================================================\n   Lưu nháp form');
+const start = normalized.indexOf('/* =============================================================\n   Lưu nháp form');
 if (start === -1) {
     console.error('[FAIL] Không tìm thấy khối code lưu nháp trong app.js');
     process.exit(1);
 }
-const draftCode = appJs.slice(start);
+const draftCode = normalized.slice(start);
 
 let passed = 0;
 let failed = 0;
