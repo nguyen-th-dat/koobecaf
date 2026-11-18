@@ -35,6 +35,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 
 ### 2.1. Xác thực (Authentication)
 - Đăng ký, đăng nhập, đăng xuất.
+- Đăng nhập được bằng **email hoặc username** (một ô nhập duy nhất, tự phân biệt theo ký tự `@`).
 - Kiểm tra email trùng lặp, validate dữ liệu đầu vào (tên, username, email, mật khẩu tối thiểu 8 ký tự).
 - Mã hóa mật khẩu bằng `password_hash()` (bcrypt), xác thực bằng `password_verify()`.
 - Quản lý phiên bằng PHP Session, **regenerate Session ID** sau khi đăng nhập/đăng ký.
