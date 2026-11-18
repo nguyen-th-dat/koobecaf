@@ -28,30 +28,24 @@ foreach ($rii as $file) {
     }
 }
 
-// Class do app.css định nghĩa hoặc do PHP sinh ra
+// Class do app.css định nghĩa
 $defined = [];
 if (preg_match_all('/\.([a-zA-Z][a-zA-Z0-9_-]*)/', $appCss, $m)) {
     $defined = array_unique($m[1]);
 }
+// Class do JavaScript gắn động
 $defined = array_merge($defined, [
-    'active', 'show', 'unread', 'd-none', 'min-w-0', 'list-unified', 'surface-card',
-    'avatar', 'avatar-sm', 'avatar-md', 'avatar-lg', 'avatar-xl', 'avatar-fallback',
-    'post-card', 'post-text', 'post-images', 'post-actions', 'post-stats', 'post-body',
-    'post-comments', 'comment-list', 'comment-item', 'comment-bubble', 'comment-text',
-    'comment-replies', 'shared-original', 'shared-header', 'image-preview',
-    'profile-card', 'profile-cover', 'cover-empty', 'profile-avatar-row', 'profile-stats',
-    'profile-stat', 'profile-tabs', 'chat-layout', 'chat-sidebar', 'chat-conversation-list',
-    'chat-conversation', 'chat-main', 'chat-header', 'chat-messages', 'chat-bubble-row',
-    'chat-bubble', 'chat-text', 'chat-time', 'chat-input', 'notification-item',
-    'notification-list', 'auth-body', 'auth-wrapper', 'auth-title', 'auth-card',
-    'mobile-nav', 'icon-btn', 'badge-dot', 'brand', 'brand-mark', 'brand-text', 'brand-lg',
-    'search-form', 'search-results', 'side-nav', 'side-right', 'topbar', 'app-shell',
-    'main-col', 'sidebar-col', 'follow-btn', 'theme-btn', 'surface-card', 'badge-dot',
-    'input-group', 'btn-group', 'row', 'col', 'container-fluid', 'container',
+    'active', 'show', 'unread', 'is-following', 'd-none', 'comment-form',
+    'comment-reply-btn', 'comment-edit-btn', 'comment-delete-btn',
+    'count-1', 'count-2', 'count-3', 'count-4',
 ]);
 
 $missing = [];
 foreach ($classes as $cls => $files) {
+    // Bỏ qua icon bootstrap-icons và các mảnh class nội suy từ PHP
+    if (str_starts_with($cls, 'bi') || str_ends_with($cls, '-')) {
+        continue;
+    }
     if (in_array($cls, $defined, true)) {
         continue;
     }
