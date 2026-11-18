@@ -14,6 +14,9 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     <meta name="csrf-token" content="<?= e(\App\Core\Csrf::token()) ?>">
     <title><?= e($title ?? 'Koobecaf') ?> · <?= e(config('app.name', 'Koobecaf')) ?></title>
     <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
