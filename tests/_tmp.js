@@ -10,7 +10,8 @@ function php(script) {
 
 const out = php(
     "require 'app/bootstrap.php'; \\App\\Core\\Env::load('.env');" +
-    "$p = \\App\\Models\\Post::find(1);" +
-    "echo json_encode(['id' => $p['id'], 'author' => $p['user_id'], 'privacy' => $p['privacy']]);"
+    "$ok = \\App\\Core\\WsPublisher::publish('post.created', ['audience' => [1], 'post' => ['id' => 999, 'content' => 'test', 'author' => ['id' => 2, 'display_name' => 'B']]]);" +
+    "echo $ok ? 'ok' : 'fail';"
 );
-console.log(out);
+console.log('publish:', out);
+console.log('url:', php("require 'app/bootstrap.php'; \\App\\Core\\Env::load('.env'); echo \\App\\Core\\WsPublisher::url();"));
