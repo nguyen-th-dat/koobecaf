@@ -29,7 +29,7 @@ $menu = [
                     <i class="bi <?= e($item['icon']) ?>"></i>
                     <span><?= e($item['label']) ?></span>
                     <?php if ($item['label'] === 'Bạn bè' && $pendingRequests > 0): ?>
-                        <span class="ms-auto badge text-bg-danger rounded-pill"><?= (int) $pendingRequests ?></span>
+                        <span class="ms-auto badge rounded-pill bg-primary"><?= (int) $pendingRequests ?></span>
                     <?php endif; ?>
                 </a>
             </li>
