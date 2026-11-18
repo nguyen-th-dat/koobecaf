@@ -13,6 +13,7 @@ $path = '/' . trim($path, '/');
 ?>
 <nav class="mobile-nav lg:d-none">
     <a class="<?= $path === '/' ? 'active' : '' ?>" href="<?= url('/') ?>"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
+    <a class="<?= $path === '/posts/create' ? 'active' : '' ?>" href="<?= url('/posts/create') ?>"><i class="bi bi-pencil-square"></i><span>Đăng bài</span></a>
     <a class="<?= str_starts_with($path, '/u/') ? 'active' : '' ?>" href="<?= url('/u/' . (auth_user()['username'] ?? '')) ?>"><i class="bi bi-person"></i><span>Cá nhân</span></a>
     <a class="<?= $path === '/chat' ? 'active' : '' ?>" href="<?= url('/chat') ?>">
         <i class="bi bi-chat-dots"></i><span>Tin nhắn</span>
