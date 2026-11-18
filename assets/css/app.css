@@ -1,8 +1,10 @@
 /* =============================================================
    Koobecaf — hệ thống giao diện tự viết (không dùng Bootstrap)
-   Nền tảng thiết kế theo DESIGN.md: nền kem ấm, tiêu đề serif
-   hiển thị, chữ thân sans, viền hairline, bề mặt tối.
-   Màu chủ đạo: xanh mint.
+   Nguồn thiết kế: DESIGN.md
+   - Nền kem ấm, màu chủ đạo mint, bề mặt tối cho điểm nhấn
+   - Tiêu đề serif hiển thị (Cormorant Garamond), chữ thân sans (Inter)
+   - Viền hairline 1px, nâng cấp phẳng (không đổ bóng nặng)
+   - Ưu tiên bố cục máy tính: lưới 3 cột, thanh điều hướng ngang
    ============================================================= */
 
 @layer base, components, utilities;
@@ -49,9 +51,11 @@
         --kb-error: #c0453f;
         --kb-error-soft: #fbeceb;
 
-        /* ---- Typography ---- */
-        --kb-font-display: "Copernicus", "Tiempos Headline", "Cormorant Garamond", Garamond, "Times New Roman", serif;
-        --kb-font-body: "StyreneB", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        /* ---- Typography ----
+           Cormorant Garamond là thay thế gần nhất cho Copernicus/Tiempos
+           Headline; Inter là thay thế gần nhất cho StyreneB. */
+        --kb-font-display: "Cormorant Garamond", "Copernicus", "Tiempos Headline", Garamond, "Times New Roman", serif;
+        --kb-font-body: "Inter", "StyreneB", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         --kb-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
         /* ---- Bo góc ---- */
@@ -74,7 +78,12 @@
 
         --kb-shadow-hover: 0 1px 3px rgba(20, 20, 19, .08);
         --kb-shadow-pop: 0 12px 32px rgba(20, 20, 19, .12);
-        --kb-shell-max: 1200px;
+
+        /* ---- Bố cục máy tính ---- */
+        --kb-shell-max: 1400px;
+        --kb-rail-left: 244px;
+        --kb-rail-right: 320px;
+        --kb-topbar-h: 64px;
         --kb-gutter: 16px;
     }
 
@@ -124,6 +133,7 @@
 
     html {
         -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
     }
 
     body {
@@ -139,18 +149,18 @@
     h1, h2, h3, h4, h5, h6,
     .h1, .h2, .h3, .h4, .h5, .h6 {
         font-family: var(--kb-font-display);
-        font-weight: 400;
+        font-weight: 500;
         letter-spacing: -.02em;
         color: var(--kb-ink);
         line-height: 1.15;
         margin: 0 0 var(--kb-space-md);
     }
 
-    h1, .h1 { font-size: 2.25rem; }
-    h2, .h2 { font-size: 1.75rem; }
-    h3, .h3 { font-size: 1.375rem; }
-    h4, .h4 { font-size: 1.125rem; }
-    h5, .h5 { font-size: 1rem; }
+    h1, .h1 { font-size: 2.5rem; }
+    h2, .h2 { font-size: 2rem; }
+    h3, .h3 { font-size: 1.5rem; }
+    h4, .h4 { font-size: 1.25rem; }
+    h5, .h5 { font-size: 1.0625rem; }
     h6, .h6 { font-size: .875rem; }
 
     p {
@@ -581,7 +591,7 @@
     .drawer-title {
         margin: 0;
         font-family: var(--kb-font-display);
-        font-weight: 400;
+        font-weight: 500;
     }
 
     .drawer-body {
@@ -931,8 +941,14 @@
     .topbar {
         background-color: var(--kb-canvas);
         border-bottom: 1px solid var(--kb-hairline);
-        padding: .7rem 0;
         z-index: 1030;
+    }
+
+    .topbar-inner {
+        height: var(--kb-topbar-h);
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-md);
     }
 
     .brand {
@@ -941,10 +957,11 @@
         gap: .55rem;
         text-decoration: none;
         font-family: var(--kb-font-display);
-        font-weight: 400;
-        font-size: 1.35rem;
+        font-weight: 500;
+        font-size: 1.5rem;
         letter-spacing: -.02em;
         color: var(--kb-ink);
+        flex-shrink: 0;
     }
 
     .brand:hover {
@@ -953,7 +970,7 @@
     }
 
     .brand-lg {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
 
     /* Dấu hiệu thương hiệu dạng gai radial 4 nhánh */
@@ -975,9 +992,40 @@
         font-size: 1.2rem;
     }
 
+    /* Điều hướng ngang trên desktop */
+    .topbar-nav {
+        display: none;
+        align-items: center;
+        gap: var(--kb-space-xxs);
+    }
+
+    .topbar-nav .nav-link {
+        padding: 8px 12px;
+        border-radius: var(--kb-radius-md);
+        font-family: var(--kb-font-body);
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 1.4;
+        color: var(--kb-body);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .topbar-nav .nav-link:hover {
+        background-color: var(--kb-surface-card);
+        color: var(--kb-ink);
+        text-decoration: none;
+    }
+
+    .topbar-nav .nav-link.active {
+        background-color: var(--kb-surface-card);
+        color: var(--kb-ink);
+    }
+
     .search-form {
         position: relative;
-        max-width: 520px;
+        max-width: 420px;
+        flex: 1 1 auto;
     }
 
     .search-results {
@@ -1017,21 +1065,29 @@
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--kb-primary) 18%, transparent);
     }
 
-    /* ---------------- Khung ứng dụng ---------------- */
+    /* ---------------- Khung ứng dụng: lưới 3 cột ---------------- */
     .app-shell {
         max-width: var(--kb-shell-max);
         margin: 0 auto;
-        padding: var(--kb-space-lg) var(--kb-space-md) var(--kb-space-xxl);
+        padding: var(--kb-space-xl) var(--kb-space-lg) var(--kb-space-xxl);
     }
 
-    .main-col {
-        padding: 0 var(--kb-space-xs);
+    .app-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--kb-space-lg);
+        align-items: start;
     }
 
-    .sidebar-col {
-        padding: 0 var(--kb-space-xs);
+    .app-rail {
+        display: none;
     }
 
+    .app-main {
+        min-width: 0;
+    }
+
+    /* Cột trái: điều hướng dọc dính */
     .side-nav .nav-link {
         display: flex;
         align-items: center;
@@ -1056,9 +1112,33 @@
         color: var(--kb-ink);
     }
 
+    .side-nav .nav-link i {
+        font-size: 1.05rem;
+        color: var(--kb-muted);
+    }
+
+    .side-nav .nav-link.active i {
+        color: var(--kb-primary);
+    }
+
+    .rail-section {
+        padding: var(--kb-space-md) var(--kb-space-sm);
+    }
+
+    .rail-title {
+        font-family: var(--kb-font-body);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--kb-muted-soft);
+        margin-bottom: var(--kb-space-xs);
+    }
+
+    /* Cột phải: dính theo cuộn */
     .side-right {
         position: sticky;
-        top: 5rem;
+        top: calc(var(--kb-topbar-h) + var(--kb-space-lg));
     }
 
     /* ---------------- Biểu tượng tròn thay avatar ---------------- */
@@ -1093,6 +1173,7 @@
         word-break: break-word;
         line-height: 1.55;
         color: var(--kb-body);
+        font-size: 16px;
     }
 
     .post-images {
@@ -1173,7 +1254,7 @@
 
     /* ---------------- Trang cá nhân ---------------- */
     .profile-cover {
-        height: 180px;
+        height: 200px;
         background-size: cover;
         background-position: center;
     }
@@ -1201,8 +1282,8 @@
     .profile-stat strong {
         color: var(--kb-ink);
         font-family: var(--kb-font-display);
-        font-weight: 400;
-        font-size: 1.25rem;
+        font-weight: 500;
+        font-size: 1.35rem;
         line-height: 1.2;
     }
 
@@ -1250,20 +1331,20 @@
 
     /* ---------------- Trò chuyện ---------------- */
     .chat-layout {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: var(--kb-space-md);
-        height: calc(100vh - 9rem);
+        height: calc(100vh - var(--kb-topbar-h) - var(--kb-space-xxl));
     }
 
     .chat-sidebar {
-        width: 320px;
-        flex-shrink: 0;
+        display: none;
+        flex-direction: column;
         overflow: hidden;
     }
 
     .chat-conversation-list {
         overflow-y: auto;
-        max-height: calc(100vh - 14rem);
     }
 
     .chat-conversation {
@@ -1288,7 +1369,6 @@
     }
 
     .chat-main {
-        flex: 1;
         display: flex;
         flex-direction: column;
         min-width: 0;
@@ -1316,7 +1396,7 @@
         border: 1px solid var(--kb-hairline-soft);
         border-radius: var(--kb-radius-lg);
         padding: .5rem .8rem;
-        max-width: min(75%, 520px);
+        max-width: min(70%, 520px);
         color: var(--kb-body);
     }
 
@@ -1369,7 +1449,7 @@
     }
 
     .auth-title h1 {
-        font-size: 2rem;
+        font-size: 2.25rem;
         margin-bottom: var(--kb-space-xs);
     }
 
@@ -1415,6 +1495,54 @@
         right: .5rem;
     }
 
+    /* ---------------- Chân trang bề mặt tối ---------------- */
+    .site-footer {
+        margin-top: var(--kb-space-section);
+        padding: var(--kb-space-xxl) 0;
+        background-color: var(--kb-surface-dark);
+        color: var(--kb-on-dark-soft);
+        font-size: 14px;
+    }
+
+    .site-footer .brand {
+        color: var(--kb-on-dark);
+    }
+
+    .site-footer .brand-mark {
+        background-color: var(--kb-primary);
+        color: var(--kb-primary-contrast);
+    }
+
+    .site-footer h4 {
+        color: var(--kb-on-dark);
+        font-family: var(--kb-font-body);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: var(--kb-space-sm);
+    }
+
+    .site-footer a {
+        color: var(--kb-on-dark-soft);
+        text-decoration: none;
+    }
+
+    .site-footer a:hover {
+        color: var(--kb-on-dark);
+        text-decoration: underline;
+    }
+
+    .site-footer ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .site-footer li {
+        margin-bottom: var(--kb-space-xs);
+    }
+
     /* ---------------- Trạng thái nút động ---------------- */
     .follow-btn.is-following {
         background-color: transparent;
@@ -1430,17 +1558,10 @@
 }
 
 /* =============================================================
-   5. ĐÁP ỨNG
+   5. ĐÁP ỨNG — desktop-first
    ============================================================= */
-/* ---- Đáp ứng: tiền tố trước (lg:col-2, md:d-none) ---- */
 @layer utilities {
-    @media (min-width: 576px) {
-        .sm\:d-inline { display: inline !important; }
-        .sm\:d-block { display: block !important; }
-        .sm\:d-inline-flex { display: inline-flex !important; }
-        .sm\:d-none { display: none !important; }
-    }
-
+    /* ---- Tablet: bật thanh điều hướng ngang + cột trái ---- */
     @media (min-width: 768px) {
         .md\:col-3 { width: 25%; }
         .md\:col-6 { width: 50%; }
@@ -1450,6 +1571,7 @@
         .md\:d-inline-flex { display: inline-flex !important; }
     }
 
+    /* ---- Desktop: lưới 3 cột, nav ngang ---- */
     @media (min-width: 992px) {
         .lg\:col-2 { width: 16.6667%; }
         .lg\:col-3 { width: 25%; }
@@ -1460,25 +1582,65 @@
         .lg\:d-flex { display: flex !important; }
         .lg\:d-inline-flex { display: inline-flex !important; }
         .lg\:mx-4 { margin-inline: 24px !important; }
+
+        .app-grid {
+            grid-template-columns: var(--kb-rail-left) minmax(0, 1fr);
+            gap: var(--kb-space-xl);
+        }
+
+        .app-rail-left {
+            display: block;
+            position: sticky;
+            top: calc(var(--kb-topbar-h) + var(--kb-space-lg));
+        }
+
+        .topbar-nav {
+            display: flex;
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        .chat-layout {
+            grid-template-columns: 320px minmax(0, 1fr);
+        }
+
+        .chat-sidebar {
+            display: flex;
+        }
     }
 
+    /* ---- Wide: thêm cột phải ---- */
     @media (min-width: 1200px) {
         .xl\:col-3 { width: 25%; }
         .xl\:col-7 { width: 58.3333%; }
+
+        .app-grid {
+            grid-template-columns: var(--kb-rail-left) minmax(0, 1fr) var(--kb-rail-right);
+        }
+
+        .app-rail-right {
+            display: block;
+        }
+
+        .app-grid.is-wide {
+            grid-template-columns: var(--kb-rail-left) minmax(0, 1fr);
+        }
+    }
+
+    /* ---- Màn hình nhỏ ---- */
+    @media (max-width: 767.98px) {
+        .sm\:d-inline { display: inline !important; }
+        .sm\:d-block { display: block !important; }
+        .sm\:d-inline-flex { display: inline-flex !important; }
+        .sm\:d-none { display: none !important; }
     }
 }
 
 @media (max-width: 991.98px) {
     .app-shell {
         padding-bottom: 84px;
-    }
-
-    .main-col {
-        padding: 0;
-    }
-
-    .profile-avatar-row {
-        margin-top: -36px;
     }
 
     .post-actions .action-btn span {
@@ -1492,12 +1654,9 @@
 
 @media (max-width: 575.98px) {
     .app-shell {
-        padding: var(--kb-space-xs) var(--kb-space-xs) var(--kb-space-xxl);
+        padding: var(--kb-space-md) var(--kb-space-sm) var(--kb-space-xxl);
     }
 
-    .surface-card > .card-body {
-        padding: var(--kb-space-md);
-    }
     .profile-cover {
         height: 130px;
     }
