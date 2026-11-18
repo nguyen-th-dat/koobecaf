@@ -192,6 +192,9 @@ koobecaf/
 │   ├── smoke.php                   # 54 kiểm tra tích hợp end-to-end
 │   ├── extended.php                # 40 kiểm tra biên (upload, quyền, riêng tư, mật khẩu, theme, regression)
 │   ├── password_reset.php          # 21 kiểm tra luồng quên/đặt lại mật khẩu
+│   ├── form_persistence.php        # 16 kiểm tra giữ giá trị form sau khi validate thất bại
+│   ├── draft_cleared.php           # 9 kiểm tra cơ chế báo xoá nháp sau khi gửi thành công
+│   ├── draft_engine.js             # 14 kiểm tra logic lưu nháp phía trình duyệt (Node)
 │   ├── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
 │   └── check_classes.php           # Kiểm tra class trong CSS có được định nghĩa
 │
@@ -410,6 +413,9 @@ php -S localhost:8000 -t . router.php
 php tests/smoke.php        http://localhost:8000   # 54 kiểm tra end-to-end
 php tests/extended.php     http://localhost:8000   # 40 kiểm tra biên
 php tests/password_reset.php http://localhost:8000 # 21 kiểm tra quên/đặt lại mật khẩu
+php tests/form_persistence.php http://localhost:8000 # 16 kiểm tra giữ giá trị form
+php tests/draft_cleared.php http://localhost:8000   # 9 kiểm tra xoá nháp sau khi gửi thành công
+node tests/draft_engine.js                          # 14 kiểm tra logic lưu nháp (không cần server)
 php tests/pages.php        http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
 
@@ -419,6 +425,9 @@ Kết quả mong đợi:
 PASS: 54 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
 PASS: 21 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
+PASS: 16 | FAIL: 0     (form_persistence.php)
+PASS: 9  | FAIL: 0     (draft_cleared.php)
+PASS: 14 | FAIL: 0     (draft_engine.js)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
 
