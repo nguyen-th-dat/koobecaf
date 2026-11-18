@@ -176,7 +176,7 @@ koobecaf/
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
 │   ├── css/app.css                # CSS riêng (bám theo biến Bootstrap 5.3)
 │   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling
-│   ├── images/                    # favicon.svg, default.svg
+│   ├── images/                    # logo.png (logo thương hiệu), favicon.svg, default.svg
 │   └── vendor/                    # Bootstrap 5.3.3 + Bootstrap Icons (bản local)
 ├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
 │
