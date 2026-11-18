@@ -17,6 +17,9 @@
 # Log ứng dụng
 /storage/logs/*.log
 
+# File tạm sinh ra lúc chạy (không commit)
+/storage/logs/_*.php
+
 # File người dùng tải lên (giữ lại .htaccess và cấu trúc thư mục)
 /uploads/*
 !/uploads/.htaccess

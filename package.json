@@ -1,5 +1,14 @@
 {
+  "name": "koobecaf",
+  "private": true,
+  "description": "Koobecaf - WebSocket server cho chat realtime",
+  "scripts": {
+    "ws": "node server/ws-server.js",
+    "ws:test": "node tests/ws_protocol.js"
+  },
   "dependencies": {
-    "bootstrap-icons": "^1.13.2"
+    "bootstrap-icons": "^1.13.2",
+    "mysql2": "^3.24.6",
+    "ws": "^8.23.0"
   }
 }

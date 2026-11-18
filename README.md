@@ -25,6 +25,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 | Database | MySQL 8.0+ / MariaDB 10.4+, InnoDB, `utf8mb4_unicode_ci` |
 | Môi trường | XAMPP (Apache + PHP + MySQL/MariaDB) |
 | Công cụ | Composer, `php -S` (dev server), bộ test tích hợp tự viết |
+| Realtime | Node.js 18+, `ws` (WebSocket server), `mysql2` (connection pool) |
 
 > Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet. Phần CSS không dùng Bootstrap: toàn bộ token, layout và component được viết tay trong `assets/css/app.css` (nền kem `#faf9f5`, nhấn mint `#14806c`, Cormorant Garamond cho tiêu đề, Inter cho nội dung).
 
@@ -89,6 +90,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Gửi/nhận tin nhắn, lịch sử tin nhắn, thời gian gửi, trạng thái đã đọc/chưa đọc (icon ✓ / ✓✓).
 - AJAX polling mỗi 5 giây, badge số tin nhắn chưa đọc cập nhật tự động.
 - Chỉ thành viên cuộc trò chuyện mới đọc được tin nhắn (kiểm tra backend).
+- **WebSocket realtime** (tuỳ chọn): nhận tin nhắn tức thì, chỉ báo đang gõ, tự đánh dấu đã đọc, tự kết nối lại khi mất mạng. Tự fallback về polling khi WebSocket server không chạy — xem [mục 5.8](#58-websocket-chat-realtime).
 
 ### 2.10. Thông báo (Notifications)
 8 loại thông báo: `like`, `comment`, `reply`, `share`, `friend_request`, `friend_accepted`, `message`, `follow`.
@@ -197,8 +199,16 @@ koobecaf/
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
 │   ├── css/app.css                # Design system tự viết (token, layout, component)
 │   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling + lưu nháp form
+│   ├── js/realtime.js             # Client WebSocket (chat realtime, tự fallback về polling)
 │   ├── images/logo.png            # Logo thương hiệu
 │   └── vendor/                    # Bootstrap Icons (bản local)
+│
+├── server/                        # WebSocket server (Node.js) cho chat realtime
+│   ├── ws-server.js               # Entry point: xác thực token, subscribe, nhận/gửi tin nhắn
+│   └── lib/
+│       ├── env.js                 # Đọc file .env (không cần dotenv)
+│       ├── token.js               # Xác thực HMAC token/ticket (thuật toán khớp với PHP)
+│       └── database.js            # MySQL connection pool (mysql2) + prepared statements
 ├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
 │
 ├── routes/
@@ -215,13 +225,17 @@ koobecaf/
 │   ├── draft_cleared.php           # 9 kiểm tra cơ chế báo xoá nháp sau khi gửi thành công
 │   ├── draft_engine.js             # 14 kiểm tra logic lưu nháp phía trình duyệt (Node)
 │   ├── leave_guard.js              # 13 kiểm tra logic cảnh báo rời trang (Node)
-│   ├── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
+│   ├── ws_protocol.js              # 9 kiểm tra token/ticket WebSocket (Node, không cần server)
+│   ├── ws_e2e.js                   # 12 kiểm tra end-to-end WebSocket (Node, cần server đang chạy)
+│   ├── ws_send.js                  # Tool: gửi tin nhắn qua WebSocket (Node)
+│   ├── ws_typing.js                # Tool: gửi trạng thái đang gõ qua WebSocket (Node)
+│   ├── pages.php                   # Render toan bộ route + API, bắt lỗi PHP
 │   └── check_classes.php           # Kiểm tra class trong CSS có được định nghĩa
 │
 ├── .env.example                   # Mẫu cấu hình môi trường
 ├── .gitignore
 ├── composer.json
-├── package.json                   # Bootstrap Icons (nguồn để vendor lại assets/vendor/)
+├── package.json                   # Bootstrap Icons + WebSocket server (ws, mysql2)
 ├── README.md
 └── PROGRESS.md
 ```
@@ -236,7 +250,9 @@ koobecaf/
 | MySQL | 8.0 | Hoặc MariaDB 10.4+ |
 | Apache | 2.4 | Bật `mod_rewrite`, `AllowOverride All` |
 | Composer | 2.x | Chỉ dùng để sinh autoload PSR-4 |
-| Node.js | 18+ | Chỉ cần khi muốn cập nhật lại `assets/vendor/bootstrap-icons` từ `node_modules` |
+| Node.js | 18+ | **Bắt buộc** cho WebSocket server (chat realtime). Cũng dùng để cập nhật `assets/vendor/bootstrap-icons` |
+
+> WebSocket server là thành phần **tùy chọn**: nếu không chạy nó, ứng dụng vẫn hoạt động bình thường và trang chat tự động dùng AJAX polling 5 giây.
 
 ---
 
@@ -272,8 +288,10 @@ Mở [http://localhost:8000](http://localhost:8000). Trước khi chạy
 bảng và dữ liệu mẫu.
 
 > Nếu dùng XAMPP, có thể bỏ qua `composer serve` và chạy ứng dụng qua Apache
-> theo hướng dẫn bên dưới. `npm install` là **không bắt buộc** vì Bootstrap
-> Icons đã được vendor sẵn trong `assets/vendor/`.
+> theo hướng dẫn bên dưới. `npm install` là **không bắt buộc** nếu bạn không
+> dùng WebSocket server (Bootstrap Icons đã được vendor sẵn trong `assets/vendor/`).
+
+> Muốn chat realtime? Xem [mục 5.8 — WebSocket](#58-websocket-chat-realtime).
 
 ### 5.1. Cài đặt XAMPP
 
@@ -445,6 +463,132 @@ php -S localhost:8000 -t . router.php
 
 Truy cập `http://localhost:8000`.
 
+### 5.8. WebSocket (chat realtime)
+
+Ứng dụng có sẵn một **WebSocket server riêng** (Node.js) để trang chat nhận tin nhắn
+theo thời gian thực, thay cho cơ chế AJAX polling 5 giây.
+
+#### Kiến trúc
+
+```
+Browser (assets/js/realtime.js)
+   │  ① GET /api/ws/session  → token đăng nhập (HMAC, hạn 300s)
+   │  ② WS connect ws://host:8080/ws
+   │  ③ {type:"auth", token}
+   │  ④ {type:"subscribe", ticket}   ← ticket theo cuộc trò chuyện
+   ▼
+server/ws-server.js (Node.js + ws)
+   │  Xác thực HMAC bằng APP_KEY (không cần chia sẻ session PHP)
+   │  Ghi tin nhắn vào MySQL bằng prepared statement
+   ▼
+MySQL (bảng `messages`)
+```
+
+#### Bước 1 — Cài dependency
+
+```bash
+npm install
+```
+
+#### Bước 2 — Cấu hình `.env`
+
+```ini
+APP_KEY=<chuỗi ngẫu nhiên 64 ký tự hex>   # BẮT BUỘC — dùng để ký token
+
+WS_ENABLED=true
+WS_HOST=127.0.0.1
+WS_PORT=8080
+WS_PATH=/ws
+WS_TOKEN_TTL=300
+```
+
+Sinh `APP_KEY` nhanh:
+
+```bash
+php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+```
+
+> `APP_KEY` **phải giống nhau** giữa PHP và Node — cả hai đọc cùng file `.env`.
+> Đổi `APP_KEY` khi triển khai production và giữ kín file `.env`.
+
+#### Bước 3 — Chạy WebSocket server
+
+```bash
+npm run ws
+# hoặc
+node server/ws-server.js
+```
+
+Kết quả:
+
+```
+[ws] đang lắng nghe tại ws://127.0.0.1:8080/ws
+[ws] database: root@127.0.0.1:3306/koobecaf
+```
+
+Server cũng có endpoint kiểm tra sức khỏe tại `http://127.0.0.1:8080/health`.
+
+#### Bước 4 — Chạy song song với ứng dụng
+
+```bash
+# Terminal 1 — WebSocket server
+npm run ws
+
+# Terminal 2 — ứng dụng PHP
+composer serve
+```
+
+#### Giao thức
+
+Mọi frame là JSON với trường `type`:
+
+| Client → Server | Ý nghĩa |
+|---|---|
+| `{type:"auth", token}` | Xác thực bằng token lấy từ `/api/ws/session` |
+| `{type:"subscribe", ticket}` | Đăng ký theo dõi một cuộc trò chuyện |
+| `{type:"message", conversation_id, body}` | Gửi tin nhắn (tối đa 5000 ký tự) |
+| `{type:"typing", conversation_id, typing}` | Báo đang gõ / ngừng gõ |
+| `{type:"read", conversation_id}` | Đánh dấu đã đọc |
+| `{type:"ping"}` | Kiểm tra kết nối |
+
+| Server → Client | Ý nghĩa |
+|---|---|
+| `{type:"auth:ok", user}` | Xác thực thành công |
+| `{type:"subscribe:ok", conversation}` | Đăng ký kênh thành công |
+| `{type:"message:new", message}` | Tin nhắn mới trong cuộc trò chuyện |
+| `{type:"message:read", ids, reader_id}` | Tin nhắn đã được đọc |
+| `{type:"typing", user_id, typing}` | Người kia đang gõ |
+| `{type:"notification:new", ...}` | Có thông báo mới (cập nhật badge) |
+| `{type:"error", message}` | Lỗi (token hết hạn, không có quyền, …) |
+
+#### Tính năng đã triển khai
+
+- Nhận tin nhắn **realtime** không cần tải lại trang.
+- Chỉ báo **đang gõ** của người kia.
+- Tự đánh dấu **đã đọc** (✓✓) khi người kia mở cuộc trò chuyện.
+- Badge số tin nhắn chưa đọc cập nhật tức thì.
+- Tự **kết nối lại** khi mất mạng (backoff luỹ thừa 1s → 15s).
+- **Fallback về polling**: nếu WebSocket không khả dụng, trang chat tự chuyển sang AJAX polling 5 giây — người dùng không bị gián đoạn.
+
+#### Bảo mật
+
+| Biện pháp | Chi tiết |
+|---|---|
+| Xác thực | HMAC-SHA256 với `APP_KEY`; `timingSafeEqual` khi so sánh chữ ký |
+| Token ngắn hạn | Hết hạn sau `WS_TOKEN_TTL` giây (mặc định 300) |
+| Phân tách mục đích | Token đăng nhập và ticket cuộc trò chuyện dùng `purpose` khác nhau → ticket không thể dùng để đăng nhập và ngược lại |
+| Phân quyền | Server kiểm tra `conversation_members` trước khi subscribe/gửi; client không tự khai báo quyền |
+| SQL injection | 100% prepared statement qua `mysql2` (`connection.execute`) |
+| Payload | Giới hạn 16 KB mỗi frame; nội dung tin nhắn tối đa 5000 ký tự |
+| Heartbeat | Ping/pong mỗi 30s, đóng kết nối treo |
+
+#### Lưu ý khi triển khai production
+
+- Chạy WebSocket server dưới **systemd / pm2 / Docker** để tự khởi động lại.
+- Đặt `WS_HOST` theo hostname thật; khi dùng HTTPS phải chạy **reverse proxy** (Nginx/Caddy)
+  hỗ trợ `Upgrade` header và đặt `SESSION_SECURE=true` để client dùng `wss://`.
+- `APP_KEY` phải là **secret** — không commit vào Git (file `.env` đã nằm ngoài Git).
+
 ---
 
 ## 6. Tài khoản mẫu
@@ -482,6 +626,13 @@ node tests/leave_guard.js                           # 13 kiểm tra logic cảnh
 php tests/pages.php        http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
 
+Bộ test WebSocket (cần `npm run ws` đang chạy cho `ws_e2e.js`):
+
+```bash
+node tests/ws_protocol.js                          # 9 kiểm tra token/ticket (không cần server)
+node tests/ws_e2e.js                               # 12 kiểm tra end-to-end WebSocket
+```
+
 Kết quả mong đợi:
 
 ```
@@ -492,6 +643,8 @@ PASS: 20 | FAIL: 0     (form_persistence.php)
 PASS: 9  | FAIL: 0     (draft_cleared.php)
 PASS: 14 | FAIL: 0     (draft_engine.js)
 PASS: 13 | FAIL: 0     (leave_guard.js)
+PASS: 9  | FAIL: 0     (ws_protocol.js)
+PASS: 12 | FAIL: 0     (ws_e2e.js — cần npm run ws)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
 
@@ -553,6 +706,8 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 | Chat | `GET /chat`, `GET /chat/{id}`, `GET /chat/{id}/messages`, `POST /chat/{id}/send`, `GET|POST /chat/start/{id}` |
 | Thông báo | `GET /notifications`, `POST /notifications/{id}/read`, `POST /notifications/read-all` |
 | API AJAX | `GET /api/feed`, `/api/search/users`, `/api/search/posts`, `/api/posts/{id}/comments`, `/api/notifications/unread`, `/api/messages/unread` |
+| WebSocket | `GET /api/ws/session` (cấp token đăng nhập), `GET /api/ws/ticket/{id}` (cấp ticket theo cuộc trò chuyện) |
+| WebSocket | `GET /api/ws/session` (cấp token đăng nhập), `GET /api/ws/ticket/{id}` (cấp ticket theo cuộc trò chuyện) |
 
 ### 8.2. Cấu trúc database
 
@@ -593,6 +748,7 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 | Quên mật khẩu | Token random 32 byte, database chỉ lưu bản SHA-256; hết hạn 60 phút; dùng một lần rồi vô hiệu hóa; phản hồi giống nhau dù email có tồn tại hay không |
 | Link đặt lại mật khẩu | Host lấy từ `APP_URL` (không dùng header `Host` của request) để chống host header injection |
 | Cấu hình | `.env` nằm ngoài Git (`.gitignore`), `.htaccess` chặn autoindex + lộ phiên bản Apache |
+| WebSocket | Xác thực HMAC-SHA256 bằng `APP_KEY` (`timingSafeEqual`), token hạn 300s, ticket tách `purpose` khỏi token đăng nhập, kiểm tra `conversation_members` ở server, prepared statement 100%, giới hạn 16 KB/frame |
 
 ---
 
@@ -603,6 +759,8 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 - **HTTPS**: bật `SESSION_SECURE=true` khi dùng HTTPS.
 - **Upload**: cần đảm bảo quyền ghi cho `uploads/` và `storage/logs/`.
 - **Cron dọn file rác**: nên thêm tác vụ định kỳ xóa file upload mồ côi (không còn tham chiếu trong `post_images`).
+- **WebSocket server**: chạy dưới systemd/pm2 để tự khởi động lại; nhiều tiến trình cần Redis pub/sub để đồng bộ tin nhắn giữa các node.
+- **`APP_KEY`**: bắt buộc cho WebSocket, phải là secret và **không đổi** sau khi token đã được cấp (đổi sẽ vô hiệu hoá các token cũ).
 
 ---
 
@@ -610,16 +768,17 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 
 Gợi ý (chưa triển khai):
 
-1. **WebSocket** cho chat — thay thế AJAX polling, nâng cấp dần từ `app/Controllers/ChatController.php`.
+1. **WebSocket cho feed và thông báo** — hiện chat đã realtime; mở rộng sang like/comment/follow để cập nhật feed tức thì.
 2. **Like bình luận** và **đính kèm ảnh cho bình luận** (bảng `comment_likes`, `comment_images`).
 3. **Hashtag & mention** — trường `hashtags`, `mentions` trên bài viết/bình luận, trang `/tag/{hashtag}`.
-4. **Tin nhắn nhóm** — thay `conversations` 1-1 bằng nhóm nhiều thành viên.
+4. **Tin nhắn nhóm** — thay `conversations` 1-1 bằng nhóm nhiều thành viên (protocol `subscribe` đã hỗ trợ sẵn theo `conversation_id`).
 5. **Khuyến nghị nội dung** — thuật toán gợi ý dựa trên lịch sử follow/like.
 6. **Ẩn danh / báo cáo nội dung** — bảng `reports` và quy trình kiểm duyệt.
 7. **Tìm kiếm toàn văn** — chuyển `LIKE` sang MySQL FULLTEXT index khi dữ liệu lớn.
-8. **Cache tầng ứng dụng** — Redis cho session, unread count và feed.
+8. **Cache tầng ứng dụng** — Redis cho session, unread count, feed và pub/sub giữa nhiều tiến trình WebSocket.
 9. **Chia sẻ ra mạng xã hội khác** — tích hợp Open Graph API để đăng bài lên Facebook/Twitter.
 10. **Test tự động hóa** — PHPUnit + browser test (Playwright) cho luồng E2E.
+11. **Đồng bộ nhiều thiết bị** — thêm `device_id` vào session để đồng bộ trạng thái đã đọc giữa các thiết bị.
 
 ---
 

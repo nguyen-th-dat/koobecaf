@@ -72,6 +72,10 @@ return static function (Router $router): void {
         $router->get('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start');
         $router->post('/chat/start/{id}', [\App\Controllers\ChatController::class, 'start'], 'chat.start.post');
 
+        // WebSocket (realtime chat)
+        $router->get('/api/ws/session', [\App\Controllers\WebSocketController::class, 'session'], 'api.ws.session');
+        $router->get('/api/ws/ticket/{id}', [\App\Controllers\WebSocketController::class, 'ticket'], 'api.ws.ticket');
+
         // Thông báo
         $router->get('/notifications', [\App\Controllers\NotificationController::class, 'index'], 'notifications');
         $router->post('/notifications/{id}/read', [\App\Controllers\NotificationController::class, 'markRead'], 'notifications.read');
