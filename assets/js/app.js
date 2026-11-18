@@ -384,31 +384,6 @@ document.addEventListener('click', async (event) => {
         showToast('success', payload.data.liked ? 'Đã thích bài viết.' : 'Đã bỏ thích bài viết.');
     }
 
-    if (action === 'share') {
-        // Trang chi tiết có sẵn hộp chia sẻ — mở ra thay vì hỏi bằng prompt.
-        const shareBox = document.querySelector('[data-share-box]');
-        if (shareBox) {
-            shareBox.classList.remove('d-none');
-            shareBox.querySelector('textarea')?.focus();
-            return;
-        }
-
-        const content = window.prompt('Chia sẻ bài viết này (không bắt buộc):', '');
-        if (content === null) return;
-        const payload = await request(apiUrl(`/posts/${postId}/share`), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ content: content, privacy: 'public' }),
-        });
-        if (!payload.success) {
-            showToast('error', payload.message ?? 'Không thể chia sẻ.');
-            return;
-        }
-        const card = button.closest('.post-card, .post-detail');
-        setCounter(card?.querySelector('[data-share-count]'), payload.data.share_count, 'bi-share');
-        showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
-    }
-
     if (action === 'copy-link') {
         const link = new URL(button.dataset.url, window.location.origin).href;
         try {
@@ -768,38 +743,254 @@ if (lightbox) {
     });
 }
 
-/* ---- Hộp chia sẻ nhanh ---- */
-const shareBox = document.querySelector('[data-share-box]');
-if (shareBox) {
-    document.querySelectorAll('[data-share-close]').forEach(button => {
-        button.addEventListener('click', () => shareBox.classList.add('d-none'));
+/* =============================================================
+   HỘP THOẠI CHIA SẺ
+
+   Một modal duy nhất phục vụ mọi thẻ bài viết trong feed lẫn trang chi tiết.
+   Ba tab: chia sẻ lên trang cá nhân, gửi qua tin nhắn, sao chép liên kết.
+   ============================================================= */
+const shareModal = document.getElementById('kbShareModal');
+
+if (shareModal) {
+    const shareState = {
+        postId: 0,
+        privacy: 'public',
+        people: [],
+        loaded: false,
+    };
+
+    const sharePeople = shareModal.querySelector('[data-share-people]');
+    const shareSearch = shareModal.querySelector('[data-share-search]');
+    const shareText = shareModal.querySelector('[data-share-text]');
+    const shareLink = shareModal.querySelector('[data-share-link]');
+    const sharePreviewAuthor = shareModal.querySelector('[data-share-preview-author]');
+    const sharePreviewExcerpt = shareModal.querySelector('[data-share-preview-excerpt]');
+    const shareSubmit = shareModal.querySelector('[data-share-submit]');
+
+    const setShareTab = (name) => {
+        shareModal.querySelectorAll('[data-share-tab]').forEach(tab => {
+            const active = tab.dataset.shareTab === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        shareModal.querySelectorAll('[data-share-panel]').forEach(panel => {
+            panel.classList.toggle('is-active', panel.dataset.sharePanel === name);
+        });
+
+        if (name === 'message' && !shareState.loaded) {
+            loadShareTargets();
+        }
+    };
+
+    const renderSharePeople = (people) => {
+        if (!sharePeople) return;
+
+        if (!people || people.length === 0) {
+            sharePeople.innerHTML = '<div class="share-modal-empty"><i class="bi bi-person-x"></i><span>Không tìm thấy ai phù hợp.</span></div>';
+            return;
+        }
+
+        sharePeople.innerHTML = '';
+        people.forEach(person => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'share-person';
+            item.dataset.userId = person.id;
+
+            const avatar = document.createElement('img');
+            avatar.src = person.avatar_url;
+            avatar.alt = '';
+            avatar.className = 'avatar avatar-sm';
+
+            const text = document.createElement('span');
+            text.className = 'share-person-text';
+
+            const name = document.createElement('span');
+            name.className = 'share-person-name';
+            name.textContent = person.display_name;
+
+            const handle = document.createElement('span');
+            handle.className = 'share-person-handle';
+            handle.textContent = '@' + person.username;
+
+            text.append(name, handle);
+
+            const action = document.createElement('span');
+            action.className = 'share-person-action';
+            action.innerHTML = '<i class="bi bi-send"></i>';
+
+            item.append(avatar, text, action);
+            sharePeople.appendChild(item);
+        });
+    };
+
+    const loadShareTargets = async (keyword = '') => {
+        if (!sharePeople) return;
+
+        if (!shareState.loaded && keyword === '') {
+            sharePeople.innerHTML = '<div class="share-modal-loading"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span>Đang tải danh sách...</span></div>';
+        }
+
+        const payload = await request(apiUrl(`/posts/${shareState.postId}/share/targets?q=${encodeURIComponent(keyword)}`));
+        if (!payload.success) {
+            sharePeople.innerHTML = '<div class="share-modal-empty"><span>Không tải được danh sách.</span></div>';
+            return;
+        }
+
+        shareState.loaded = true;
+        shareState.people = payload.data.people;
+        renderSharePeople(payload.data.people);
+    };
+
+    const openShareModal = async (postId) => {
+        shareState.postId = Number(postId);
+        shareState.privacy = 'public';
+        shareState.loaded = false;
+
+        shareModal.hidden = false;
+        document.body.style.overflow = 'hidden';
+
+        setShareTab('feed');
+
+        if (shareText) shareText.value = '';
+        shareModal.querySelectorAll('[data-share-privacy]').forEach(option => {
+            const active = option.dataset.sharePrivacy === 'public';
+            option.classList.toggle('is-active', active);
+            option.setAttribute('aria-checked', active ? 'true' : 'false');
+        });
+
+        const payload = await request(apiUrl(`/posts/${shareState.postId}/share/targets`));
+        if (!payload.success) {
+            showToast('error', payload.message ?? 'Không tải được thông tin bài viết.');
+            closeShareModal();
+            return;
+        }
+
+        const post = payload.data.post;
+        if (sharePreviewAuthor) sharePreviewAuthor.textContent = post.author.display_name;
+        if (sharePreviewExcerpt) {
+            sharePreviewExcerpt.textContent = post.content.trim() !== ''
+                ? post.content.trim()
+                : 'Bài viết không có nội dung chữ.';
+        }
+        if (shareLink) shareLink.value = new URL(post.permalink, window.location.origin).href;
+
+        shareText?.focus();
+    };
+
+    const closeShareModal = () => {
+        shareModal.hidden = true;
+        document.body.style.overflow = '';
+    };
+
+    // Mở modal khi bấm nút chia sẻ ở thẻ bài viết hoặc trang chi tiết.
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-action="share"]');
+        if (!trigger) return;
+        event.preventDefault();
+        openShareModal(trigger.dataset.postId);
     });
 
-    const shareForm = shareBox.querySelector('[data-share-form]');
-    shareForm?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const textarea = shareForm.querySelector('textarea[name="content"]');
-        const content = textarea?.value.trim() ?? '';
-        const postId = shareForm.dataset.shareForm;
+    shareModal.querySelectorAll('[data-share-modal-close]').forEach(button => {
+        button.addEventListener('click', closeShareModal);
+    });
 
-        const payload = await request(apiUrl(`/posts/${postId}/share`), {
+    shareModal.querySelectorAll('[data-share-tab]').forEach(tab => {
+        tab.addEventListener('click', () => setShareTab(tab.dataset.shareTab));
+    });
+
+    shareModal.querySelectorAll('[data-share-privacy]').forEach(option => {
+        option.addEventListener('click', () => {
+            shareState.privacy = option.dataset.sharePrivacy;
+            shareModal.querySelectorAll('[data-share-privacy]').forEach(item => {
+                const active = item === option;
+                item.classList.toggle('is-active', active);
+                item.setAttribute('aria-checked', active ? 'true' : 'false');
+            });
+        });
+    });
+
+    let shareSearchTimer = null;
+    shareSearch?.addEventListener('input', () => {
+        window.clearTimeout(shareSearchTimer);
+        const keyword = shareSearch.value.trim();
+        shareSearchTimer = window.setTimeout(() => loadShareTargets(keyword), 250);
+    });
+
+    // Gửi bài viết cho một người qua tin nhắn.
+    sharePeople?.addEventListener('click', async (event) => {
+        const person = event.target.closest('.share-person');
+        if (!person) return;
+
+        const targetId = Number(person.dataset.userId);
+        const target = shareState.people.find(item => item.id === targetId);
+        if (!target) return;
+
+        person.classList.add('is-sent');
+        const action = person.querySelector('.share-person-action');
+        if (action) action.innerHTML = '<i class="bi bi-check-lg"></i>';
+
+        const payload = await request(apiUrl(`/posts/${shareState.postId}/share/message`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ content: content, privacy: 'public' }),
+            body: JSON.stringify({
+                user_id: targetId,
+                body: shareText?.value.trim() ?? '',
+            }),
         });
+
+        if (!payload.success) {
+            person.classList.remove('is-sent');
+            if (action) action.innerHTML = '<i class="bi bi-send"></i>';
+            showToast('error', payload.message ?? 'Không gửi được tin nhắn.');
+            return;
+        }
+
+        showToast('success', `Đã gửi bài viết tới ${target.display_name}.`);
+    });
+
+    // Chia sẻ lên trang cá nhân của người dùng.
+    shareSubmit?.addEventListener('click', async () => {
+        const content = shareText?.value.trim() ?? '';
+
+        shareSubmit.disabled = true;
+        const payload = await request(apiUrl(`/posts/${shareState.postId}/share`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ content: content, privacy: shareState.privacy }),
+        });
+        shareSubmit.disabled = false;
+
         if (!payload.success) {
             showToast('error', payload.message ?? 'Không thể chia sẻ.');
             return;
         }
 
-        if (textarea) textarea.value = '';
-        shareBox.classList.add('d-none');
-        setCounter(
-            document.querySelector('.post-detail [data-share-count]'),
-            payload.data.share_count,
-            'bi-share'
-        );
+        const counter = document.querySelector(`.post-card[data-post-id="${shareState.postId}"], .post-detail[data-post-id="${shareState.postId}"]`)
+            ?.querySelector('[data-share-count]');
+        setCounter(counter, payload.data.share_count, 'bi-share');
+
+        closeShareModal();
         showToast('success', 'Đã chia sẻ bài viết lên trang cá nhân của bạn.');
+    });
+
+    // Sao chép liên kết.
+    shareModal.querySelector('[data-share-copy]')?.addEventListener('click', async () => {
+        const link = shareLink?.value ?? '';
+        if (link === '') return;
+
+        try {
+            await navigator.clipboard.writeText(link);
+            showToast('success', 'Đã sao chép liên kết bài viết.');
+        } catch (e) {
+            shareLink?.select();
+            showToast('warning', 'Nhấn Ctrl + C để sao chép liên kết.');
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (shareModal.hidden) return;
+        if (event.key === 'Escape') closeShareModal();
     });
 }
 

@@ -129,6 +129,40 @@ final class User
         );
     }
 
+    /**
+     * Danh sách người có thể nhận bài chia sẻ: bạn bè + người mình theo dõi.
+     *
+     * Khi có từ khoá thì tìm trong toàn bộ người dùng để có thể gửi cho
+     * bất kỳ ai (kể cả người chưa theo dõi).
+     *
+     * @return array<int,array>
+     */
+    public static function shareTargets(int $userId, string $keyword = '', int $limit = 20): array
+    {
+        $like = '%' . str_replace(['%', '_'], ['\%', '\_'], $keyword) . '%';
+
+        return Database::fetchAll(
+            "SELECT u.id, u.username, u.display_name, u.avatar_path, u.bio,
+                    (SELECT c.id FROM conversations c
+                       JOIN conversation_members m1 ON m1.conversation_id = c.id AND m1.user_id = ?
+                       JOIN conversation_members m2 ON m2.conversation_id = c.id AND m2.user_id = u.id
+                      LIMIT 1) AS conversation_id
+             FROM users u
+             WHERE u.id <> ?
+               AND (u.id IN (
+                        SELECT friend_id FROM friendships WHERE user_id = ? AND status = 'accepted'
+                        UNION
+                        SELECT user_id FROM friendships WHERE friend_id = ? AND status = 'accepted'
+                        UNION
+                        SELECT following_id FROM follows WHERE follower_id = ?
+                    )
+                    OR u.username LIKE ? OR u.display_name LIKE ?)
+             ORDER BY u.display_name ASC
+             LIMIT " . max(1, $limit),
+            [$userId, $userId, $userId, $userId, $userId, $like, $like]
+        );
+    }
+
     /** Số liệu tổng hợp cho trang cá nhân. */
     public static function stats(int $id): array
     {

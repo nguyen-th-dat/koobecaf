@@ -181,22 +181,6 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
     </div>
 </article>
 
-<?php if (is_auth()): ?>
-    <div class="post-share-box card surface-card d-none" data-share-box="<?= $postId ?>">
-        <div class="post-share-box-head">
-            <span><i class="bi bi-share me-2"></i>Chia sẻ bài viết này</span>
-            <button class="btn icon-btn" type="button" data-share-close aria-label="Đóng"><i class="bi bi-x-lg"></i></button>
-        </div>
-        <form class="post-share-box-form" data-share-form="<?= $postId ?>">
-            <textarea name="content" class="form-control" rows="2" maxlength="1000" placeholder="Thêm lời nhắn của bạn (không bắt buộc)..."></textarea>
-            <div class="post-share-box-actions">
-                <button class="btn btn-subtle btn-sm" type="button" data-share-close>Hủy</button>
-                <button class="btn btn-solid btn-sm" type="submit"><i class="bi bi-send me-1"></i>Chia sẻ</button>
-            </div>
-        </form>
-    </div>
-<?php endif; ?>
-
 <section class="post-detail-comments card surface-card" id="comments">
     <div class="post-detail-comments-head">
         <h2 class="post-detail-comments-title">

@@ -98,6 +98,8 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
 
 <?php require __DIR__ . '/partials/toast.php'; ?>
 
+<?php require __DIR__ . '/partials/share-modal.php'; ?>
+
 <script src="<?= asset('js/toast.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <?php if (!empty($ws['enabled'])): ?>

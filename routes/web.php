@@ -48,6 +48,8 @@ return static function (Router $router): void {
         $router->post('/comments/{id}/update', [\App\Controllers\CommentController::class, 'update'], 'comments.update');
         $router->post('/comments/{id}/delete', [\App\Controllers\CommentController::class, 'destroy'], 'comments.delete');
         $router->post('/posts/{id}/share', [\App\Controllers\ShareController::class, 'store'], 'posts.share');
+        $router->get('/posts/{id}/share/targets', [\App\Controllers\ShareController::class, 'targets'], 'posts.share.targets');
+        $router->post('/posts/{id}/share/message', [\App\Controllers\ShareController::class, 'sendMessage'], 'posts.share.message');
 
         // Hồ sơ
         $router->get('/settings/profile', [\App\Controllers\ProfileController::class, 'edit'], 'profile.edit');

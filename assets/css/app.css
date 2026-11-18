@@ -4002,34 +4002,6 @@
     }
 
     /* ---- Hộp chia sẻ nhanh ---- */
-    .post-share-box {
-        margin-top: var(--kb-space-md);
-        padding: var(--kb-space-md);
-    }
-
-    .post-share-box-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--kb-space-xs);
-        margin-bottom: var(--kb-space-sm);
-        font-weight: 600;
-        color: var(--kb-ink);
-    }
-
-    .post-share-box-form {
-        display: flex;
-        flex-direction: column;
-        gap: var(--kb-space-xs);
-    }
-
-    .post-share-box-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: var(--kb-space-xs);
-        margin-top: var(--kb-space-xs);
-    }
-
     /* ---- Khu bình luận ---- */
     .post-detail-comments {
         margin-top: var(--kb-space-md);
@@ -4203,11 +4175,406 @@
         color: var(--kb-muted-soft);
     }
 
+    /* =============================================================
+       HỘP THOẠI CHIA SẺ
+       ============================================================= */
+    .share-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1150;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--kb-space-md);
+    }
+
+    .share-modal[hidden] {
+        display: none;
+    }
+
+    .share-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background-color: color-mix(in srgb, var(--kb-surface-dark) 58%, transparent);
+        backdrop-filter: blur(3px);
+        animation: share-modal-fade var(--kb-dur) var(--kb-ease-out);
+    }
+
+    .share-modal-card {
+        position: relative;
+        width: 100%;
+        max-width: 520px;
+        max-height: min(88vh, 720px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background-color: var(--kb-surface-card);
+        border: 1px solid var(--kb-hairline);
+        border-radius: var(--kb-radius-xl);
+        box-shadow: var(--kb-shadow-pop);
+        animation: share-modal-in var(--kb-dur) var(--kb-ease-out);
+    }
+
+    @keyframes share-modal-fade {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    @keyframes share-modal-in {
+        from { opacity: 0; transform: translateY(12px) scale(.97); }
+        to   { opacity: 1; transform: none; }
+    }
+
+    /* ---- Đầu modal ---- */
+    .share-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--kb-space-xs);
+        padding: var(--kb-space-md) var(--kb-space-lg);
+        border-bottom: 1px solid var(--kb-hairline-soft);
+    }
+
+    .share-modal-title {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin: 0;
+        font-family: var(--kb-font-display);
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--kb-ink);
+    }
+
+    .share-modal-title i {
+        color: var(--kb-primary);
+        font-size: 1rem;
+    }
+
+    .share-modal-close {
+        flex: 0 0 auto;
+    }
+
+    /* ---- Xem trước bài viết ---- */
+    .share-modal-preview {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-sm);
+        margin: var(--kb-space-md) var(--kb-space-lg) 0;
+        padding: var(--kb-space-sm) var(--kb-space-md);
+        background-color: color-mix(in srgb, var(--kb-primary-soft) 45%, transparent);
+        border: 1px solid var(--kb-hairline-soft);
+        border-radius: var(--kb-radius-md);
+    }
+
+    .share-modal-preview-icon {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: var(--kb-radius-sm);
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
+        font-size: 1rem;
+    }
+
+    .share-modal-preview-text {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .share-modal-preview-text strong {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--kb-ink);
+    }
+
+    .share-modal-preview-text span {
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--kb-muted);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ---- Tab ---- */
+    .share-modal-tabs {
+        display: flex;
+        gap: var(--kb-space-xxs);
+        margin: var(--kb-space-md) var(--kb-space-lg) 0;
+        padding: 4px;
+        background-color: color-mix(in srgb, var(--kb-canvas) 60%, transparent);
+        border: 1px solid var(--kb-hairline-soft);
+        border-radius: var(--kb-radius-pill);
+    }
+
+    .share-modal-tab {
+        flex: 1 1 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        padding: 7px 10px;
+        border: 0;
+        border-radius: var(--kb-radius-pill);
+        background-color: transparent;
+        color: var(--kb-muted);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .share-modal-tab:hover {
+        color: var(--kb-ink);
+    }
+
+    .share-modal-tab.is-active {
+        background-color: var(--kb-surface-card);
+        color: var(--kb-primary);
+        box-shadow: var(--kb-shadow-raised);
+    }
+
+    .share-modal-tab i {
+        font-size: .9rem;
+    }
+
+    /* ---- Panel ---- */
+    .share-modal-panel {
+        display: none;
+        padding: var(--kb-space-md) var(--kb-space-lg) var(--kb-space-lg);
+        overflow-y: auto;
+    }
+
+    .share-modal-panel.is-active {
+        display: block;
+    }
+
+    /* ---- Soạn lời nhắn ---- */
+    .share-modal-composer {
+        display: flex;
+        gap: var(--kb-space-sm);
+        align-items: flex-start;
+    }
+
+    .share-modal-composer textarea {
+        resize: vertical;
+        min-height: 84px;
+        background-color: var(--kb-canvas);
+    }
+
+    /* ---- Quyền riêng tư ---- */
+    .share-modal-privacy {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--kb-space-xs);
+        margin-top: var(--kb-space-md);
+    }
+
+    .share-privacy-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: var(--kb-space-sm) var(--kb-space-xs);
+        border: 1px solid var(--kb-hairline);
+        border-radius: var(--kb-radius-md);
+        background-color: var(--kb-canvas);
+        color: var(--kb-muted);
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--kb-dur-fast) var(--kb-ease),
+                    color var(--kb-dur-fast) var(--kb-ease),
+                    background-color var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .share-privacy-option i {
+        font-size: 1.05rem;
+    }
+
+    .share-privacy-option:hover {
+        border-color: var(--kb-primary-mint);
+        color: var(--kb-ink);
+    }
+
+    .share-privacy-option.is-active {
+        border-color: var(--kb-primary);
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
+    }
+
+    .share-privacy-label {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .share-privacy-desc {
+        font-size: 11px;
+        line-height: 1.3;
+        color: var(--kb-muted-soft);
+    }
+
+    .share-privacy-option.is-active .share-privacy-desc {
+        color: color-mix(in srgb, var(--kb-primary) 70%, var(--kb-body));
+    }
+
+    /* ---- Nút hành động ---- */
+    .share-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--kb-space-xs);
+        margin-top: var(--kb-space-md);
+    }
+
+    /* ---- Ô tìm người nhận ---- */
+    .share-modal-search {
+        position: relative;
+        margin-bottom: var(--kb-space-sm);
+    }
+
+    .share-modal-search i {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        color: var(--kb-muted-soft);
+        font-size: .9rem;
+        pointer-events: none;
+    }
+
+    .share-modal-search input {
+        padding-left: 34px;
+        background-color: var(--kb-canvas);
+    }
+
+    /* ---- Danh sách người nhận ---- */
+    .share-modal-people {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    .share-modal-loading,
+    .share-modal-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        padding: var(--kb-space-lg);
+        font-size: 13.5px;
+        color: var(--kb-muted-soft);
+    }
+
+    .share-spinner {
+        width: 15px;
+        height: 15px;
+        border: 2px solid var(--kb-hairline);
+        border-top-color: var(--kb-primary);
+        border-radius: 50%;
+        animation: share-spinner-rotate .7s linear infinite;
+    }
+
+    @keyframes share-spinner-rotate {
+        to { transform: rotate(360deg); }
+    }
+
+    .share-person {
+        display: flex;
+        align-items: center;
+        gap: var(--kb-space-sm);
+        width: 100%;
+        padding: var(--kb-space-xs) var(--kb-space-sm);
+        border: 0;
+        border-radius: var(--kb-radius-md);
+        background-color: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .share-person:hover {
+        background-color: color-mix(in srgb, var(--kb-primary-soft) 40%, transparent);
+    }
+
+    .share-person-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .share-person-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--kb-ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .share-person-handle {
+        font-size: 12.5px;
+        color: var(--kb-muted-soft);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .share-person-action {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--kb-primary-soft);
+        color: var(--kb-primary);
+        font-size: .95rem;
+        transition: transform var(--kb-dur-fast) var(--kb-ease);
+    }
+
+    .share-person:hover .share-person-action {
+        transform: scale(1.08);
+    }
+
+    .share-person.is-sent .share-person-action {
+        background-color: var(--kb-success-soft);
+        color: var(--kb-success);
+    }
+
+    /* ---- Sao chép link ---- */
+    .share-modal-hint {
+        margin-bottom: var(--kb-space-sm);
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--kb-muted);
+    }
+
+    .share-modal-link {
+        display: flex;
+        gap: var(--kb-space-xs);
+        align-items: center;
+    }
+
+    .share-modal-link input {
+        font-size: 13px;
+        background-color: var(--kb-canvas);
+    }
+
     /* ---- Lightbox xem ảnh ---- */
     .lightbox {
         position: fixed;
-        inset: 0;
-        z-index: 1100;
+        inset: 0;        z-index: 1100;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -4453,6 +4820,15 @@
     .profile-name {
         font-size: 1.9rem;
     }
+
+    /* ---- Hộp thoại chia sẻ: ẩn nhãn tab, chỉ còn biểu tượng ---- */
+    .share-modal-tab span {
+        display: none;
+    }
+
+    .share-modal-tab {
+        padding: 8px 10px;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -4503,6 +4879,57 @@
 
     .post-detail-composer-hint {
         display: none;
+    }
+
+    /* ---- Hộp thoại chia sẻ trên mobile ---- */
+    .share-modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .share-modal-card {
+        max-width: none;
+        max-height: 92vh;
+        border-radius: var(--kb-radius-xl) var(--kb-radius-xl) 0 0;
+        animation: share-modal-sheet-in var(--kb-dur) var(--kb-ease-out);
+    }
+
+    @keyframes share-modal-sheet-in {
+        from { transform: translateY(100%); }
+        to   { transform: none; }
+    }
+
+    .share-modal-preview {
+        margin-inline: var(--kb-space-md);
+    }
+
+    .share-modal-tabs {
+        margin-inline: var(--kb-space-md);
+    }
+
+    .share-modal-panel {
+        padding-inline: var(--kb-space-md);
+    }
+
+    .share-modal-privacy {
+        grid-template-columns: 1fr;
+    }
+
+    .share-privacy-option {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--kb-space-xs);
+        text-align: left;
+        padding: var(--kb-space-xs) var(--kb-space-sm);
+    }
+
+    .share-privacy-option i {
+        font-size: 1rem;
+    }
+
+    .share-privacy-desc {
+        margin-left: auto;
+        text-align: right;
     }
 
     .lightbox {
