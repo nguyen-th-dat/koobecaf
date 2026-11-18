@@ -22,41 +22,41 @@ $friendStatus = $friendStatus ?? 'none';
         <div class="d-flex align-items-end gap-3 profile-avatar-row">
             <img src="<?= e(upload_url($user['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-xl">
             <div class="flex-grow-1 min-w-0 pb-2">
-                <h1 class="h4 mb-0 text-truncate"><?= e($user['display_name']) ?></h1>
-                <div class="text-secondary">@<?= e($user['username']) ?></div>
+                <h1 class="h2 mb-0 text-truncate"><?= e($user['display_name']) ?></h1>
+                <div class="fg-secondary">@<?= e($user['username']) ?></div>
             </div>
             <div class="pb-2 d-flex gap-2">
                 <?php if ($isSelf): ?>
-                    <a class="btn btn-sm btn-outline-secondary" href="<?= url('/settings/profile') ?>"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+                    <a class="btn btn-outline btn-sm" href="<?= url('/settings/profile') ?>"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
                 <?php else: ?>
                     <?php if ($friendStatus === 'accepted'): ?>
                         <form action="<?= url('/friends/' . (int) $user['id'] . '/remove') ?>" method="post">
                             <?= \App\Core\Csrf::field() ?>
-                            <button class="btn btn-sm btn-outline-secondary" type="submit">Bạn bè</button>
+                            <button class="btn btn-outline btn-sm" type="submit">Bạn bè</button>
                         </form>
                     <?php elseif ($friendStatus === 'pending_outgoing'): ?>
                         <form action="<?= url('/friends/' . (int) $user['id'] . '/cancel') ?>" method="post">
                             <?= \App\Core\Csrf::field() ?>
-                            <button class="btn btn-sm btn-outline-warning" type="submit">Đã gửi lời mời</button>
+                            <button class="btn btn-outline btn-sm" type="submit">Đã gửi lời mời</button>
                         </form>
                     <?php elseif ($friendStatus === 'pending_incoming'): ?>
                         <form action="<?= url('/friends/request/' . (int) $user['id']) ?>" method="post">
                             <?= \App\Core\Csrf::field() ?>
-                            <button class="btn btn-sm btn-primary" type="submit">Chấp nhận lời mời</button>
+                            <button class="btn btn-solid btn-sm" type="submit">Chấp nhận lời mời</button>
                         </form>
                     <?php else: ?>
                         <form action="<?= url('/friends/request/' . (int) $user['id']) ?>" method="post">
                             <?= \App\Core\Csrf::field() ?>
-                            <button class="btn btn-sm btn-outline-primary" type="submit">Kết bạn</button>
+                            <button class="btn btn-outline btn-primary btn-sm" type="submit">Kết bạn</button>
                         </form>
                     <?php endif; ?>
 
-                    <button class="btn btn-sm <?= $isFollowing ? 'btn-secondary' : 'btn-outline-secondary' ?>" data-action="follow" data-user-id="<?= (int) $user['id'] ?>">
+                    <button class="btn btn-outline btn-sm" data-action="follow" data-user-id="<?= (int) $user['id'] ?>">
                         <i class="bi bi-person<?= $isFollowing ? '-check' : '-plus' ?>"></i>
                         <span><?= $isFollowing ? 'Đang theo dõi' : 'Theo dõi' ?></span>
                     </button>
 
-                    <a class="btn btn-sm btn-outline-secondary" href="<?= url('/chat/start/' . (int) $user['id']) ?>" title="Nhắn tin">
+                    <a class="btn btn-outline btn-sm" href="<?= url('/chat/start/' . (int) $user['id']) ?>" title="Nhắn tin">
                         <i class="bi bi-chat-dots"></i>
                     </a>
                 <?php endif; ?>
@@ -67,7 +67,7 @@ $friendStatus = $friendStatus ?? 'none';
             <p class="mb-2 mt-3"><?= nl2br(e($user['bio'])) ?></p>
         <?php endif; ?>
 
-        <div class="small text-secondary mb-3">
+        <div class="small fg-secondary mb-3">
             <i class="bi bi-calendar3 me-1"></i>Tham gia <?= e(format_date($user['created_at'], 'd/m/Y')) ?>
         </div>
 
@@ -80,7 +80,7 @@ $friendStatus = $friendStatus ?? 'none';
     </div>
 </div>
 
-<ul class="nav nav-tabs mb-3">
+<ul class="nav profile-tabs">
     <li class="nav-item"><a class="nav-link<?= $tab === 'posts' ? ' active' : '' ?>" href="<?= url('/u/' . $user['username']) ?>">Bài viết</a></li>
     <li class="nav-item"><a class="nav-link<?= $tab === 'comments' ? ' active' : '' ?>" href="<?= url('/u/' . $user['username'] . '?tab=comments') ?>">Bình luận</a></li>
     <li class="nav-item"><a class="nav-link<?= $tab === 'shared' ? ' active' : '' ?>" href="<?= url('/u/' . $user['username'] . '?tab=shared') ?>">Đã chia sẻ</a></li>
@@ -91,7 +91,7 @@ $friendStatus = $friendStatus ?? 'none';
 
 <?php if ($tab === 'posts'): ?>
     <?php if ($posts === []): ?>
-        <div class="card surface-card"><div class="card-body text-center text-secondary py-5">Chưa có bài viết nào.</div></div>
+        <div class="card surface-card"><div class="card-body text-center fg-secondary py-5">Chưa có bài viết nào.</div></div>
     <?php else: ?>
         <?php foreach ($posts as $post): ?>
             <?php $data = post_view_data($post, $viewerId); ?>
@@ -102,19 +102,19 @@ $friendStatus = $friendStatus ?? 'none';
     <div class="card surface-card">
         <div class="card-body">
             <?php if ($comments === []): ?>
-                <p class="text-secondary mb-0">Chưa có bình luận nào.</p>
+                <p class="fg-secondary mb-0">Chưa có bình luận nào.</p>
             <?php else: ?>
                 <?php foreach ($comments as $comment): ?>
                     <div class="d-flex gap-2 py-2 border-bottom">
                         <img src="<?= e(upload_url($comment['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
                         <div class="min-w-0">
                             <div class="d-flex align-items-center gap-2">
-                                <a class="fw-semibold text-body text-decoration-none" href="<?= url('/u/' . $comment['username']) ?>"><?= e($comment['display_name']) ?></a>
-                                <small class="text-secondary">@<?= e($comment['username']) ?></small>
+                                <a class="fw-semibold fg-body-emphasis text-decoration-none" href="<?= url('/u/' . $comment['username']) ?>"><?= e($comment['display_name']) ?></a>
+                                <small class="fg-secondary">@<?= e($comment['username']) ?></small>
                             </div>
                             <p class="mb-1"><?= nl2br(e($comment['content'])) ?></p>
-                            <small class="text-secondary">
-                                <a class="text-secondary" href="<?= url('/post/' . (int) $comment['post_id']) ?>">Bài viết #<?= (int) $comment['post_id'] ?></a>
+                            <small class="fg-secondary">
+                                <a class="fg-secondary" href="<?= url('/post/' . (int) $comment['post_id']) ?>">Bài viết #<?= (int) $comment['post_id'] ?></a>
                                 · <?= e(time_ago($comment['created_at'])) ?>
                             </small>
                         </div>
@@ -127,26 +127,26 @@ $friendStatus = $friendStatus ?? 'none';
     <div class="card surface-card">
         <div class="card-body">
             <?php if ($shared === []): ?>
-                <p class="text-secondary mb-0">Chưa chia sẻ bài viết nào.</p>
+                <p class="fg-secondary mb-0">Chưa chia sẻ bài viết nào.</p>
             <?php else: ?>
                 <?php foreach ($shared as $share): ?>
                     <div class="py-2 border-bottom">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <img src="<?= e(upload_url($share['author_avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-sm">
                             <div class="min-w-0">
-                                <a class="fw-semibold text-body text-decoration-none d-block text-truncate" href="<?= url('/u/' . $share['author_username']) ?>">
+                                <a class="fw-semibold fg-body-emphasis text-decoration-none d-block text-truncate" href="<?= url('/u/' . $share['author_username']) ?>">
                                     <?= e($share['author_display_name']) ?>
                                 </a>
-                                <small class="text-secondary">@<?= e($share['author_username']) ?> · <?= e(time_ago($share['created_at'])) ?></small>
+                                <small class="fg-secondary">@<?= e($share['author_username']) ?> · <?= e(time_ago($share['created_at'])) ?></small>
                             </div>
                         </div>
                         <?php if (trim((string) $share['content']) !== ''): ?>
                             <p class="mb-2 small"><?= nl2br(e($share['content'])) ?></p>
                         <?php endif; ?>
-                        <div class="shared-original rounded p-2 small">
+                        <div class="shared-original p-2 small">
                             <?= e(excerpt($share['post_content'], 160)) ?>
                         </div>
-                        <a class="btn btn-sm btn-outline-secondary mt-2" href="<?= url('/post/' . (int) $share['post_id']) ?>">
+                        <a class="btn btn-outline btn-sm mt-2" href="<?= url('/post/' . (int) $share['post_id']) ?>">
                             <i class="bi bi-box-arrow-up-right me-1"></i>Xem bài viết gốc
                         </a>
                     </div>
@@ -165,17 +165,17 @@ $friendStatus = $friendStatus ?? 'none';
     <div class="card surface-card">
         <div class="card-body">
             <?php if ($people === []): ?>
-                <p class="text-secondary mb-0">Chưa có dữ liệu.</p>
+                <p class="fg-secondary mb-0">Chưa có dữ liệu.</p>
             <?php else: ?>
                 <ul class="list-unified">
                     <?php foreach ($people as $person): ?>
                         <li class="d-flex align-items-center gap-2 py-2">
                             <img src="<?= e(upload_url($person['avatar_path']) ?? asset('images/default.svg')) ?>" alt="" class="avatar avatar-md">
                             <div class="flex-grow-1 min-w-0">
-                                <a class="d-block fw-semibold text-body text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
+                                <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
                                     <?= e($person['display_name']) ?>
                                 </a>
-                                <small class="text-secondary">@<?= e($person['username']) ?></small>
+                                <small class="fg-secondary">@<?= e($person['username']) ?></small>
                             </div>
                         </li>
                     <?php endforeach; ?>
