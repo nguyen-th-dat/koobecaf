@@ -10,43 +10,36 @@
 $viewerId = auth_id();
 $totalPages = max(1, (int) ceil($totalPosts / $perPage));
 ?>
-<h1 class="h3 mb-3">
-    <i class="bi bi-search me-2"></i>
-    <?= $keyword === '' ? 'Tìm kiếm' : 'Kết quả cho "' . e($keyword) . '"' ?>
-</h1>
+<div class="page-head">
+    <h1>
+        <i class="bi bi-search"></i>
+        <?= $keyword === '' ? 'Tìm kiếm' : 'Kết quả cho "' . e($keyword) . '"' ?>
+    </h1>
+</div>
 
 <?php if ($keyword === ''): ?>
     <div class="card surface-card"><div class="card-body text-center fg-secondary py-5">Nhập từ khóa để tìm kiếm người dùng và bài viết.</div></div>
 <?php else: ?>
     <div class="card surface-card mb-3">
         <div class="card-body">
-            <h2 class="h6 mb-3"><i class="bi bi-people me-2"></i>Người dùng</h2>
+            <div class="rail-title">Người dùng</div>
             <?php if ($users === []): ?>
                 <p class="fg-secondary small mb-0">Không tìm thấy người dùng nào.</p>
             <?php else: ?>
-                <ul class="list-unified">
-                    <?php foreach ($users as $person): ?>
-                        <li class="d-flex align-items-center gap-2 py-2">
-                            <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
-                            <div class="flex-grow-1 min-w-0">
-                                <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
-                                    <?= e($person['display_name']) ?>
-                                </a>
-                                <small class="fg-secondary">@<?= e($person['username']) ?></small>
-                            </div>
-                            <?php if (auth_id() !== null && (int) $person['id'] !== auth_id()): ?>
-                                <a class="btn btn-outline btn-sm" href="<?= url('/chat/start/' . (int) $person['id']) ?>">
-                                    <i class="bi bi-chat-dots"></i>
-                                </a>
-                            <?php endif; ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                <?php foreach ($users as $person): ?>
+                    <?php
+                    $actions = '';
+                    if (auth_id() !== null && (int) $person['id'] !== auth_id()) {
+                        $actions = '<a class="btn icon-btn bordered" href="' . url('/chat/start/' . (int) $person['id']) . '" title="Nhắn tin"><i class="bi bi-chat-dots"></i></a>';
+                    }
+                    ?>
+                    <?= view_partial(dirname(__DIR__) . '/partials/person-row.php', ['person' => $person, 'actionHtml' => $actions]) ?>
+                <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
 
-    <h2 class="h6 mb-3"><i class="bi bi-file-text me-2"></i>Bài viết (<?= (int) $totalPosts ?>)</h2>
+    <div class="rail-title mb-2">Bài viết (<?= (int) $totalPosts ?>)</div>
 
     <?php if ($posts === []): ?>
         <div class="card surface-card"><div class="card-body text-center fg-secondary py-4">Không tìm thấy bài viết nào.</div></div>

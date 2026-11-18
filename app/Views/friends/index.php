@@ -2,10 +2,9 @@
 /**
  * @var array $friends
  */
-$viewerId = auth_id();
 ?>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0"><i class="bi bi-people me-2"></i>Bạn bè</h1>
+<div class="page-head">
+    <h1><i class="bi bi-people"></i>Bạn bè</h1>
     <a class="btn btn-outline btn-primary btn-sm" href="<?= url('/friends/requests') ?>">
         <i class="bi bi-inbox me-1"></i>Lời mời
     </a>
@@ -19,24 +18,15 @@ $viewerId = auth_id();
                 Bạn chưa có bạn bè nào. Hãy kết nối với những người thú vị!
             </div>
         <?php else: ?>
-            <ul class="list-unified">
-                <?php foreach ($friends as $person): ?>
-                    <li class="d-flex align-items-center gap-2 py-2">
-                        <img src="<?= e(avatar_url($person['avatar_path'])) ?>" alt="" class="avatar avatar-md">
-                        <div class="flex-grow-1 min-w-0">
-                            <a class="d-block fw-semibold fg-body-emphasis text-decoration-none text-truncate" href="<?= url('/u/' . $person['username']) ?>">
-                                <?= e($person['display_name']) ?>
-                            </a>
-                            <small class="fg-secondary">@<?= e($person['username']) ?></small>
-                        </div>
-                        <a class="btn btn-outline btn-sm" href="<?= url('/chat/start/' . (int) $person['id']) ?>"><i class="bi bi-chat-dots"></i></a>
-                        <form action="<?= url('/friends/' . (int) $person['id'] . '/remove') ?>" method="post" data-confirm="Bạn có chắc muốn hủy kết bạn?">
-                            <?= \App\Core\Csrf::field() ?>
-                            <button class="btn btn-outline btn-danger btn-sm" type="submit">Hủy bạn</button>
-                        </form>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+            <?php foreach ($friends as $person): ?>
+                <?php
+                $actions = '<a class="btn icon-btn bordered" href="' . url('/chat/start/' . (int) $person['id']) . '" title="Nhắn tin"><i class="bi bi-chat-dots"></i></a>'
+                    . '<form action="' . url('/friends/' . (int) $person['id'] . '/remove') . '" method="post" data-confirm="Bạn có chắc muốn hủy kết bạn?" class="d-inline">'
+                    . \App\Core\Csrf::field()
+                    . '<button class="btn btn-outline btn-danger btn-sm" type="submit">Hủy bạn</button></form>';
+                ?>
+                <?= view_partial(dirname(__DIR__) . '/partials/person-row.php', ['person' => $person, 'actionHtml' => $actions]) ?>
+            <?php endforeach; ?>
         <?php endif; ?>
     </div>
 </div>
