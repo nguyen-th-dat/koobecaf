@@ -1460,6 +1460,23 @@
         border-color: var(--kb-surface-cream-strong);
     }
 
+    /* Bài viết vừa được chèn bằng WebSocket — nổi nhẹ rồi tắt dần */
+    .post-card.is-realtime-new {
+        animation: kb-post-arrive .45s var(--kb-ease-out);
+    }
+
+    @keyframes kb-post-arrive {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--kb-primary) 35%, transparent);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
     /* Tên tác giả: sans đậm vừa, không phải serif (serif dành cho tiêu đề) */
     .post-author {
         font-family: var(--kb-font-body);
@@ -1848,6 +1865,22 @@
 
     .notification-item.unread {
         background-color: var(--kb-primary-soft);
+    }
+
+    /* Dòng thông báo vừa được chèn bằng WebSocket */
+    .notification-item.is-realtime-new {
+        animation: kb-notification-arrive .45s var(--kb-ease-out);
+    }
+
+    @keyframes kb-notification-arrive {
+        from {
+            opacity: 0;
+            transform: translateX(12px);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
     }
 
     /* Biểu tượng theo loại tương tác */
