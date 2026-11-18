@@ -863,6 +863,325 @@ document.querySelectorAll('.notification-item').forEach(item => {
 });
 
 /* =============================================================
+   Cảnh báo rời trang khi còn nội dung chưa gửi
+   ------------------------------------------------------------
+   Form đánh dấu bằng data-guard="<tên>" sẽ được kiểm tra khi người dùng
+   định rời trang (bấm link, gửi form, đóng tab). Nếu còn dữ liệu chưa gửi thì
+   hiện hộp thoại liệt kê những gì sẽ mất.
+   ============================================================= */
+const LEAVE_FIELD_LABELS = {
+    content: 'Nội dung',
+    privacy: 'Quyền riêng tư',
+    'images[]': 'Hình ảnh',
+    display_name: 'Tên hiển thị',
+    username: 'Username',
+    email: 'Email',
+    password: 'Mật khẩu',
+    'password_confirmation': 'Xác nhận mật khẩu',
+    bio: 'Tiêu sử',
+    body: 'Nội dung tin nhắn',
+};
+
+/**
+ * Form đang chờ người dùng xác nhận rời đi.
+ */
+let pendingNavigation = null;
+let allowUnload = false;
+
+/** Ảnh chụp giá trị ban đầu của các field để phát hiện thay đổi. */
+const initialValues = new WeakMap();
+
+function guardForms() {
+    return Array.from(document.querySelectorAll('form[data-guard]'));
+}
+
+/**
+ * Form không chứa dữ liệu nhưng thao tác của nó làm mất dữ liệu ở form khác
+ * (ví dụ đăng xuất khi đang soạn bài viết).
+ */
+function leaveGuardForms() {
+    return Array.from(document.querySelectorAll('form[data-leave-guard]'));
+}
+
+function snapshotInitialValues(form) {
+    const values = new Map();
+
+    form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+        const type = (el.type || '').toLowerCase();
+        if (type === 'checkbox' || type === 'radio') {
+            values.set(el, el.checked);
+            return;
+        }
+        values.set(el, el.value);
+    });
+
+    initialValues.set(form, values);
+}
+
+function isFieldDirty(form, el) {
+    const type = (el.type || '').toLowerCase();
+
+    if (type === 'hidden' || type === 'submit' || type === 'button' || type === 'reset') {
+        return false;
+    }
+
+    if (type === 'file') {
+        return Boolean(el.files && el.files.length);
+    }
+
+    if (type === 'checkbox' || type === 'radio') {
+        const initial = initialValues.get(form)?.get(el);
+
+        return typeof initial === 'boolean' ? el.checked !== initial : el.checked;
+    }
+
+    const initial = initialValues.get(form)?.get(el);
+    if (typeof initial !== 'string') {
+        return String(el.value || '').trim() !== '';
+    }
+
+    // Field rỗng thì chưa có gì để mất.
+    if (el.value.trim() === '') return false;
+
+    // Đã đổi so với lúc mở trang.
+    if (el.value !== initial) return true;
+
+    // Không đổi, nhưng là giá trị server render lại từ lần gửi lỗi trước
+    // (data-old-fields) — rời trang lúc này thì mất.
+    return serverFieldNames(form).includes(el.name);
+}
+
+/** Danh sách field do server render lại từ giá trị cũ. */
+function serverFieldNames(form) {
+    return (form.dataset.oldFields || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+function fieldLabel(el) {
+    if (el.id) {
+        const label = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
+        if (label && label.textContent.trim()) {
+            return label.textContent.trim();
+        }
+    }
+
+    const wrapping = el.closest('label');
+    if (wrapping && wrapping.textContent.trim()) {
+        return wrapping.textContent.trim();
+    }
+
+    if (el.placeholder) {
+        return el.placeholder;
+    }
+
+    return LEAVE_FIELD_LABELS[el.name] || el.name;
+}
+
+/**
+ * Tóm tắt nội dung sẽ mất để hiển thị trong hộp thoại.
+ */
+function fieldPreview(el) {
+    const type = (el.type || '').toLowerCase();
+
+    if (type === 'file') {
+        const count = el.files ? el.files.length : 0;
+        return count > 0 ? `${count} tệp đã chọn` : '';
+    }
+
+    if (type === 'checkbox' || type === 'radio') {
+        return el.checked ? 'đã chọn' : '';
+    }
+
+    const value = String(el.value || '').trim();
+    if (value === '') return '';
+
+    return value.length > 60 ? value.slice(0, 60) + '…' : value;
+}
+
+/**
+ * Trả về danh sách form còn dữ liệu chưa gửi, kèm nhãn các field bị mất.
+ *
+ * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
+ */
+function dirtyGuardForms() {
+    return guardForms().map(form => {
+        const items = [];
+
+        form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+            if (!isFieldDirty(form, el)) return;
+
+            items.push({ name: fieldLabel(el), preview: fieldPreview(el) });
+        });
+
+        return {
+            form,
+            label: form.dataset.guard || 'Nội dung đã nhập',
+            items,
+        };
+    }).filter(item => item.items.length > 0);
+}
+
+/* ---------------- Hộp thoại ---------------- */
+function ensureLeaveModal() {
+    if (document.getElementById('kbLeaveModal')) {
+        return document.getElementById('kbLeaveModal');
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'leave-modal';
+    modal.id = 'kbLeaveModal';
+    modal.hidden = true;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'kbLeaveModalTitle');
+    modal.innerHTML = `
+        <div class="leave-modal-card">
+            <h2 class="leave-modal-title" id="kbLeaveModalTitle">
+                <i class="bi bi-exclamation-triangle"></i>Bạn sắp rời trang
+            </h2>
+            <p class="leave-modal-text">Bạn có nội dung chưa gửi. Những nội dung sau sẽ mất nếu bạn rời trang này:</p>
+            <ul class="leave-modal-list" data-leave-list></ul>
+            <div class="leave-modal-actions">
+                <button type="button" class="btn btn-outline btn-sm" data-leave-stay>Ở lại trang</button>
+                <button type="button" class="btn btn-solid btn-sm" data-leave-go>Rời đi</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+
+    modal.querySelector('[data-leave-stay]').addEventListener('click', () => {
+        pendingNavigation = null;
+        modal.hidden = true;
+    });
+
+    modal.querySelector('[data-leave-go]').addEventListener('click', () => {
+        const target = pendingNavigation;
+        pendingNavigation = null;
+        modal.hidden = true;
+        allowUnload = true;
+
+        if (!target) return;
+
+        if (target.type === 'link') {
+            window.location.href = target.url;
+            return;
+        }
+
+        target.form.requestSubmit(target.submitter || undefined);
+    });
+
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            pendingNavigation = null;
+            modal.hidden = true;
+        }
+    });
+
+    return modal;
+}
+
+function showLeaveModal(dirty, navigation) {
+    const modal = ensureLeaveModal();
+    const list = modal.querySelector('[data-leave-list]');
+    list.innerHTML = '';
+
+    dirty.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'leave-modal-item';
+
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-pencil-square';
+
+        const text = document.createElement('span');
+        text.innerHTML = '<strong></strong> · <span></span>';
+        text.querySelector('strong').textContent = item.label;
+        text.querySelector('span').textContent = item.items
+            .map(entry => (entry.preview ? `${entry.name}: ${entry.preview}` : entry.name))
+            .join(' — ');
+
+        li.appendChild(icon);
+        li.appendChild(text);
+        list.appendChild(li);
+    });
+
+    pendingNavigation = navigation;
+    modal.hidden = false;
+    modal.querySelector('[data-leave-stay]').focus();
+}
+
+/* ---------------- Chặn điều hướng ra ngoài ---------------- */
+function isInternalLink(link) {
+    if (!link || link.target === '_blank' || link.hasAttribute('download')) return false;
+
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return false;
+    if (href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+
+    try {
+        const url = new URL(link.href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        // Chỉ cảnh báo khi rời khỏi trang hiện tại.
+        return url.pathname + url.search !== window.location.pathname + window.location.search;
+    } catch (e) {
+        return false;
+    }
+}
+
+document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+        return;
+    }
+
+    const link = event.target.closest('a[href]');
+    if (!isInternalLink(link)) return;
+
+    const dirty = dirtyGuardForms();
+    if (dirty.length === 0) return;
+
+    event.preventDefault();
+    showLeaveModal(dirty, { type: 'link', url: link.href });
+});
+
+// Gửi form là hành động có chủ ý nên không bị chặn: dữ liệu được gửi đi, không mất.
+// Form gửi lỗi validate thì giá trị đã nhập vẫn được giữ qua cơ chế old().
+
+document.addEventListener('submit', event => {
+    if (allowUnload || event.defaultPrevented) return;
+
+    const form = event.target;
+    if (!form.dataset.leaveGuard) return;
+
+    // Chỉ cảnh báo nếu có dữ liệu chưa gửi ở form khác.
+    const dirty = dirtyGuardForms();
+    if (dirty.length === 0) return;
+
+    event.preventDefault();
+    showLeaveModal(dirty, { type: 'form', form, submitter: event.submitter });
+});
+
+window.addEventListener('beforeunload', event => {
+    if (allowUnload) return;
+
+    const dirty = dirtyGuardForms();
+    if (dirty.length === 0) return;
+
+    event.preventDefault();
+    event.returnValue = '';
+});
+
+// Quay lại trang từ bộ nhớ đệm: cho phép rời trang bình thường trở lại.
+window.addEventListener('pageshow', () => {
+    allowUnload = false;
+});
+
+function initGuards() {
+    guardForms().forEach(snapshotInitialValues);
+}
+
+initGuards();
+
+/* =============================================================
    Lưu nháp form
    ------------------------------------------------------------
    Mỗi form đánh dấu bằng data-draft="<key>" sẽ được lưu vào localStorage mỗi khi
