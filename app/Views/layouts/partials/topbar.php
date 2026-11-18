@@ -45,7 +45,7 @@ $navActive = static function (string $prefix) use ($path): string {
                 </form>
 
                 <?php if (is_auth()): ?>
-                    <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/') ?>#composer">
+                    <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/posts/create') ?>">
                         <i class="bi bi-pencil-square"></i><span>Đăng bài</span>
                     </a>
 
