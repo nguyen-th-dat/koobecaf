@@ -55,7 +55,7 @@ $primary = '#14806c';
                 <tr>
                     <td style="padding:20px 32px;border-top:1px solid #e4e7eb;">
                         <p style="margin:0;font-size:12px;line-height:1.6;color:#9aa5b1;">
-                            © <?= date('Y') ?> <?= e($appName)>. Email này được gửi tự động, vui lòng không trả lời.
+                            © <?= date('Y') ?> <?= e($appName) ?>. Email này được gửi tự động, vui lòng không trả lời.
                         </p>
                     </td>
                 </tr>
