@@ -99,7 +99,18 @@ function fieldValue(string $html, string $name): ?string
 $base = $baseUrl;
 
 // ------------------------------------------------------------------
-// 1. Dang ky that bai: giu lai username / email / ten hien thi
+// 1. Form trong HTML có đánh dấu data-guard (chưa đăng nhập)
+// ------------------------------------------------------------------
+{
+    $res = request('GET', $base . '/register');
+    check('Form dang ky co danh dau data-guard', str_contains($res['body'], 'data-draft="register" data-guard="Thông tin đăng ký"'));
+
+    $res = request('GET', $base . '/login');
+    check('Form dang nhap co danh dau data-guard', str_contains($res['body'], 'data-draft="login" data-guard="Thông tin đăng nhập"'));
+}
+
+// ------------------------------------------------------------------
+// 2. Dang ky that bai: giu lai username / email / ten hien thi
 // ------------------------------------------------------------------
 $username = 'keep' . random_int(10000, 99999);
 $email = $username . '@koobecaf.test';
@@ -216,17 +227,6 @@ check('Dang bai that bai chuyen huong', $res['status'] === 302, 'status=' . $res
 
 $res = request('GET', $base . '/');
 check('Giu lai noi dung composer sau khi dang that bai', str_contains($res['body'], str_repeat('b', 5001)), 'khong tim thay noi dung da nhap');
-
-// ------------------------------------------------------------------
-// 10. Form trong HTML có đánh dấu data-guard
-// ------------------------------------------------------------------
-{
-    $res = request('GET', $base . '/');
-    check('Form dang ky co danh dau data-guard', str_contains($res['body'], 'data-draft="register" data-guard="Thông tin đăng ký"'));
-
-    $res = request('GET', $base . '/login');
-    check('Form dang nhap co danh dau data-guard', str_contains($res['body'], 'data-draft="login" data-guard="Thông tin đăng nhập"'));
-}
 
 // ------------------------------------------------------------------
 // 11. Trang chu (da dang nhap) co guard cho composer
