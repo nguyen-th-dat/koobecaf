@@ -8,13 +8,6 @@
 # IDE and editor
 /.vscode/
 
-# AI tools
-/.claude/
-/.cursor/
-/.agents/
-/.aider-desk/
-PROMT.md
-
 # Project directories
 /tools/
 /test/
@@ -34,4 +27,3 @@ PROMT.md
 !/uploads/avatars/default-avatar.png
 /uploads/covers/*
 /uploads/posts/*
-/tests
