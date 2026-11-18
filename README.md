@@ -197,7 +197,6 @@ koobecaf/
 ├── .gitignore
 ├── composer.json
 ├── package.json                   # Bootstrap Icons (nguồn để vendor lại assets/vendor/)
-├── DESIGN.md                      # Design system: token màu, typography, layout
 ├── README.md
 └── PROGRESS.md
 ```
