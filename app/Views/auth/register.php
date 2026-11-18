@@ -3,7 +3,7 @@
     <p class="fg-secondary mb-0">Tạo tài khoản để kết nối với bạn bè.</p>
 </div>
 
-<form action="<?= url('/register') ?>" method="post" novalidate data-draft="register" data-guard="Thông tin đăng ký" data-old-fields="<?= e(old_fields(['display_name', 'username', 'email'])) ?>">
+<form action="<?= url('/register') ?>" method="post" novalidate data-draft="register" data-lose-fields="password,password_confirmation" data-lose-label="Mật khẩu đăng ký" data-old-fields="<?= e(old_fields(['display_name', 'username', 'email'])) ?>">
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
