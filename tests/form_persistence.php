@@ -217,6 +217,26 @@ check('Dang bai that bai chuyen huong', $res['status'] === 302, 'status=' . $res
 $res = request('GET', $base . '/');
 check('Giu lai noi dung composer sau khi dang that bai', str_contains($res['body'], str_repeat('b', 5001)), 'khong tim thay noi dung da nhap');
 
+// ------------------------------------------------------------------
+// 10. Form trong HTML có đánh dấu data-guard
+// ------------------------------------------------------------------
+{
+    const res = request('GET', $base . '/');
+    check('Form dang ky co danh dau data-guard', str_contains($res['body'], 'data-draft="register" data-guard="Thông tin đăng ký"'));
+
+    $res = request('GET', $base . '/login');
+    check('Form dang nhap co danh dau data-guard', str_contains($res['body'], 'data-draft="login" data-guard="Thông tin đăng nhập"'));
+}
+
+// ------------------------------------------------------------------
+// 11. Trang chu (da dang nhap) co guard cho composer
+// ------------------------------------------------------------------
+{
+    $res = request('GET', $base . '/');
+    check('Composer co danh dau data-guard', str_contains($res['body'], 'data-guard="Bài viết đang soạn"'));
+    check('Form dang xuat co danh dau data-leave-guard', str_contains($res['body'], 'data-leave-guard="Đăng xuất"'));
+}
+
 @unlink($cookieJar);
 
 echo "\n================================\n";
