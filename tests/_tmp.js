@@ -10,8 +10,8 @@ function php(script) {
 
 const out = php(
     "require 'app/bootstrap.php'; \\App\\Core\\Env::load('.env');" +
-    "$ok = \\App\\Core\\WsPublisher::publish('post.created', ['audience' => [1], 'post' => ['id' => 999, 'content' => 'test', 'author' => ['id' => 2, 'display_name' => 'B']]]);" +
-    "echo $ok ? 'ok' : 'fail';"
+    "$id = \\App\\Models\\Post::create(2, 'REALTIME-TEST-' . time(), 'public');" +
+    "\\App\\Services\\RealtimeService::postCreated($id);" +
+    "echo $id;"
 );
-console.log('publish:', out);
-console.log('url:', php("require 'app/bootstrap.php'; \\App\\Core\\Env::load('.env'); echo \\App\\Core\\WsPublisher::url();"));
+console.log('post id:', out);
