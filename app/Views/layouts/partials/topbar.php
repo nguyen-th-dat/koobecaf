@@ -31,7 +31,7 @@ $navActive = static function (string $prefix) use ($path): string {
             <?php if (is_auth()): ?>
                 <nav class="topbar-nav" aria-label="Điều hướng chính">
                     <a class="nav-link<?= $navActive('/') ?>" href="<?= url('/') ?>">Bảng tin</a>
-                    <a class="nav-link<?= $navActive('/discover') ?>" href="<?= url('/discover') ?>">Khám phá</a>
+                    <a class="nav-link<?= $navActive('/search') ?>" href="<?= url('/search') ?>">Khám phá</a>
                     <a class="nav-link<?= $navActive('/chat') ?>" href="<?= url('/chat') ?>">Trò chuyện</a>
                     <a class="nav-link<?= $navActive('/notifications') ?>" href="<?= url('/notifications') ?>">Thông báo</a>
                 </nav>
