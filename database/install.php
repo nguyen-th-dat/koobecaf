@@ -82,10 +82,14 @@ $pdo->exec("USE `{$name}`");
  *
  * Bỏ qua comment `--` và `#`, bỏ qua câu lệnh rỗng. File của dự án không
  * chứa dấu `;` trong chuỗi nên tách theo dấu `;` là an toàn.
+ *
+ * Lưu ý: phải tách dòng bằng `\n` chứ không dùng `\R` — `\R` trong PCRE khớp
+ * cả byte 0x85 (NEL), mà 0x85 lại là byte cuối của nhiều ký tự UTF-8 tiếng Việt
+ * (`ễ` = E1 BB 85), nên dữ liệu sẽ bị cắt đôi.
  */
 function splitStatements(string $sql): array
 {
-    $lines = preg_split('/\R/', $sql) ?: [];
+    $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $sql));
     $clean = [];
 
     foreach ($lines as $line) {
