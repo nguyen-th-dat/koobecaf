@@ -95,6 +95,7 @@ function assertPage(string $label, array $result, array $expectStatus = [200]): 
 assertPage('Trang chu (khach)', get($baseUrl . '/'));
 assertPage('Dang nhap', get($baseUrl . '/login'));
 assertPage('Dang ky', get($baseUrl . '/register'));
+assertPage('Quen mat khau', get($baseUrl . '/forgot-password'));
 assertPage('Tim kiem (trong)', get($baseUrl . '/search?q=an'));
 assertPage('Trang ho so', get($baseUrl . '/u/an'));
 assertPage('Chi tiet bai viet', get($baseUrl . '/post/1'));
