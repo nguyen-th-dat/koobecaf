@@ -1,6 +1,10 @@
 # Dữ liệu mẫu cho Koobecaf
 # Mật khẩu chung cho tất cả tài khoản mẫu: Password@123
 
+-- Bắt buộc: client phải giao tiếp với server bằng utf8mb4, nếu không dữ liệu
+-- tiếng Việt sẽ bị mã hoá lại theo bảng mã console (CP437/CP1252) khi import.
+SET NAMES utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE `notifications`;
 TRUNCATE TABLE `messages`;

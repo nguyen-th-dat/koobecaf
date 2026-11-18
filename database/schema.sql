@@ -10,6 +10,10 @@ CREATE DATABASE IF NOT EXISTS `koobecaf`
 
 USE `koobecaf`;
 
+-- Bắt buộc: client phải giao tiếp với server bằng utf8mb4, nếu không dữ liệu
+-- tiếng Việt sẽ bị mã hoá lại theo bảng mã console (CP437/CP1252) khi import.
+SET NAMES utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS `notifications`;
