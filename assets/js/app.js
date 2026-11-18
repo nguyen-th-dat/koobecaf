@@ -50,12 +50,15 @@ function toast(message, variant = 'success') {
     el.className = 'toast';
     el.setAttribute('role', 'alert');
     el.innerHTML = `
+        <i class="bi bi-check-circle-fill"></i>
         <div class="toast-body"></div>
         <button type="button" class="btn-close" aria-label="Đóng"></button>`;
     el.querySelector('.toast-body').textContent = message;
     if (variant === 'danger') {
         el.style.backgroundColor = 'var(--kb-error)';
         el.style.color = '#fff';
+    } else if (variant === 'info') {
+        el.style.backgroundColor = 'var(--kb-surface-dark-elevated)';
     }
     container.appendChild(el);
 
@@ -195,6 +198,67 @@ document.addEventListener('keydown', (event) => {
         hideDrawer();
     }
 });
+
+/* =============================================================
+   Kẹp nội dung bài viết dài kèm nút "Xem thêm"
+   ============================================================= */
+const CLAMP_LINES = 5;
+
+function isOverflowing(el) {
+    return el.scrollHeight > el.clientHeight + 1;
+}
+
+/**
+ * Kẹp nội dung dài ở CLAMP_LINES dòng và chèn nút "Xem thêm" nếu bị cắt.
+ *
+ * Phải đo trong lúc đang áp dụng clamp: khi bỏ clamp, chiều cao phần tử bằng
+ * chiều cao nội dung nên scrollHeight luôn bằng clientHeight.
+ */
+function clampPostText(el) {
+    el.classList.add('is-clamped');
+
+    if (!isOverflowing(el)) {
+        el.classList.remove('is-clamped');
+        return;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'post-expand';
+    button.textContent = 'Xem thêm';
+
+    button.addEventListener('click', () => {
+        const collapsed = el.classList.contains('is-clamped');
+        el.classList.toggle('is-clamped', !collapsed);
+        button.textContent = collapsed ? 'Xem thêm' : 'Thu gọn';
+    });
+
+    el.insertAdjacentElement('afterend', button);
+}
+
+document.querySelectorAll('[data-clampable]').forEach(el => {
+    el.dataset.clampReady = '1';
+    clampPostText(el);
+});
+
+// Áp lại sau khi phông chữ tải xong (chiều cao dòng có thể đổi)
+window.addEventListener('load', () => {
+    document.querySelectorAll('[data-clampable]').forEach(el => {
+        if (el.dataset.clampReady === '1') return;
+        el.dataset.clampReady = '1';
+        clampPostText(el);
+    });
+});
+
+/* =============================================================
+   Thanh trên cùng: đổ bóng khi cuộn trang
+   ============================================================= */
+const topbar = document.querySelector('.topbar');
+if (topbar) {
+    const updateTopbar = () => topbar.classList.toggle('is-scrolled', window.scrollY > 4);
+    updateTopbar();
+    window.addEventListener('scroll', updateTopbar, { passive: true });
+}
 
 /* =============================================================
    Đóng cảnh báo
