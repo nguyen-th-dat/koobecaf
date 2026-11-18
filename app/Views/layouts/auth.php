@@ -13,7 +13,7 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= e(\App\Core\Csrf::token()) ?>">
     <title><?= e($title ?? 'Koobecaf') ?> · <?= e(config('app.name', 'Koobecaf')) ?></title>
-    <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
+    <link rel="icon" href="<?= asset('images/logo.png') ?>" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
@@ -21,22 +21,44 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
 <body class="auth-body" data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>">
-<div class="auth-wrapper">
-    <a class="brand brand-lg justify-content-center mb-4" href="<?= url('/') ?>">
-        <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
-        <span class="brand-text">Koobecaf</span>
-    </a>
 
-    <div class="card surface-card auth-card">
-        <div class="card-body">
-            <?php require __DIR__ . '/partials/flash.php'; ?>
-            <?= $content ?>
+<div class="auth-shell">
+    <aside class="auth-panel">
+        <a class="brand brand-lg" href="<?= url('/') ?>">
+            <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
+            <span class="brand-text">Koobecaf</span>
+        </a>
+
+        <h2 class="auth-panel-title">Nơi kết nối bạn bè<br>và những khoảnh khắc.</h2>
+
+        <ul class="auth-panel-list">
+            <li><i class="bi bi-camera"></i> Chia sẻ khoảnh khắc mỗi ngày</li>
+            <li><i class="bi bi-chat-heart"></i> Trò chuyện riêng tư với bạn bè</li>
+            <li><i class="bi bi-people"></i> Kết nối cộng đồng sở thích chung</li>
+        </ul>
+
+        <p class="auth-panel-quote">"Cà phê đầu tiên trong ngày, cùng một nhóm bạn."</p>
+    </aside>
+
+    <main class="auth-main">
+        <div class="auth-wrapper">
+            <a class="brand brand-lg auth-brand-mobile lg:d-none mb-4" href="<?= url('/') ?>">
+                <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
+                <span class="brand-text">Koobecaf</span>
+            </a>
+
+            <div class="card surface-card auth-card">
+                <div class="card-body">
+                    <?php require __DIR__ . '/partials/flash.php'; ?>
+                    <?= $content ?>
+                </div>
+            </div>
+
+            <p class="text-center fg-secondary small mt-3 mb-0">
+                <a href="<?= url('/') ?>" class="fg-secondary"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
+            </p>
         </div>
-    </div>
-
-    <p class="text-center fg-secondary small mt-3 mb-0">
-        <a href="<?= url('/') ?>" class="fg-secondary"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
-    </p>
+    </main>
 </div>
 
 <script src="<?= asset('js/app.js') ?>"></script>
