@@ -8,7 +8,7 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 ?>
 <!DOCTYPE html>
-<html lang="vi" data-bs-theme="<?= e($theme) ?>">
+<html lang="vi" data-theme="<?= e($theme) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,7 +22,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <link rel="canonical" href="<?= e($canonicalUrl ?? url('/')) ?>">
 <?php endif; ?>
     <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
-    <link rel="stylesheet" href="<?= asset('vendor/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
@@ -54,6 +53,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
 <?php endif; ?>
 
-<script type="module" src="<?= asset('js/app.js') ?>"></script>
+<script src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>
