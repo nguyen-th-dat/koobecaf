@@ -142,7 +142,7 @@ $originalImages = $meta['originalImages'];
 
     <?php if (is_auth()): ?>
         <div class="post-comments border-top d-none" data-comments-container="<?= (int) $post['id'] ?>">
-            <form class="comment-form d-flex gap-2 p-2 border-bottom" data-post-id="<?= (int) $post['id'] ?>">
+            <form class="comment-form d-flex gap-2 p-2 border-bottom" data-post-id="<?= (int) $post['id'] ?>" data-draft="comment-<?= (int) $post['id'] ?>" data-leave="clear">
                 <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                 <input type="text" name="content" class="form-control form-control-sm" placeholder="Viết bình luận..." maxlength="2000" required>
                 <input type="hidden" name="parent_id" value="">

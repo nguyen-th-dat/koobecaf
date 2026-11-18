@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\OldInput;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\Validator;
@@ -105,8 +106,7 @@ final class ProfileController extends Controller
             ->max('bio', 500, 'Tiểu sử');
 
         if ($validator->fails()) {
-            Session::flash('error', $validator->firstError());
-            Response::redirect('/settings/profile');
+            $this->fail($validator->firstError(), '/settings/profile', ['display_name', 'bio']);
         }
 
         $data = [
@@ -123,8 +123,7 @@ final class ProfileController extends Controller
                     \App\Services\UploadService::delete((string) $user['avatar_path']);
                 }
             } catch (\RuntimeException $e) {
-                Session::flash('error', $e->getMessage());
-                Response::redirect('/settings/profile');
+                $this->fail($e->getMessage(), '/settings/profile', ['display_name', 'bio']);
             }
         }
 
@@ -137,13 +136,13 @@ final class ProfileController extends Controller
                     \App\Services\UploadService::delete((string) $user['cover_path']);
                 }
             } catch (\RuntimeException $e) {
-                Session::flash('error', $e->getMessage());
-                Response::redirect('/settings/profile');
+                $this->fail($e->getMessage(), '/settings/profile', ['display_name', 'bio']);
             }
         }
 
         User::updateProfile($userId, $data);
         Session::flash('success', 'Cập nhật hồ sơ thành công.');
+        OldInput::clearDraft('profile');
         Response::redirect('/settings/profile');
     }
 
@@ -166,13 +165,11 @@ final class ProfileController extends Controller
             ->matches('new_password_confirmation', 'new_password', 'Xác nhận mật khẩu');
 
         if ($validator->fails()) {
-            Session::flash('error', $validator->firstError());
-            Response::redirect('/settings/profile');
+            $this->fail($validator->firstError(), '/settings/profile');
         }
 
         if (!password_verify($current, (string) $user['password_hash'])) {
-            Session::flash('error', 'Mật khẩu hiện tại không đúng.');
-            Response::redirect('/settings/profile');
+            $this->fail('Mật khẩu hiện tại không đúng.', '/settings/profile');
         }
 
         User::updatePassword($userId, $new);

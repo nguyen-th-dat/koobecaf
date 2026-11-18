@@ -11,11 +11,11 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 <?php if (is_auth()): ?>
     <div class="card surface-card mb-3" id="composer">
         <div class="card-body">
-            <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm">
+            <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm" data-draft="composer" data-leave="keep" data-lose-fields="images[]" data-lose-label="Ảnh đã chọn" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
                 <?= \App\Core\Csrf::field() ?>
                 <div class="d-flex gap-3">
                     <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md avatar-ring">
-                    <textarea name="content" class="form-control composer-input" rows="2" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"></textarea>
+                    <textarea name="content" class="form-control composer-input" rows="2" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"><?= e(old('content')) ?></textarea>
                 </div>
 
                 <div class="image-preview d-flex flex-wrap gap-2 mt-2 d-none" id="imagePreview"></div>
@@ -28,9 +28,9 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 
                     <div class="d-flex align-items-center gap-2">
                         <select name="privacy" class="form-control form-control-sm w-auto" aria-label="Quyền riêng tư">
-                            <option value="public">Công khai</option>
-                            <option value="followers">Người theo dõi</option>
-                            <option value="private">Riêng tư</option>
+                            <option value="public" <?= old('privacy', 'public') === 'public' ? 'selected' : '' ?>>Công khai</option>
+                            <option value="followers" <?= old('privacy', 'public') === 'followers' ? 'selected' : '' ?>>Người theo dõi</option>
+                            <option value="private" <?= old('privacy', 'public') === 'private' ? 'selected' : '' ?>>Riêng tư</option>
                         </select>
                         <button class="btn btn-solid btn-sm" type="submit">Đăng</button>
                     </div>

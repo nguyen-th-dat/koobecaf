@@ -117,10 +117,34 @@ if (!function_exists('upload_url')) {
 }
 
 if (!function_exists('old')) {
-    /** Giá trị form cũ sau khi validate thất bại. */
-    function old(string $key, mixed $default = ''): string
+    /**
+     * Giá trị form cũ sau khi validate thất bại.
+     *
+     * Trả về giá trị thô (chưa escape) nếu có, ngược lại trả về giá trị mặc định
+     * do view truyền vào. View phải tự escape bằng e().
+     */
+    function old(string $key, mixed $default = ''): mixed
     {
-        return e(\App\Core\Session::get('_old.' . $key, $default));
+        $value = \App\Core\OldInput::get($key, $default);
+
+        return $value === null ? $default : $value;
+    }
+}
+
+if (!function_exists('old_fields')) {
+    /**
+     * Danh sách field trong form đã được server render từ giá trị cũ.
+     *
+     * Trình duyệt dùng danh sách này để biết field nào đã có giá trị chắc chắn
+     * từ server nên không được đè bằng nháp cũ trong localStorage.
+     *
+     * @param array<int,string> $names
+     */
+    function old_fields(array $names): string
+    {
+        $matched = array_values(array_intersect($names, \App\Core\OldInput::keys()));
+
+        return implode(',', $matched);
     }
 }
 

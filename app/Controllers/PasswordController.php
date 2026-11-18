@@ -35,7 +35,7 @@ final class PasswordController extends Controller
             ->email('email');
 
         if ($validator->fails()) {
-            $this->fail($validator->firstError(), '/forgot-password', ['email' => $email]);
+            $this->fail($validator->firstError(), '/forgot-password', ['email']);
         }
 
         $user = User::findByEmail($email);
@@ -128,15 +128,5 @@ final class PasswordController extends Controller
     {
         Session::flash('error', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.');
         Response::redirect('/forgot-password');
-    }
-
-    /**
-     * @param array<string,string> $old
-     */
-    private function fail(string $message, string $redirect, array $old = []): void
-    {
-        Session::set('_old', $old);
-        Session::flash('error', $message);
-        Response::redirect($redirect);
     }
 }

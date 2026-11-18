@@ -569,6 +569,7 @@ document.addEventListener('submit', async (event) => {
 
     input.value = '';
     if (parentInput) parentInput.value = '';
+    clearFormDraft(form);
     const container = form.closest('.post-comments');
     if (container) {
         await loadComments(postId, container);
@@ -685,6 +686,7 @@ if (chatForm && chatMessages) {
         }
 
         input.value = '';
+        clearFormDraft(chatForm);
         appendMessage(payload.data);
     });
 
@@ -859,3 +861,627 @@ document.querySelectorAll('.notification-item').forEach(item => {
         });
     });
 });
+
+/* =============================================================
+   Cảnh báo rời trang khi còn nội dung chưa gửi
+   ------------------------------------------------------------
+   Không phải trang nào cũng cần cảnh báo. Nguyên tắc:
+
+   - Nội dung ĐÃ được lưu nháp (localStorage) → không mất khi rời trang,
+     chỉ hiện chỉ báo nhẹ "đã lưu tự động".
+   - Nội dung KHÔNG lưu nháp được (mật khẩu, ảnh đã chọn...) →
+     thực sự mất, nên hiện hộp thoại liệt kê cụ thể những gì sẽ mất.
+
+   Mỗi form khai báo:
+     data-draft="<key>"    → nội dung được lưu nháp, khôi phục lại khi tải trang
+     data-leave="keep"     → rời trang vẫn giữ nháp (nội dung dài, đáng giữ)
+     data-leave="clear"    → rời trang là xoá sạch nháp, không hỏi (nội dung ngắn)
+     data-lose-fields="a,b"→ các field này không khôi phục được, sẽ hỏi trước
+   ============================================================= */
+const LEAVE_FIELD_LABELS = {
+    content: 'Nội dung',
+    privacy: 'Quyền riêng tư',
+    'images[]': 'Hình ảnh',
+    display_name: 'Tên hiển thị',
+    username: 'Username',
+    email: 'Email',
+    password: 'Mật khẩu',
+    'password_confirmation': 'Xác nhận mật khẩu',
+    bio: 'Tiêu sử',
+    body: 'Nội dung tin nhắn',
+};
+
+/** Field nhạy cảm: hiển thị trong hộp thoại thì che bớt, không ghi ra nháp. */
+const LEAVE_SECRET_FIELDS = new Set(['password', 'password_confirmation', 'current_password', 'new_password']);
+
+/**
+ * Form đang chờ người dùng xác nhận rời đi.
+ */
+let pendingNavigation = null;
+let allowUnload = false;
+
+/** Ảnh chụp giá trị ban đầu của các field để phát hiện thay đổi. */
+const initialValues = new WeakMap();
+
+function guardForms() {
+    return Array.from(document.querySelectorAll('form[data-guard]'));
+}
+
+/** Form có nội dung được lưu nháp — khôi phục lại khi tải trang. */
+function draftForms() {
+    return Array.from(document.querySelectorAll('form[data-draft]'));
+}
+
+/**
+ * Form không chứa dữ liệu nhưng thao tác của nó làm mất dữ liệu ở form khác
+ * (ví dụ đăng xuất khi đang soạn bài viết).
+ */
+function leaveGuardForms() {
+    return Array.from(document.querySelectorAll('form[data-leave-guard]'));
+}
+
+function snapshotInitialValues(form) {
+    const values = new Map();
+
+    form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+        const type = (el.type || '').toLowerCase();
+        if (type === 'checkbox' || type === 'radio') {
+            values.set(el, el.checked);
+            return;
+        }
+        values.set(el, el.value);
+    });
+
+    initialValues.set(form, values);
+}
+
+function isFieldDirty(form, el) {
+    const type = (el.type || '').toLowerCase();
+
+    if (type === 'hidden' || type === 'submit' || type === 'button' || type === 'reset') {
+        return false;
+    }
+
+    if (type === 'file') {
+        return Boolean(el.files && el.files.length);
+    }
+
+    if (type === 'checkbox' || type === 'radio') {
+        const initial = initialValues.get(form)?.get(el);
+
+        return typeof initial === 'boolean' ? el.checked !== initial : el.checked;
+    }
+
+    const initial = initialValues.get(form)?.get(el);
+    if (typeof initial !== 'string') {
+        return String(el.value || '').trim() !== '';
+    }
+
+    // Field rỗng thì chưa có gì để mất.
+    if (el.value.trim() === '') return false;
+
+    // Đã đổi so với lúc mở trang.
+    if (el.value !== initial) return true;
+
+    // Không đổi, nhưng là giá trị server render lại từ lần gửi lỗi trước
+    // (data-old-fields) — rời trang lúc này thì mất.
+    return serverFieldNames(form).includes(el.name);
+}
+
+/** Danh sách field do server render lại từ giá trị cũ. */
+function serverFieldNames(form) {
+    return (form.dataset.oldFields || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+function fieldLabel(el) {
+    if (el.id) {
+        const label = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
+        if (label && label.textContent.trim()) {
+            return label.textContent.trim();
+        }
+    }
+
+    const wrapping = el.closest('label');
+    if (wrapping && wrapping.textContent.trim()) {
+        return wrapping.textContent.trim();
+    }
+
+    if (el.placeholder) {
+        return el.placeholder;
+    }
+
+    return LEAVE_FIELD_LABELS[el.name] || el.name;
+}
+
+/**
+ * Tóm tắt nội dung sẽ mất để hiển thị trong hộp thoại.
+ */
+function fieldPreview(el) {
+    const type = (el.type || '').toLowerCase();
+
+    if (type === 'file') {
+        const count = el.files ? el.files.length : 0;
+        return count > 0 ? `${count} tệp đã chọn` : '';
+    }
+
+    if (type === 'checkbox' || type === 'radio') {
+        return el.checked ? 'đã chọn' : '';
+    }
+
+    // Mật khẩu không bao giờ hiện giá trị ra ngoài.
+    if (LEAVE_SECRET_FIELDS.has(el.name)) {
+        return el.value ? '••••••' : '';
+    }
+
+    const value = String(el.value || '').trim();
+    if (value === '') return '';
+
+    return value.length > 60 ? value.slice(0, 60) + '…' : value;
+}
+
+/**
+ * Nội dung nào thực sự mất khi rời trang.
+ *
+ * Chính sách theo từng form:
+ *   data-leave="keep"  → nháp được giữ, rời trang không mất gì.
+ *                        Chỉ field không lưu nháp được (data-lose-fields, file)
+ *                        mới thực sự mất và cần hỏi.
+ *   data-leave="clear" → nháp bị xoá khi rời trang, không hỏi (nội dung ngắn).
+ *   data-leave="warn"  → nháp bị xoá khi rời trang, hỏi trước (nội dung dài).
+ *
+ * Form không lưu nháp (đổi mật khẩu, OTP...) mọi nội dung đều mất nên luôn hỏi.
+ *
+ * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
+ */
+function losingForms() {
+    const candidates = [];
+
+    draftForms().forEach(form => {
+        const policy = form.dataset.leave || 'clear';
+
+        if (policy === 'clear') return;
+
+        const only = (form.dataset.loseFields || '')
+            .split(',')
+            .map(item => item.trim())
+            .filter(Boolean);
+
+        candidates.push({
+            form,
+            label: form.dataset.loseLabel || 'Nội dung đã nhập',
+            only: only.length > 0 ? only : null,
+        });
+    });
+
+    // Form không lưu nháp (đổi mật khẩu, OTP...) mọi nội dung đều mất.
+    guardForms().forEach(form => {
+        candidates.push({
+            form,
+            label: form.dataset.guard || 'Nội dung đã nhập',
+            only: null,
+        });
+    });
+
+    return candidates.map(({ form, label, only }) => {
+        const items = [];
+
+        form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+            if (only !== null && !only.includes(el.name)) return;
+            if (!isFieldDirty(form, el)) return;
+
+            items.push({ name: fieldLabel(el), preview: fieldPreview(el) });
+        });
+
+        return { form, label, items };
+    }).filter(item => item.items.length > 0);
+}
+
+/**
+ * Xoá sạch nội dung nháp khi rời trang.
+ *
+ * Chính sách theo từng form:
+ *   data-leave="keep"  → giữ nháp
+ *   data-leave="clear" → xoá nháp
+ *   data-leave="warn"  → xoá nháp (sau khi người dùng đã xác nhận)
+ *   (không khai báo)   → xoá nháp (mặc định: rời trang là sạch)
+ */
+function purgeEphemeralDrafts() {
+    draftForms().forEach(form => {
+        if (form.dataset.leave === 'keep') return;
+
+        removeDraftEverywhere(form.dataset.draft);
+
+        const hint = form.querySelector('[data-draft-hint]');
+        if (hint) hint.hidden = true;
+    });
+}
+
+/* ---------------- Hộp thoại ---------------- */
+function ensureLeaveModal() {
+    if (document.getElementById('kbLeaveModal')) {
+        return document.getElementById('kbLeaveModal');
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'leave-modal';
+    modal.id = 'kbLeaveModal';
+    modal.hidden = true;
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'kbLeaveModalTitle');
+    modal.innerHTML = `
+        <div class="leave-modal-card">
+            <h2 class="leave-modal-title" id="kbLeaveModalTitle">
+                <i class="bi bi-exclamation-triangle"></i>Bạn sắp rời trang
+            </h2>
+            <p class="leave-modal-text">Bạn có nội dung chưa gửi. Những nội dung sau sẽ mất nếu bạn rời trang này:</p>
+            <ul class="leave-modal-list" data-leave-list></ul>
+            <div class="leave-modal-actions">
+                <button type="button" class="btn btn-outline btn-sm" data-leave-stay>Ở lại trang</button>
+                <button type="button" class="btn btn-solid btn-sm" data-leave-go>Rời đi</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+
+    modal.querySelector('[data-leave-stay]').addEventListener('click', () => {
+        pendingNavigation = null;
+        modal.hidden = true;
+    });
+
+    modal.querySelector('[data-leave-go]').addEventListener('click', () => {
+        const target = pendingNavigation;
+        pendingNavigation = null;
+        modal.hidden = true;
+        allowUnload = true;
+
+        // Rời đi là mất nội dung: xoá sạch nháp theo chính sách từng form.
+        purgeEphemeralDrafts();
+
+        if (!target) return;
+
+        if (target.type === 'link') {
+            window.location.href = target.url;
+            return;
+        }
+
+        target.form.requestSubmit(target.submitter || undefined);
+    });
+
+    modal.addEventListener('click', event => {
+        if (event.target === modal) {
+            pendingNavigation = null;
+            modal.hidden = true;
+        }
+    });
+
+    return modal;
+}
+
+function showLeaveModal(dirty, navigation) {
+    const modal = ensureLeaveModal();
+    const list = modal.querySelector('[data-leave-list]');
+    list.innerHTML = '';
+
+    dirty.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'leave-modal-item';
+
+        const icon = document.createElement('i');
+        icon.className = 'bi bi-pencil-square';
+
+        const text = document.createElement('span');
+        text.innerHTML = '<strong></strong> · <span></span>';
+        text.querySelector('strong').textContent = item.label;
+        text.querySelector('span').textContent = item.items
+            .map(entry => (entry.preview ? `${entry.name}: ${entry.preview}` : entry.name))
+            .join(' — ');
+
+        li.appendChild(icon);
+        li.appendChild(text);
+        list.appendChild(li);
+    });
+
+    pendingNavigation = navigation;
+    modal.hidden = false;
+    modal.querySelector('[data-leave-stay]').focus();
+}
+
+/* ---------------- Chặn điều hướng ra ngoài ---------------- */
+function isInternalLink(link) {
+    if (!link || link.target === '_blank' || link.hasAttribute('download')) return false;
+
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return false;
+    if (href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+
+    try {
+        const url = new URL(link.href, window.location.href);
+        if (url.origin !== window.location.origin) return false;
+        // Chỉ cảnh báo khi rời khỏi trang hiện tại.
+        return url.pathname + url.search !== window.location.pathname + window.location.search;
+    } catch (e) {
+        return false;
+    }
+}
+
+document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) {
+        return;
+    }
+
+    const link = event.target.closest('a[href]');
+    if (!isInternalLink(link)) return;
+
+    const losing = losingForms();
+    if (losing.length === 0) {
+        // Không có gì để hỏi: rời trang là xoá sạch nội dung tạm.
+        purgeEphemeralDrafts();
+        return;
+    }
+
+    event.preventDefault();
+    showLeaveModal(losing, { type: 'link', url: link.href });
+});
+
+// Gửi form là hành động có chủ ý nên không bị chặn: dữ liệu được gửi đi, không mất.
+// Form gửi lỗi validate thì giá trị đã nhập vẫn được giữ qua cơ chế old().
+
+document.addEventListener('submit', event => {
+    if (allowUnload || event.defaultPrevented) return;
+
+    const form = event.target;
+    if (!form.dataset.leaveGuard) return;
+
+    // Chỉ cảnh báo nếu có nội dung thực sự mất ở form khác.
+    const losing = losingForms();
+    if (losing.length === 0) {
+        purgeEphemeralDrafts();
+        return;
+    }
+
+    event.preventDefault();
+    showLeaveModal(losing, { type: 'form', form, submitter: event.submitter });
+});
+
+window.addEventListener('beforeunload', event => {
+    if (allowUnload) return;
+
+    // Đóng tab / tải lại trang: nội dung tạm bị xoá sạch.
+    purgeEphemeralDrafts();
+
+    const losing = losingForms();
+    if (losing.length === 0) return;
+
+    event.preventDefault();
+    event.returnValue = '';
+});
+
+// Quay lại trang từ bộ nhớ đệm: cho phép rời trang bình thường trở lại.
+window.addEventListener('pageshow', () => {
+    allowUnload = false;
+});
+
+function initGuards() {
+    [...guardForms(), ...draftForms()].forEach(snapshotInitialValues);
+}
+
+initGuards();
+
+/* =============================================================
+   Lưu nháp form
+   ------------------------------------------------------------
+   Mỗi form đánh dấu bằng data-draft="<key>" sẽ được lưu vào localStorage mỗi khi
+   người dùng nhập, khôi phục lại khi tải trang (kể cả khi quay lại từ bộ nhớ đệm
+   của trình duyệt) và xoá sau khi form được xử lý thành công.
+
+   Thứ tự ưu tiên khi khôi phục: giá trị do server render (old()) luôn thắng,
+   nháp chỉ dùng cho field còn trống.
+   ============================================================= */
+const DRAFT_PREFIX = 'kb:draft:';
+const DRAFT_DEBOUNCE = 200;
+const DRAFT_SKIP_TYPES = new Set(['file', 'hidden', 'submit', 'button', 'password', 'reset']);
+
+/**
+ * Id người dùng hiện tại, dùng để tách nháp của các tài khoản khác nhau trên
+ * cùng một máy. Khách chưa đăng nhập dùng uid 0.
+ */
+const DRAFT_USER_ID = Number(document.body.dataset.userId || 0);
+
+/**
+ * Khoá lưu nháp. Có gắn uid để nháp của tài khoản này không lẫn sang tài khoản
+ * khác trên cùng máy.
+ */
+function draftStorageKey(key) {
+    return DRAFT_PREFIX + DRAFT_USER_ID + ':' + key;
+}
+
+/**
+ * Xoá nháp ở mọi phạm vi người dùng.
+ *
+ * Nháp đăng nhập/đăng ký được tạo khi chưa đăng nhập (uid 0) nên sau khi đăng
+ * nhập thành công vẫn cần xoá được nháp cũ ở phạm vi đó.
+ */
+function removeDraftEverywhere(key) {
+    removeDraft(key);
+    removeDraft(DRAFT_PREFIX + '0:' + key);
+}
+
+function readDraft(key) {
+    try {
+        const raw = window.localStorage.getItem(draftStorageKey(key));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function writeDraft(key, fields) {
+    try {
+        window.localStorage.setItem(draftStorageKey(key), JSON.stringify(fields));
+    } catch (e) {
+        // localStorage bị chặn (chế độ riêng tư) - bỏ qua, form vẫn hoạt động bình thường.
+    }
+}
+
+function removeDraft(key) {
+    try {
+        window.localStorage.removeItem(draftStorageKey(key));
+    } catch (e) {
+        // Bỏ qua.
+    }
+}
+
+/** Xoá nháp đã lưu của một form cụ thể. */
+function clearFormDraft(form) {
+    if (!form || !form.dataset.draft) return;
+    removeDraftEverywhere(form.dataset.draft);
+
+    const hint = form.querySelector('[data-draft-hint]');
+    if (hint) hint.hidden = true;
+}
+
+function collectDraftFields(form) {
+    const fields = [];
+
+    form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+        const type = (el.type || '').toLowerCase();
+
+        // Field ẩn (vd _token, parent_id) không lưu: token chỉ dùng một lần,
+        // còn parent_id phụ thuộc bình luận đang trả lời nên không có ý nghĩa khi tải lại trang.
+        if (DRAFT_SKIP_TYPES.has(type)) return;
+
+        if (type === 'checkbox' || type === 'radio') {
+            fields.push({ name: el.name, kind: type, value: el.value, checked: el.checked });
+            return;
+        }
+
+        fields.push({ name: el.name, kind: 'value', value: el.value });
+    });
+
+    return fields;
+}
+
+/**
+ * Điền giá trị nháp vào form.
+ *
+ * Field đã được server render từ giá trị cũ (data-old-fields) được giữ nguyên vì
+ * đó mới là dữ liệu người dùng vừa gửi lên. Các field còn lại lấy giá trị nháp
+ * vì đó là trạng thái mới nhất người dùng đang nhập.
+ */
+function applyDraft(form, draft) {
+    const serverFields = (form.dataset.oldFields || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+
+    draft.forEach(entry => {
+        if (serverFields.includes(entry.name)) return;
+
+        const targets = form.querySelectorAll('[name="' + CSS.escape(entry.name) + '"]');
+        targets.forEach(el => {
+            if (entry.kind === 'value') {
+                el.value = entry.value;
+                return;
+            }
+
+            if (entry.kind === 'checkbox') {
+                el.checked = entry.checked;
+                return;
+            }
+
+            if (entry.kind === 'radio' && !form.querySelector('[name="' + CSS.escape(entry.name) + '"]:checked')) {
+                el.checked = entry.checked;
+            }
+        });
+    });
+}
+
+/* =============================================================
+   Chỉ báo nháp đã lưu
+   ------------------------------------------------------------
+   Người dùng cần biết nội dung của họ đã được an toàn. Chỉ báo nhỏ xuất hiện
+   cạnh form ngay sau khi nội dung được lưu nháp, tự tắt khi form trống lại.
+   ============================================================= */
+function ensureDraftHint(form) {
+    if (form.dataset.draftHint === '1') return form.querySelector('[data-draft-hint]');
+
+    const hint = document.createElement('small');
+    hint.className = 'draft-hint';
+    hint.dataset.draftHint = '';
+    hint.setAttribute('role', 'status');
+    hint.hidden = true;
+
+    form.appendChild(hint);
+    form.dataset.draftHint = '1';
+
+    return hint;
+}
+
+function updateDraftHint(form) {
+    const hint = ensureDraftHint(form);
+    const hasContent = form.querySelector('input[name], textarea[name], select[name]') !== null
+        && Array.from(form.querySelectorAll('input[name], textarea[name], select[name]'))
+            .some(el => {
+                const type = (el.type || '').toLowerCase();
+                if (DRAFT_SKIP_TYPES.has(type)) return false;
+                if (type === 'file') return Boolean(el.files && el.files.length);
+                if (type === 'checkbox' || type === 'radio') return el.checked;
+                return String(el.value || '').trim() !== '';
+            });
+
+    if (!hasContent) {
+        hint.hidden = true;
+        return;
+    }
+
+    hint.innerHTML = '<i class="bi bi-cloud-check"></i>Đã lưu tự động — bạn có thể rời trang mà không mất nội dung';
+    hint.hidden = true;
+}
+
+function initDrafts() {
+    // Danh sách nháp cần xoá do server báo (form đã xử lý thành công).
+    (document.body.dataset.clearedDrafts || '')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .forEach(removeDraftEverywhere);
+
+    document.querySelectorAll('form[data-draft]').forEach(form => {
+        const key = form.dataset.draft;
+
+        let timer = null;
+        const scheduleSave = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                writeDraft(key, collectDraftFields(form));
+                updateDraftHint(form);
+            }, DRAFT_DEBOUNCE);
+        };
+
+        form.addEventListener('input', scheduleSave);
+        form.addEventListener('change', () => {
+            writeDraft(key, collectDraftFields(form));
+            updateDraftHint(form);
+        });
+
+        const draft = readDraft(key);
+        if (draft) {
+            applyDraft(form, draft);
+            updateDraftHint(form);
+        }
+
+        // Khôi phục lại khi người dùng quay lại trang từ bộ nhớ đệm (bfcache).
+        window.addEventListener('pageshow', event => {
+            if (!event.persisted) return;
+            const cached = readDraft(key);
+            if (cached) applyDraft(form, cached);
+        });
+    });
+}
+
+initDrafts();

@@ -3,23 +3,23 @@
     <p class="fg-secondary mb-0">Tạo tài khoản để kết nối với bạn bè.</p>
 </div>
 
-<form action="<?= url('/register') ?>" method="post" novalidate>
+<form action="<?= url('/register') ?>" method="post" novalidate data-draft="register" data-leave="clear" data-old-fields="<?= e(old_fields(['display_name', 'username', 'email'])) ?>">
     <?= \App\Core\Csrf::field() ?>
 
     <div class="mb-3">
         <label class="form-label" for="display_name">Tên hiển thị</label>
-        <input type="text" class="form-control" id="display_name" name="display_name" value="<?= old('display_name') ?>" required maxlength="100">
+        <input type="text" class="form-control" id="display_name" name="display_name" value="<?= e(old('display_name')) ?>" required maxlength="100">
     </div>
 
     <div class="mb-3">
         <label class="form-label" for="username">Username</label>
-        <input type="text" class="form-control" id="username" name="username" value="<?= old('username') ?>" required maxlength="30" pattern="[a-zA-Z0-9_]{3,30}">
+        <input type="text" class="form-control" id="username" name="username" value="<?= e(old('username')) ?>" required maxlength="30" pattern="[a-zA-Z0-9_]{3,30}">
         <div class="form-text">Chỉ chữ, số và dấu gạch dưới (3-30 ký tự).</div>
     </div>
 
     <div class="mb-3">
         <label class="form-label" for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" value="<?= old('email') ?>" required autocomplete="email">
+        <input type="email" class="form-control" id="email" name="email" value="<?= e(old('email')) ?>" required autocomplete="email">
     </div>
 
     <div class="mb-3">

@@ -104,6 +104,24 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Light Mode / Dark Mode, lưu theo tài khoản (`users.theme`) và trong session.
 - Responsive: sidebar → offcanvas + bottom navigation trên mobile.
 
+### 2.13. Giữ giá trị form (Form persistence)
+Ba tầng bảo vệ dữ liệu người dùng đã nhập, không mất khi tải lại trang hoặc gửi lỗi:
+
+1. **Nháp phía trình duyệt** — form có `data-draft="<key>"` tự lưu vào `localStorage` mỗi khi nhập (debounce 200ms) và khôi phục lại khi tải trang, kể cả khi quay lại từ bộ nhớ đệm của trình duyệt (bfcache).
+   - Form mật khẩu, file, hidden và CSRF token không được lưu.
+   - `localStorage` bị chặn (chế độ riêng tư) hoặc dữ liệu hỏng không gây lỗi.
+2. **Giá trị cũ phía server** — khi validate thất bại, `Controller::fail()` lưu field đã nhập vào session; request kế tiếp render lại bằng `old()` rồi xoá khỏi session (chỉ dùng một lần).
+   - Áp dụng cho: đăng nhập, đăng ký, quên mật khẩu, soạn bài viết, sửa bài viết, cập nhật hồ sơ.
+3. **Xoá nháp khi thành công** — server gửi `data-cleared-drafts` xuống trình duyệt để xoá nháp cũ, tránh tự động điền lại nội dung đã đăng.
+
+Ưu tiên khi khôi phục: giá trị do server render (`old()`) thắng nháp cũ — field được đánh dấu qua `data-old-fields`.
+
+### 2.14. Cảnh báo rời trang khi còn nội dung chưa gửi
+- Form có `data-guard="<nhãn>"` được kiểm tra trước khi người dùng rời trang.
+- Bấm link nội bộ → hiện hộp thoại liệt kê chính xác những gì sẽ mất (tên field + xem trước nội dung, cắt ngắn 60 ký tự), kèm hai lựa chọn **Ở lại trang** / **Rời đi**.
+- Đóng tab hoặc tải lại trang → trình duyệt hiện hộp thoại xác nhận chuẩn (`beforeunload`).
+- Form `data-leave-guard` (ví dụ đăng xuất) cũng được cảnh báo nếu đang có dữ liệu chưa gửi ở form khác.
+- Chỉ cảnh báo khi thực sự có dữ liệu: field rỗng, field ẩn, và giá trị mặc định chưa sửa đều không bị tính.
 ---
 
 ## 3. Cấu trúc thư mục
@@ -120,6 +138,7 @@ koobecaf/
 │   │   ├── Database.php           # PDO singleton, prepared statements, transaction
 │   │   ├── Env.php                # Bộ đọc file .env
 │   │   ├── Logger.php             # Ghi log lỗi vào storage/logs
+│   │   ├── OldInput.php           # Giữ giá trị form cũ sau khi validate thất bại
 │   │   ├── Request.php            # GET/POST/JSON/files/headers
 │   │   ├── Response.php           # JSON response & redirect
 │   │   ├── Router.php             # Định tuyến regex, hỗ trợ {id}/{username}
@@ -177,7 +196,7 @@ koobecaf/
 ├── .htaccess                      # Rewrite về index.php + chặn mã nguồn
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
 │   ├── css/app.css                # Design system tự viết (token, layout, component)
-│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling
+│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling + lưu nháp form
 │   ├── images/logo.png            # Logo thương hiệu
 │   └── vendor/                    # Bootstrap Icons (bản local)
 ├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
@@ -192,6 +211,10 @@ koobecaf/
 │   ├── smoke.php                   # 54 kiểm tra tích hợp end-to-end
 │   ├── extended.php                # 40 kiểm tra biên (upload, quyền, riêng tư, mật khẩu, theme, regression)
 │   ├── password_reset.php          # 21 kiểm tra luồng quên/đặt lại mật khẩu
+│   ├── form_persistence.php        # 16 kiểm tra giữ giá trị form sau khi validate thất bại
+│   ├── draft_cleared.php           # 9 kiểm tra cơ chế báo xoá nháp sau khi gửi thành công
+│   ├── draft_engine.js             # 14 kiểm tra logic lưu nháp phía trình duyệt (Node)
+│   ├── leave_guard.js              # 13 kiểm tra logic cảnh báo rời trang (Node)
 │   ├── pages.php                   # Render toàn bộ route + API, bắt lỗi PHP
 │   └── check_classes.php           # Kiểm tra class trong CSS có được định nghĩa
 │
@@ -410,6 +433,10 @@ php -S localhost:8000 -t . router.php
 php tests/smoke.php        http://localhost:8000   # 54 kiểm tra end-to-end
 php tests/extended.php     http://localhost:8000   # 40 kiểm tra biên
 php tests/password_reset.php http://localhost:8000 # 21 kiểm tra quên/đặt lại mật khẩu
+php tests/form_persistence.php http://localhost:8000 # 20 kiểm tra giữ giá trị form
+php tests/draft_cleared.php http://localhost:8000   # 9 kiểm tra xoá nháp sau khi gửi thành công
+node tests/draft_engine.js                          # 14 kiểm tra logic lưu nháp (không cần server)
+node tests/leave_guard.js                           # 13 kiểm tra logic cảnh báo rời trang (không cần server)
 php tests/pages.php        http://localhost:8000   # render toàn bộ route, bắt lỗi PHP
 ```
 
@@ -419,6 +446,10 @@ Kết quả mong đợi:
 PASS: 54 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
 PASS: 21 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
+PASS: 20 | FAIL: 0     (form_persistence.php)
+PASS: 9  | FAIL: 0     (draft_cleared.php)
+PASS: 14 | FAIL: 0     (draft_engine.js)
+PASS: 13 | FAIL: 0     (leave_guard.js)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
 

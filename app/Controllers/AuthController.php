@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\OldInput;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\Validator;
@@ -33,12 +34,12 @@ final class AuthController extends Controller
             ->required('password', 'Mật khẩu');
 
         if ($validator->fails()) {
-            $this->fail($validator->firstError(), 'login');
+            $this->failAuth($validator->firstError(), 'login');
         }
 
         $user = User::findByEmail($email);
         if ($user === null || !password_verify($password, (string) $user['password_hash'])) {
-            $this->fail('Email hoặc mật khẩu không đúng.', 'login');
+            $this->failAuth('Email hoặc mật khẩu không đúng.', 'login');
         }
 
         $this->loginUser((int) $user['id']);
@@ -64,14 +65,14 @@ final class AuthController extends Controller
             ->matches('password_confirmation', 'password', 'Mật khẩu xác nhận');
 
         if ($validator->fails()) {
-            $this->fail($validator->firstError(), 'register');
+            $this->failAuth($validator->firstError(), 'register');
         }
 
         if (User::emailExists($email)) {
-            $this->fail('Email này đã được sử dụng.', 'register');
+            $this->failAuth('Email này đã được sử dụng.', 'register');
         }
         if (User::usernameExists($username)) {
-            $this->fail('Username này đã tồn tại.', 'register');
+            $this->failAuth('Username này đã tồn tại.', 'register');
         }
 
         $userId = User::create([
@@ -97,17 +98,12 @@ final class AuthController extends Controller
         Session::regenerate();
         Session::set('user_id', $userId);
         Session::flash('success', 'Đăng nhập thành công!');
+        OldInput::clearDraft('login', 'register');
         Response::redirect('/');
     }
 
-    private function fail(string $message, string $redirect): void
+    private function failAuth(string $message, string $redirect): void
     {
-        $old = [];
-        foreach (['username', 'email', 'display_name'] as $field) {
-            $old['_old.' . $field] = $this->request->string($field);
-        }
-        Session::set('_old', $old);
-        Session::flash('error', $message);
-        Response::redirect('/' . $redirect);
+        parent::fail($message, '/' . $redirect, ['username', 'email', 'display_name']);
     }
 }
