@@ -262,8 +262,10 @@
         const author = post.author || {};
         const name = author.display_name || 'Có người';
         const text = author.username ? `@${author.username} ` : '';
+        window.__kbToast = (window.__kbToast || 0) + 1;
+        window.__kbToastMsg = `${name} ${text}vừa đăng bài viết mới.`;
 
-        showToast('info', `${name} ${text}vừa đăng bài viết mới.`);
+        showToast('info', window.__kbToastMsg);
     }
 
     // -----------------------------------------------------------------
