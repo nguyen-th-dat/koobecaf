@@ -865,9 +865,21 @@ document.querySelectorAll('.notification-item').forEach(item => {
 /* =============================================================
    Cảnh báo rời trang khi còn nội dung chưa gửi
    ------------------------------------------------------------
-   Form đánh dấu bằng data-guard="<tên>" sẽ được kiểm tra khi người dùng
-   định rời trang (bấm link, gửi form, đóng tab). Nếu còn dữ liệu chưa gửi thì
-   hiện hộp thoại liệt kê những gì sẽ mất.
+   Không phải trang nào cũng cần cảnh báo. Nguyên tắc:
+
+   - Nội dung ĐÃ được lưu nháp (localStorage) → không mất khi rời trang,
+     chỉ hiện chỉ báo nhẹ "đã lưu tự động".
+   - Nội dung KHÔNG lưu nháp được (mật khẩu, ảnh đã chọn...) →
+     thực sự mất, nên hiện hộp thoại liệt kê cụ thể những gì sẽ mất.
+
+   Mỗi form khai báo một trong ba thuộc tính:
+     data-draft="<key>"    → nội dung được lưu nháp, không cần cảnh báo
+     data-guard="<nhãn>"   → nội dung được giữ trong phiên, chỉ báo nhẹ
+     data-lose="<nhãn>"    → nội dung KHÔNG giữ được, cần hộp thoại cảnh báo
+
+   Trong một form có data-draft, những field KHÔNG lưu được (file, mật khẩu)
+   vẫn cần cảnh báo. Đánh dấu chúng bằng:
+     data-lose-fields="images[],avatar"    → chỉ các field này mới cần cảnh báo
    ============================================================= */
 const LEAVE_FIELD_LABELS = {
     content: 'Nội dung',
@@ -882,6 +894,9 @@ const LEAVE_FIELD_LABELS = {
     body: 'Nội dung tin nhắn',
 };
 
+/** Field nhạy cảm: hiển thị trong hộp thoại thì che bớt, không ghi ra nháp. */
+const LEAVE_SECRET_FIELDS = new Set(['password', 'password_confirmation', 'current_password', 'new_password']);
+
 /**
  * Form đang chờ người dùng xác nhận rời đi.
  */
@@ -893,6 +908,16 @@ const initialValues = new WeakMap();
 
 function guardForms() {
     return Array.from(document.querySelectorAll('form[data-guard]'));
+}
+
+/** Form có nội dung được lưu nháp — rời trang không mất gì. */
+function draftForms() {
+    return Array.from(document.querySelectorAll('form[data-draft]'));
+}
+
+/** Form có nội dung KHÔNG giữ được — cần hộp thoại cảnh báo. */
+function loseForms() {
+    return Array.from(document.querySelectorAll('form[data-lose]'));
 }
 
 /**
@@ -994,6 +1019,11 @@ function fieldPreview(el) {
         return el.checked ? 'đã chọn' : '';
     }
 
+    // Mật khẩu không bao giờ hiện giá trị ra ngoài.
+    if (LEAVE_SECRET_FIELDS.has(el.name)) {
+        return el.value ? '••••••' : '';
+    }
+
     const value = String(el.value || '').trim();
     if (value === '') return '';
 
@@ -1001,25 +1031,48 @@ function fieldPreview(el) {
 }
 
 /**
- * Trả về danh sách form còn dữ liệu chưa gửi, kèm nhãn các field bị mất.
+ * Tóm tắt nội dung THỰC SỰ mất khi rời trang.
+ *
+ * Chỉ form đánh dấu data-lose mới được tính: nội dung của các form này không
+ * được lưu nháp nên rời trang là mất hẳn. Form có data-draft thì chỉ các field
+ * không lưu nháp được (data-lose-fields) mới cần cảnh báo.
  *
  * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
  */
-function dirtyGuardForms() {
-    return guardForms().map(form => {
+function losingForms() {
+    const candidates = loseForms().map(form => ({
+        form,
+        label: form.dataset.lose || 'Nội dung đã nhập',
+        only: null,
+    }));
+
+    // Form có lưu nháp: chỉ field không lưu được mới thực sự mất.
+    draftForms().forEach(form => {
+        const only = (form.dataset.loseFields || '')
+            .split(',')
+            .map(item => item.trim())
+            .filter(Boolean);
+
+        if (only.length === 0) return;
+
+        candidates.push({
+            form,
+            label: form.dataset.loseLabel || 'Nội dung đã nhập',
+            only,
+        });
+    });
+
+    return candidates.map(({ form, label, only }) => {
         const items = [];
 
         form.querySelectorAll('input[name], textarea[name], select[name]').forEach(el => {
+            if (only !== null && !only.includes(el.name)) return;
             if (!isFieldDirty(form, el)) return;
 
             items.push({ name: fieldLabel(el), preview: fieldPreview(el) });
         });
 
-        return {
-            form,
-            label: form.dataset.guard || 'Nội dung đã nhập',
-            items,
-        };
+        return { form, label, items };
     }).filter(item => item.items.length > 0);
 }
 
@@ -1136,11 +1189,11 @@ document.addEventListener('click', event => {
     const link = event.target.closest('a[href]');
     if (!isInternalLink(link)) return;
 
-    const dirty = dirtyGuardForms();
-    if (dirty.length === 0) return;
+    const losing = losingForms();
+    if (losing.length === 0) return;
 
     event.preventDefault();
-    showLeaveModal(dirty, { type: 'link', url: link.href });
+    showLeaveModal(losing, { type: 'link', url: link.href });
 });
 
 // Gửi form là hành động có chủ ý nên không bị chặn: dữ liệu được gửi đi, không mất.
@@ -1152,19 +1205,19 @@ document.addEventListener('submit', event => {
     const form = event.target;
     if (!form.dataset.leaveGuard) return;
 
-    // Chỉ cảnh báo nếu có dữ liệu chưa gửi ở form khác.
-    const dirty = dirtyGuardForms();
-    if (dirty.length === 0) return;
+    // Chỉ cảnh báo nếu có nội dung thực sự mất ở form khác.
+    const losing = losingForms();
+    if (losing.length === 0) return;
 
     event.preventDefault();
-    showLeaveModal(dirty, { type: 'form', form, submitter: event.submitter });
+    showLeaveModal(losing, { type: 'form', form, submitter: event.submitter });
 });
 
 window.addEventListener('beforeunload', event => {
     if (allowUnload) return;
 
-    const dirty = dirtyGuardForms();
-    if (dirty.length === 0) return;
+    const losing = losingForms();
+    if (losing.length === 0) return;
 
     event.preventDefault();
     event.returnValue = '';
@@ -1176,7 +1229,7 @@ window.addEventListener('pageshow', () => {
 });
 
 function initGuards() {
-    guardForms().forEach(snapshotInitialValues);
+    [...guardForms(), ...loseForms(), ...draftForms()].forEach(snapshotInitialValues);
 }
 
 initGuards();
@@ -1195,8 +1248,29 @@ const DRAFT_PREFIX = 'kb:draft:';
 const DRAFT_DEBOUNCE = 200;
 const DRAFT_SKIP_TYPES = new Set(['file', 'hidden', 'submit', 'button', 'password', 'reset']);
 
+/**
+ * Id người dùng hiện tại, dùng để tách nháp của các tài khoản khác nhau trên
+ * cùng một máy. Khách chưa đăng nhập dùng uid 0.
+ */
+const DRAFT_USER_ID = Number(document.body.dataset.userId || 0);
+
+/**
+ * Khoá lưu nháp. Có gắn uid để nháp của tài khoản này không lẫn sang tài khoản
+ * khác trên cùng máy.
+ */
 function draftStorageKey(key) {
-    return DRAFT_PREFIX + key;
+    return DRAFT_PREFIX + DRAFT_USER_ID + ':' + key;
+}
+
+/**
+ * Xoá nháp ở mọi phạm vi người dùng.
+ *
+ * Nháp đăng nhập/đăng ký được tạo khi chưa đăng nhập (uid 0) nên sau khi đăng
+ * nhập thành công vẫn cần xoá được nháp cũ ở phạm vi đó.
+ */
+function removeDraftEverywhere(key) {
+    removeDraft(key);
+    removeDraft(DRAFT_PREFIX + '0:' + key);
 }
 
 function readDraft(key) {
@@ -1229,7 +1303,10 @@ function removeDraft(key) {
 /** Xoá nháp đã lưu của một form cụ thể. */
 function clearFormDraft(form) {
     if (!form || !form.dataset.draft) return;
-    removeDraft(form.dataset.draft);
+    removeDraftEverywhere(form.dataset.draft);
+
+    const hint = form.querySelector('[data-draft-hint]');
+    if (hint) hint.hidden = true;
 }
 
 function collectDraftFields(form) {
@@ -1288,13 +1365,55 @@ function applyDraft(form, draft) {
     });
 }
 
+/* =============================================================
+   Chỉ báo nháp đã lưu
+   ------------------------------------------------------------
+   Người dùng cần biết nội dung của họ đã được an toàn. Chỉ báo nhỏ xuất hiện
+   cạnh form ngay sau khi nội dung được lưu nháp, tự tắt khi form trống lại.
+   ============================================================= */
+function ensureDraftHint(form) {
+    if (form.dataset.draftHint === '1') return form.querySelector('[data-draft-hint]');
+
+    const hint = document.createElement('small');
+    hint.className = 'draft-hint';
+    hint.dataset.draftHint = '';
+    hint.setAttribute('role', 'status');
+    hint.hidden = true;
+
+    form.appendChild(hint);
+    form.dataset.draftHint = '1';
+
+    return hint;
+}
+
+function updateDraftHint(form) {
+    const hint = ensureDraftHint(form);
+    const hasContent = form.querySelector('input[name], textarea[name], select[name]') !== null
+        && Array.from(form.querySelectorAll('input[name], textarea[name], select[name]'))
+            .some(el => {
+                const type = (el.type || '').toLowerCase();
+                if (DRAFT_SKIP_TYPES.has(type)) return false;
+                if (type === 'file') return Boolean(el.files && el.files.length);
+                if (type === 'checkbox' || type === 'radio') return el.checked;
+                return String(el.value || '').trim() !== '';
+            });
+
+    if (!hasContent) {
+        hint.hidden = true;
+        return;
+    }
+
+    hint.innerHTML = '<i class="bi bi-cloud-check"></i>Đã lưu tự động — bạn có thể rời trang mà không mất nội dung';
+    hint.hidden = false;
+}
+
 function initDrafts() {
     // Danh sách nháp cần xoá do server báo (form đã xử lý thành công).
     (document.body.dataset.clearedDrafts || '')
         .split(',')
         .map(item => item.trim())
         .filter(Boolean)
-        .forEach(removeDraft);
+        .forEach(removeDraftEverywhere);
 
     document.querySelectorAll('form[data-draft]').forEach(form => {
         const key = form.dataset.draft;
@@ -1302,14 +1421,23 @@ function initDrafts() {
         let timer = null;
         const scheduleSave = () => {
             clearTimeout(timer);
-            timer = setTimeout(() => writeDraft(key, collectDraftFields(form)), DRAFT_DEBOUNCE);
+            timer = setTimeout(() => {
+                writeDraft(key, collectDraftFields(form));
+                updateDraftHint(form);
+            }, DRAFT_DEBOUNCE);
         };
 
         form.addEventListener('input', scheduleSave);
-        form.addEventListener('change', () => writeDraft(key, collectDraftFields(form)));
+        form.addEventListener('change', () => {
+            writeDraft(key, collectDraftFields(form));
+            updateDraftHint(form);
+        });
 
         const draft = readDraft(key);
-        if (draft) applyDraft(form, draft);
+        if (draft) {
+            applyDraft(form, draft);
+            updateDraftHint(form);
+        }
 
         // Khôi phục lại khi người dùng quay lại trang từ bộ nhớ đệm (bfcache).
         window.addEventListener('pageshow', event => {
