@@ -76,7 +76,7 @@ $icons = [
 </div>
 
 <?php if ($totalPages > 1): ?>
-    <nav aria-label="Phân trang" class="d-flex justify-content-center gap-2 my-3">
+    <nav aria-label="Phân trang" class="pagination my-3">
         <?php if ($page > 1): ?>
             <a class="btn btn-outline btn-sm" href="?page=<?= $page - 1 ?>"><i class="bi bi-chevron-left"></i> Trước</a>
         <?php endif; ?>
