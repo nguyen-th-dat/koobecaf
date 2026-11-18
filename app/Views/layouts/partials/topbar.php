@@ -47,6 +47,16 @@ $navActive = static function (string $prefix) use ($path): string {
                         <i class="bi bi-pencil-square"></i><span>Đăng bài</span>
                     </a>
 
+                    <a class="topbar-icon-btn" href="<?= url('/notifications') ?>" title="Thông báo" aria-label="Thông báo">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge-dot<?= $unreadNotifications > 0 ? '' : ' d-none' ?>" data-badge="notifications"><?= $unreadNotifications > 99 ? '99+' : (int) $unreadNotifications ?></span>
+                    </a>
+
+                    <a class="topbar-icon-btn" href="<?= url('/chat') ?>" title="Tin nhắn" aria-label="Tin nhắn">
+                        <i class="bi bi-chat-dots"></i>
+                        <span class="badge-dot<?= $unreadMessages > 0 ? '' : ' d-none' ?>" data-badge="messages"><?= $unreadMessages > 99 ? '99+' : (int) $unreadMessages ?></span>
+                    </a>
+
                     <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-expanded="false" aria-label="Tài khoản">
                         <img src="<?= e(avatar_url($currentUser['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                     </button>
