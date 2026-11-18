@@ -155,7 +155,7 @@ request('POST', $base . '/posts', ['form' => [
 $res = request('GET', $base . '/');
 check('Upload file khong phai image bi tu choi', !str_contains($res['body'], 'shell.php') && !str_contains($res['body'], 'hacked'));
 
-$uploads = dirname(__DIR__) . '/public/uploads/posts';
+$uploads = dirname(__DIR__) . '/uploads/posts';
 $phpFiles = glob($uploads . '/*.php') ?: [];
 check('Khong co file PHP nao trong thu muc uploads', count($phpFiles) === 0, implode(',', $phpFiles));
 

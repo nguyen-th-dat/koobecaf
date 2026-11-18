@@ -68,7 +68,7 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 - Sửa hồ sơ: tên hiển thị, tiểu sử, avatar, ảnh bìa.
 - Đổi mật khẩu: yêu cầu mật khẩu hiện tại.
 - Upload an toàn (`app/Services/UploadService.php`): MIME thực qua `finfo`, allowlist extension, giới hạn 5MB, tên file ngẫu nhiên, thư mục riêng `avatars/`, `covers/`, `posts/`.
-- `public/uploads/.htaccess` chặn thực thi PHP + chặn autoindex.
+- `uploads/.htaccess` chặn thực thi PHP + chặn autoindex.
 - Xóa file cũ khi thay avatar/cover mới.
 
 ---
@@ -195,7 +195,7 @@ Tổng: **94 kiểm tra tự động — 0 lỗi.**
 | FULLTEXT search | Thay `LIKE` bằng MySQL FULLTEXT index khi dữ liệu lớn |
 | Cache | Redis cho session, unread count, feed |
 | PHPUnit | Viết lại bộ test dưới dạng unit test chuẩn PHPUnit + CI |
-| Cron dọn file mồ côi | Xóa file trong `public/uploads/` không còn tham chiếu trong `post_images` |
+| Cron dọn file mồ côi | Xóa file trong `uploads/` không còn tham chiếu trong `post_images` |
 | Rate limit API | Chống spam like/comment/post bằng token bucket |
 
 ---
@@ -204,7 +204,7 @@ Tổng: **94 kiểm tra tự động — 0 lỗi.**
 
 ```bash
 # Terminal 1 — khởi động server
-php -S localhost:8000 -t public public/router.php
+php -S localhost:8000 -t . router.php
 
 # Terminal 2
 php tests/smoke.php    http://localhost:8000
@@ -220,7 +220,7 @@ Kết quả mong đợi: `PASS: 54 | FAIL: 0`, `PASS: 40 | FAIL: 0`, `FAIL: 0`.
 composer install
 cp .env.example .env          # Windows: copy .env.example .env
 # import database/schema.sql + database/seed.sql vào MySQL
-php -S localhost:8000 -t public public/router.php
+php -S localhost:8000 -t . router.php
 ```
 
 Đăng nhập: `an` / `Password@123` (hoặc `binh`, `chi`, `dung`, `em` — cùng mật khẩu).

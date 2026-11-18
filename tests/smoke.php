@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Kiểm thử tích hợp mức HTTP cho toàn bộ luồng chính của Koobecaf.
  *
  * Chạy (cần server đang chạy):
- *   php -S 127.0.0.1:8931 -t public public/router.php
+ *   php -S 127.0.0.1:8931 -t . router.php
  *   php tests/smoke.php http://127.0.0.1:8931
  */
 

@@ -468,7 +468,7 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 | CSRF | Token per-session, kiểm tra trên mọi request đổi dữ liệu; hỗ trợ cả form field, JSON body và header `X-CSRF-TOKEN` |
 | Mật khẩu | `password_hash()` (bcrypt) + `password_verify()`; không bao giờ lưu bản rõ; không log mật khẩu |
 | Session | Regenerate ID sau đăng nhập/đăng ký; cookie `HttpOnly` + `SameSite=Lax` (+ `Secure` khi bật) |
-| Upload | Kiểm tra MIME thực (`finfo`) + extension allowlist (jpg/jpeg/png/gif/webp) + giới hạn 5MB + đổi tên file ngẫu nhiên + `.htaccess` chặn thực thi PHP trong `public/uploads/` |
+| Upload | Kiểm tra MIME thực (`finfo`) + extension allowlist (jpg/jpeg/png/gif/webp) + giới hạn 5MB + đổi tên file ngẫu nhiên + `.htaccess` chặn thực thi PHP trong `uploads/` |
 | Phân quyền | Kiểm tra ở backend cho mọi thao tác: sở hữu bài viết/bình luận, quyền xem theo `privacy`, thành viên cuộc trò chuyện, quyền xóa bài viết đã bị xóa |
 | SQL integrity | FK + UNIQUE + CHECK logic ở tầng ứng dụng: cấm tự follow, cấm tự kết bạn, cấm Like trùng |
 | Rò rỉ thông tin | `APP_DEBUG=false` ở production, lỗi ghi vào `storage/logs/`, không hiển thị stack trace cho người dùng |
