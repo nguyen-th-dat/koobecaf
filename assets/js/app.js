@@ -1440,7 +1440,7 @@ function updateDraftHint(form) {
     }
 
     hint.innerHTML = '<i class="bi bi-cloud-check"></i>Đã lưu tự động — bạn có thể rời trang mà không mất nội dung';
-    hint.hidden = false;
+    hint.hidden = true;
 }
 
 function initDrafts() {
