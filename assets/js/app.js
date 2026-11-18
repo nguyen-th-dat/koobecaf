@@ -394,7 +394,7 @@ function buildCommentNode(comment) {
     node.className = 'comment-item d-flex gap-2 py-2';
     node.dataset.commentId = comment.id;
 
-    const avatar = comment.author.avatar_url || apiUrl('/assets/images/default.svg');
+    const avatar = comment.author.avatar_url || apiUrl('/uploads/avatars/default-avatar.png');
     const isMine = comment.author.id === (window.KB_USER_ID || 0);
 
     node.innerHTML = `
@@ -653,7 +653,7 @@ if (searchInput) {
         searchResults.innerHTML = '<ul class="list-unified">' + users.map(user => `
             <li>
                 <a class="d-flex align-items-center gap-2 p-2 fg-body text-decoration-none" href="${user.profile_url}">
-                    <img src="${user.avatar_url || apiUrl('/assets/images/default.svg')}" alt="" class="avatar avatar-sm">
+                    <img src="${user.avatar_url || apiUrl('/uploads/avatars/default-avatar.png')}" alt="" class="avatar avatar-sm">
                     <div class="min-w-0">
                         <div class="fw-semibold text-truncate">${escapeHtml(user.display_name)}</div>
                         <small class="fg-secondary">@${escapeHtml(user.username)}</small>
@@ -712,7 +712,7 @@ if (chatSearchInput && chatSearchResults) {
             chatSearchResults.innerHTML = '<ul class="list-unified">' + users.map(user => `
                 <li>
                     <a class="d-flex align-items-center gap-2 p-2 fg-body text-decoration-none" href="${user.chat_url}">
-                        <img src="${user.avatar_url || apiUrl('/assets/images/default.svg')}" alt="" class="avatar avatar-sm">
+                        <img src="${user.avatar_url || apiUrl('/uploads/avatars/default-avatar.png')}" alt="" class="avatar avatar-sm">
                         <div class="min-w-0 flex-grow-1">
                             <div class="fw-semibold text-truncate">${escapeHtml(user.display_name)}</div>
                             <small class="fg-secondary">@${escapeHtml(user.username)}</small>
