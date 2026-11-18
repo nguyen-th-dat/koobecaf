@@ -20,7 +20,7 @@ $data = post_view_data($post, $viewerId);
         <h2 class="h6 mb-3"><i class="bi bi-chat-left-text me-2"></i>Bình luận (<?= count($comments) ?>)</h2>
 
         <?php if (is_auth()): ?>
-            <form class="comment-form d-flex gap-2 mb-3" data-post-id="<?= (int) $post['id'] ?>">
+            <form class="comment-form d-flex gap-2 mb-3" data-post-id="<?= (int) $post['id'] ?>" data-draft="comment-detail-<?= (int) $post['id'] ?>">
                 <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                 <div class="flex-grow-1">
                     <textarea name="content" class="form-control form-control-sm" rows="2" placeholder="Viết bình luận..." maxlength="2000" required></textarea>
