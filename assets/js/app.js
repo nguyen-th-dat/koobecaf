@@ -913,16 +913,6 @@ function draftForms() {
 }
 
 /**
- * Form có nội dung KHÔNG giữ được — cần hộp thoại cảnh báo.
- *
- * Gồm hai loại: form đánh dấu data-lose, và field không lưu nháp được
- * (file, mật khẩu) của các form khác.
- */
-function loseForms() {
-    return Array.from(document.querySelectorAll('form[data-lose]'));
-}
-
-/**
  * Form không chứa dữ liệu nhưng thao tác của nó làm mất dữ liệu ở form khác
  * (ví dụ đăng xuất khi đang soạn bài viết).
  */
@@ -1035,32 +1025,44 @@ function fieldPreview(el) {
 /**
  * Nội dung nào thực sự mất khi rời trang.
  *
- * - Form data-leave="keep": nội dung được giữ lại qua nháp → không mất.
- * - Form data-leave="clear": nội dung bị xoá khi rời → KHÔNG hỏi, chỉ xoá.
- * - Field không lưu nháp được (file, mật khẩu) trong mọi form → thực sự mất.
+ * Chính sách theo từng form:
+ *   data-leave="keep"  → nháp được giữ, rời trang không mất gì
+ *   data-leave="clear" → nháp bị xoá khi rời trang, không hỏi (nội dung ngắn)
+ *   data-leave="warn"  → nháp bị xoá khi rời trang, hỏi trước (nội dung dài)
+ *
+ * Ngoài ra, field không lưu nháp được (file, mật khẩu) luôn thực sự mất nên
+ * form chứa chúng được hỏi trước bất kể chính sách.
  *
  * @returns {Array<{form: HTMLFormElement, label: string, items: Array<{name: string, preview: string}>}>}
  */
 function losingForms() {
-    const candidates = loseForms().map(form => ({
-        form,
-        label: form.dataset.lose || 'Nội dung đã nhập',
-        only: null,
-    }));
+    const candidates = [];
 
-    // Form có lưu nháp: chỉ field không lưu được mới thực sự mất.
     draftForms().forEach(form => {
+        const policy = form.dataset.leave || 'clear';
         const only = (form.dataset.loseFields || '')
             .split(',')
             .map(item => item.trim())
             .filter(Boolean);
 
-        if (only.length === 0) return;
+        // keep: nháp còn nguyên, chỉ field không lưu được mới mất.
+        // clear: nháp bị xoá, không hỏi.
+        // warn: nháp bị xoá, hỏi trước.
+        if (policy === 'clear' && only.length === 0) return;
 
         candidates.push({
             form,
-            label: form.dataset.loseLabel || 'Nội dung đã nhập',
-            only,
+            label: form.dataset.loseLabel || form.dataset.guard || 'Nội dung đã nhập',
+            only: only.length > 0 ? only : null,
+        });
+    });
+
+    // Form không lưu nháp (đổi mật khẩu, OTP...) mọi nội dung đều mất.
+    guardForms().forEach(form => {
+        candidates.push({
+            form,
+            label: form.dataset.guard || 'Nội dung đã nhập',
+            only: null,
         });
     });
 
@@ -1079,11 +1081,12 @@ function losingForms() {
 }
 
 /**
- * Xoá sạch nháp của các form không giữ nội dung khi rời trang.
+ * Xoá sạch nội dung nháp khi rời trang.
  *
  * Chính sách theo từng form:
- *   data-leave="keep"  → giữ nháp, không xoá
+ *   data-leave="keep"  → giữ nháp
  *   data-leave="clear" → xoá nháp
+ *   data-leave="warn"  → xoá nháp (sau khi người dùng đã xác nhận)
  *   (không khai báo)   → xoá nháp (mặc định: rời trang là sạch)
  */
 function purgeEphemeralDrafts() {
@@ -1134,6 +1137,9 @@ function ensureLeaveModal() {
         pendingNavigation = null;
         modal.hidden = true;
         allowUnload = true;
+
+        // Rời đi là mất nội dung: xoá sạch nháp theo chính sách từng form.
+        purgeEphemeralDrafts();
 
         if (!target) return;
 
@@ -1211,7 +1217,11 @@ document.addEventListener('click', event => {
     if (!isInternalLink(link)) return;
 
     const losing = losingForms();
-    if (losing.length === 0) return;
+    if (losing.length === 0) {
+        // Không có gì để hỏi: rời trang là xoá sạch nội dung tạm.
+        purgeEphemeralDrafts();
+        return;
+    }
 
     event.preventDefault();
     showLeaveModal(losing, { type: 'link', url: link.href });
@@ -1228,7 +1238,10 @@ document.addEventListener('submit', event => {
 
     // Chỉ cảnh báo nếu có nội dung thực sự mất ở form khác.
     const losing = losingForms();
-    if (losing.length === 0) return;
+    if (losing.length === 0) {
+        purgeEphemeralDrafts();
+        return;
+    }
 
     event.preventDefault();
     showLeaveModal(losing, { type: 'form', form, submitter: event.submitter });
@@ -1236,6 +1249,9 @@ document.addEventListener('submit', event => {
 
 window.addEventListener('beforeunload', event => {
     if (allowUnload) return;
+
+    // Đóng tab / tải lại trang: nội dung tạm bị xoá sạch.
+    purgeEphemeralDrafts();
 
     const losing = losingForms();
     if (losing.length === 0) return;
@@ -1250,7 +1266,7 @@ window.addEventListener('pageshow', () => {
 });
 
 function initGuards() {
-    [...guardForms(), ...loseForms(), ...draftForms()].forEach(snapshotInitialValues);
+    [...guardForms(), ...draftForms()].forEach(snapshotInitialValues);
 }
 
 initGuards();
