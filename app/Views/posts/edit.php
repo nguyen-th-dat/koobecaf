@@ -11,7 +11,7 @@
 
 <div class="card surface-card">
     <div class="card-body">
-        <form action="<?= url('/posts/' . (int) $post['id'] . '/update') ?>" method="post" enctype="multipart/form-data" data-draft="post-edit-<?= (int) $post['id'] ?>" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
+        <form action="<?= url('/posts/' . (int) $post['id'] . '/update') ?>" method="post" enctype="multipart/form-data" data-draft="post-edit-<?= (int) $post['id'] ?>" data-guard="Bài viết đang chỉnh sửa" data-old-fields="<?= e(old_fields(['content', 'privacy'])) ?>">
             <?= \App\Core\Csrf::field() ?>
 
             <div class="mb-3">
