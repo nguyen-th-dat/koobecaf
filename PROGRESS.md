@@ -148,6 +148,19 @@ Tài liệu này ghi lại tiến độ triển khai theo từng giai đoạn, �
 - **Trang đăng nhập / đăng ký**: bố cục 2 cột — panel tối giới thiệu bên trái (desktop ≥992px), biểu mẫu bên phải; mobile hiện logo thu gọn.
 - **Chi tiết nhỏ**: nút chọn tệp tự dựng, phân trang dùng class `.pagination`, chip `.chip`, nút tài khoản dạng pill.
 
+### Đợt sửa trải nghiệm khách (chưa đăng nhập)
+
+- **Trang chủ**: bỏ 2 cột phụ nên cột chính bị kéo giãn hết 1400px — thêm class `is-guest` trên `.app-grid` để giới hạn 680px và canh giữa (bề rộng đọc chuẩn, khớp với hồ sơ/bài viết).
+- **Phân trang feed khách**: `Post::findPublic(1, $page * $perPage)` chỉ lấy 1 bài/trang và sai offset → sửa thành `Post::findPublic($perPage, ($page - 1) * $perPage)`.
+- **Banner chào mừng**: thay khối chữ đơn giản bằng hero card — icon, tiêu đề, mô tả, 2 nút CTA và danh sách tính năng.
+- **Nút hành động trên thẻ bài viết**: "Thích"/"Chia sẻ" của khách là link tới `/login` (trước đó gọi AJAX và báo lỗi 401); "Bình luận" dẫn tới `#comments` của trang bài viết.
+- **Topbar**: ẩn nút hamburger (chỉ mở được ngăn kéo dành cho người đã đăng nhập), thêm mục điều hướng "Bảng tin / Khám phá" cho khách.
+- **Điều hướng mobile**: thêm `mobile-nav-guest.php` — 4 mục công khai (Trang chủ, Khám phá, Đăng nhập, Đăng ký) thay cho bottom nav 5 mục cần đăng nhập.
+- **API tìm kiếm**: `/api/search/users` và `/api/search/posts` chuyển ra khỏi nhóm `AuthMiddleware` (tìm kiếm là tính năng công khai) → gợi ý trong ô tìm kiếm topbar hoạt động với khách.
+- **Hồ sơ người khác**: nút "Kết bạn / Theo dõi / Nhắn tin" của khách là link tới `/login` thay vì POST bị chặn kèm thông báo lỗi.
+- **Trang bài viết**: khách thấy khung mời "Đăng nhập để tham gia thảo luận" thay cho ô viết bình luận; thêm anchor `#comments`.
+- **Chân trang**: đổi các link cần đăng nhập (Cài đặt, Bạn bè, Thông báo, Trò chuyện) sang Đăng nhập/Đăng ký cho khách.
+
 ---
 
 ## Phase 8 — Testing, Optimization, Documentation
@@ -210,6 +223,11 @@ Tổng: **115 kiểm tra tự động — 0 lỗi.**
 | 18 | Trang `/chat` không có cách bắt đầu cuộc trò chuyện mới | Thiếu ô tìm kiếm người dùng trong trang chat, chỉ có danh sách hội thoại | Thêm panel "Bắt đầu cuộc trò chuyện mới" + gợi ý AJAX; API `/api/search/users` trả thêm `chat_url` |
 | 19 | Dữ liệu tiếng Việt trong DB bị vỡ ký tự (`Ch├áo mß╗½ng` thay vì `Chào mừng`) | Import bằng `Get-Content -Raw \| mysql` trên PowerShell: file UTF-8 bị giải mã lại theo bảng mã console (CP437/CP1252) trước khi gửi tới MySQL | Thêm `SET NAMES utf8mb4;` vào `schema.sql`/`seed.sql`; tạo `database/install.php` gửi SQL qua PDO (byte-safe); không dùng pipe của PowerShell khi import |
 | 20 | `database/install.php` cắt dòng sai làm mất ký tự `ễ` | Dùng `preg_split('/\R/')` — `\R` khớp cả byte `0x85` (NEL) trong khi `ễ` = `E1 BB 85` nên bị cắt đôi | Tách dòng bằng `explode("\n", str_replace(["\r\n","\r"], "\n", $sql))` |
+| 21 | Feed của khách chỉ hiện 1 bài viết mỗi trang | `FeedController::index()` gọi `Post::findPublic(1, $page * $perPage)` — limit cứng 1 và offset nhân sai | Sửa thành `Post::findPublic($perPage, ($page - 1) * $perPage)` |
+| 22 | Trang chủ của khách bị kéo giãn 1400px, khó đọc | Không render 2 cột phụ nên `.app-grid` rơi về `minmax(0, 1fr)` trong shell 1400px | Thêm class `is-guest` → `grid-template-columns: minmax(0, 680px); justify-content: center` |
+| 23 | Nút "Thích/Chia sẻ" của khách báo lỗi 401 | Render thành `<button data-action="like">` dù API cần `AuthMiddleware` | Render thành `<a href="/login">` khi chưa đăng nhập |
+| 24 | Nút hamburger trên mobile của khách không mở được gì | `#mobileSidebar` chỉ render trong `mobile-nav.php` (chỉ dành cho người đăng nhập) | Ẩn nút hamburger với khách; thêm `mobile-nav-guest.php` với các mục công khai |
+| 25 | Gợi ý trong ô tìm kiếm không hoạt động với khách | `/api/search/users` nằm trong nhóm route `AuthMiddleware` | Chuyển 2 API tìm kiếm ra khỏi nhóm `AuthMiddleware` (tìm kiếm là tính năng công khai) |
 
 ---
 

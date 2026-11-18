@@ -126,23 +126,29 @@ $originalImages = $meta['originalImages'];
                 <i class="bi bi-share"></i> <span>Chia sẻ</span>
             </a>
         <?php endif; ?>
-        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
-            <i class="bi bi-chat"></i> <span>Bình luận</span>
-        </button>
+        <?php if (is_auth()): ?>
+            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-chat"></i> <span>Bình luận</span>
+            </button>
+        <?php else: ?>
+            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= e($meta['permalink']) ?>#comments" title="Xem bình luận">
+                <i class="bi bi-chat"></i> <span>Bình luận</span>
+            </a>
+        <?php endif; ?>
         <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="copy-link" data-url="<?= e($meta['permalink']) ?>">
             <i class="bi bi-link-45deg"></i> <span>Sao chép link</span>
         </button>
     </div>
 
-    <div class="post-comments border-top d-none" data-comments-container="<?= (int) $post['id'] ?>">
-        <?php if (is_auth()): ?>
+    <?php if (is_auth()): ?>
+        <div class="post-comments border-top d-none" data-comments-container="<?= (int) $post['id'] ?>">
             <form class="comment-form d-flex gap-2 p-2 border-bottom" data-post-id="<?= (int) $post['id'] ?>">
                 <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-sm">
                 <input type="text" name="content" class="form-control form-control-sm" placeholder="Viết bình luận..." maxlength="2000" required>
                 <input type="hidden" name="parent_id" value="">
                 <button class="btn btn-solid btn-sm" type="submit">Gửi</button>
             </form>
-        <?php endif; ?>
-        <div class="comment-list p-2" data-comment-list="<?= (int) $post['id'] ?>"></div>
-    </div>
+            <div class="comment-list p-2" data-comment-list="<?= (int) $post['id'] ?>"></div>
+        </div>
+    <?php endif; ?>
 </article>

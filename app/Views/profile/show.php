@@ -28,6 +28,12 @@ $friendStatus = $friendStatus ?? 'none';
             <div class="pb-2 d-flex gap-2">
                 <?php if ($isSelf): ?>
                     <a class="btn btn-outline btn-sm" href="<?= url('/settings/profile') ?>"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+                <?php elseif (!is_auth()): ?>
+                    <a class="btn btn-outline btn-sm" href="<?= url('/login') ?>"><i class="bi bi-person-plus"></i> Kết bạn</a>
+                    <a class="btn btn-outline btn-sm" href="<?= url('/login') ?>"><i class="bi bi-person-plus"></i> <span>Theo dõi</span></a>
+                    <a class="btn btn-outline btn-sm" href="<?= url('/login') ?>" title="Nhắn tin">
+                        <i class="bi bi-chat-dots"></i>
+                    </a>
                 <?php else: ?>
                     <?php if ($friendStatus === 'accepted'): ?>
                         <form action="<?= url('/friends/' . (int) $user['id'] . '/remove') ?>" method="post">

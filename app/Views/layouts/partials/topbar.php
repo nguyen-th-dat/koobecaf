@@ -30,13 +30,13 @@ $navActive = static function (string $prefix) use ($path): string {
                 <span class="brand-text">Koobecaf</span>
             </a>
 
-            <?php if (is_auth()): ?>
-                <nav class="topbar-nav" aria-label="Điều hướng chính">
-                    <a class="nav-link<?= $navActive('/') ?>" href="<?= url('/') ?>">Bảng tin</a>
-                    <a class="nav-link<?= $navActive('/search') ?>" href="<?= url('/search') ?>">Khám phá</a>
+            <nav class="topbar-nav" aria-label="Điều hướng chính">
+                <a class="nav-link<?= $navActive('/') ?>" href="<?= url('/') ?>">Bảng tin</a>
+                <a class="nav-link<?= $navActive('/search') ?>" href="<?= url('/search') ?>">Khám phá</a>
+                <?php if (is_auth()): ?>
                     <a class="nav-link<?= $navActive('/chat') ?>" href="<?= url('/chat') ?>">Trò chuyện</a>
-                </nav>
-            <?php endif; ?>
+                <?php endif; ?>
+            </nav>
 
             <div class="topbar-actions ms-auto">
                 <form class="search-form" action="<?= url('/search') ?>" method="get" role="search">

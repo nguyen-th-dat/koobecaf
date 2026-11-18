@@ -1581,6 +1581,14 @@
     }
 
     /* ---------------- Bình luận ---------------- */
+    .comment-login-prompt {
+        background-color: var(--kb-surface-soft);
+        border: 1px solid var(--kb-hairline-soft);
+        border-radius: var(--kb-radius-md);
+        padding: var(--kb-space-md);
+        text-align: center;
+    }
+
     .comment-bubble {
         background-color: var(--kb-canvas);
         border: 1px solid var(--kb-hairline-soft);
@@ -2302,6 +2310,12 @@
             gap: var(--kb-space-xl);
         }
 
+        /* Khách không có 2 cột phụ — giữ cột chính ở bề rộng đọc và canh giữa */
+        .app-grid.is-guest {
+            grid-template-columns: minmax(0, 680px);
+            justify-content: center;
+        }
+
         .app-rail-left {
             display: block;
             position: sticky;
@@ -2332,6 +2346,11 @@
 
         .app-grid {
             grid-template-columns: var(--kb-rail-left) minmax(0, 1fr) var(--kb-rail-right);
+        }
+
+        .app-grid.is-guest {
+            grid-template-columns: minmax(0, 680px);
+            justify-content: center;
         }
 
         .app-rail-right {

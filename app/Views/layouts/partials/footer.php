@@ -20,15 +20,24 @@
                 <ul>
                     <li><a href="<?= url('/') ?>">Bảng tin</a></li>
                     <li><a href="<?= url('/search') ?>">Tìm kiếm</a></li>
-                    <li><a href="<?= url('/chat') ?>">Trò chuyện</a></li>
+                    <?php if (is_auth()): ?>
+                        <li><a href="<?= url('/chat') ?>">Trò chuyện</a></li>
+                    <?php else: ?>
+                        <li><a href="<?= url('/login') ?>">Đăng nhập</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
             <div class="col-6 md:col-3 lg:col-2">
                 <h4>Tài khoản</h4>
                 <ul>
-                    <li><a href="<?= url('/settings/profile') ?>">Cài đặt</a></li>
-                    <li><a href="<?= url('/friends') ?>">Bạn bè</a></li>
-                    <li><a href="<?= url('/notifications') ?>">Thông báo</a></li>
+                    <?php if (is_auth()): ?>
+                        <li><a href="<?= url('/settings/profile') ?>">Cài đặt</a></li>
+                        <li><a href="<?= url('/friends') ?>">Bạn bè</a></li>
+                        <li><a href="<?= url('/notifications') ?>">Thông báo</a></li>
+                    <?php else: ?>
+                        <li><a href="<?= url('/login') ?>">Đăng nhập</a></li>
+                        <li><a href="<?= url('/register') ?>">Đăng ký</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
