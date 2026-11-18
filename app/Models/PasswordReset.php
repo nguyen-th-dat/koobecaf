@@ -74,10 +74,4 @@ final class PasswordReset
             [$userId]
         );
     }
-
-    /** Dọn các token đã hết hạn. */
-    public static function purgeExpired(): void
-    {
-        Database::run('DELETE FROM password_resets WHERE expires_at < NOW() OR used_at IS NOT NULL');
-    }
 }
