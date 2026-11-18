@@ -3,7 +3,7 @@
  * @var array $user
  */
 ?>
-<h1 class="h5 mb-3"><i class="bi bi-gear me-2"></i>Cài đặt tài khoản</h1>
+<h1 class="h3 mb-3"><i class="bi bi-gear me-2"></i>Cài đặt tài khoản</h1>
 
 <div class="card surface-card mb-3">
     <div class="card-body">
@@ -12,16 +12,16 @@
             <?= \App\Core\Csrf::field() ?>
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="md:col-6">
                     <label class="form-label" for="display_name">Tên hiển thị</label>
                     <input type="text" class="form-control" id="display_name" name="display_name" value="<?= e($user['display_name']) ?>" maxlength="100" required>
                 </div>
-                <div class="col-md-6">
+                <div class="md:col-6">
                     <label class="form-label" for="username">Username</label>
                     <input type="text" class="form-control" id="username" value="<?= e($user['username']) ?>" disabled>
                     <div class="form-text">Username không thể thay đổi.</div>
                 </div>
-                <div class="col-md-6">
+                <div class="md:col-6">
                     <label class="form-label" for="email">Email</label>
                     <input type="email" class="form-control" id="email" value="<?= e($user['email']) ?>" disabled>
                 </div>
@@ -34,19 +34,19 @@
             <hr class="my-4">
 
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="md:col-6">
                     <label class="form-label" for="avatar">Ảnh đại diện</label>
                     <input class="form-control" type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp">
                     <div class="form-text">Tối đa 5MB.</div>
                 </div>
-                <div class="col-md-6">
+                <div class="md:col-6">
                     <label class="form-label" for="cover">Ảnh bìa</label>
                     <input class="form-control" type="file" id="cover" name="cover" accept="image/jpeg,image/png,image/gif,image/webp">
                     <div class="form-text">Tối đa 5MB.</div>
                 </div>
             </div>
 
-            <button class="btn btn-primary mt-4" type="submit">Lưu thay đổi</button>
+            <button class="btn btn-solid mt-4" type="submit">Lưu thay đổi</button>
         </form>
     </div>
 </div>
@@ -70,7 +70,7 @@
                 <input type="password" class="form-control" id="new_password_confirmation" name="new_password_confirmation" required minlength="8" autocomplete="new-password">
             </div>
 
-            <button class="btn btn-outline-primary" type="submit">Đổi mật khẩu</button>
+            <button class="btn btn-outline btn-primary" type="submit">Đổi mật khẩu</button>
         </form>
     </div>
 </div>
@@ -82,8 +82,8 @@
             <?= \App\Core\Csrf::field() ?>
             <div class="btn-group" role="group" aria-label="Chọn giao diện">
                 <input type="hidden" name="theme" id="themeInput" value="<?= e($user['theme']) ?>">
-                <button type="button" class="btn btn-outline-secondary theme-btn<?= $user['theme'] === 'light' ? ' active' : '' ?>" data-theme="light"><i class="bi bi-sun me-1"></i>Sáng</button>
-                <button type="button" class="btn btn-outline-secondary theme-btn<?= $user['theme'] === 'dark' ? ' active' : '' ?>" data-theme="dark"><i class="bi bi-moon-stars me-1"></i>Tối</button>
+                <button type="button" class="btn btn-outline theme-btn<?= $user['theme'] === 'light' ? ' active' : '' ?>" data-theme="light"><i class="bi bi-sun me-1"></i>Sáng</button>
+                <button type="button" class="btn btn-outline theme-btn<?= $user['theme'] === 'dark' ? ' active' : '' ?>" data-theme="dark"><i class="bi bi-moon-stars me-1"></i>Tối</button>
             </div>
         </form>
     </div>
