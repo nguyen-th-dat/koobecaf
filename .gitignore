@@ -16,6 +16,7 @@
 /tools/
 /test/
 /temp/
+/tmp/
 
 /.agents
 /.aider-desk
@@ -25,11 +26,11 @@ PROMT.md
 /storage/logs/*.log
 
 # File người dùng tải lên (giữ lại .htaccess và cấu trúc thư mục)
-/public/uploads/*
-!/public/uploads/.htaccess
-!/public/uploads/avatars/
-!/public/uploads/covers/
-!/public/uploads/posts/
-/public/uploads/avatars/*
-/public/uploads/covers/*
-/public/uploads/posts/*
+/uploads/*
+!/uploads/.htaccess
+!/uploads/avatars/
+!/uploads/covers/
+!/uploads/posts/
+/uploads/avatars/*
+/uploads/covers/*
+/uploads/posts/*
