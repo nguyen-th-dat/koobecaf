@@ -26,18 +26,17 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     </a>
 
     <div class="card surface-card auth-card">
-        <div class="card-body p-4">
+        <div class="card-body">
             <?php require __DIR__ . '/partials/flash.php'; ?>
             <?= $content ?>
         </div>
     </div>
 
-    <p class="text-center text-secondary small mt-3">
-        <a href="<?= url('/') ?>" class="text-secondary"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
+    <p class="text-center fg-secondary small mt-3 mb-0">
+        <a href="<?= url('/') ?>" class="fg-secondary"><i class="bi bi-arrow-left me-1"></i>Về trang chủ</a>
     </p>
 </div>
 
-<script src="<?= asset('vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= asset('js/app.js') ?>"></script>
+<script type="module" src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>
