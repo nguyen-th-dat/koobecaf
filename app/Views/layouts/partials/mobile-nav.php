@@ -24,7 +24,10 @@ $path = '/' . trim($path, '/');
 
 <div class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
     <div class="drawer-header">
-        <h5 class="drawer-title" id="mobileSidebarLabel">Koobecaf</h5>
+        <a class="brand" href="<?= url('/') ?>">
+            <span class="brand-mark"><i class="bi bi-cup-hot-fill"></i></span>
+            <span class="brand-text">Koobecaf</span>
+        </a>
         <button type="button" class="btn-close" data-drawer-dismiss aria-label="Đóng"></button>
     </div>
     <div class="drawer-body">
