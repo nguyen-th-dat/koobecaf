@@ -23,3 +23,9 @@ spl_autoload_register(static function (string $class): void {
 });
 
 require dirname(__DIR__) . '/app/Helpers/helpers.php';
+
+// Thư viện ngoài (PHPMailer) do Composer quản lý. Nếu chưa chạy `composer install`,
+// autoloader PSR-4 bên trên vẫn đảm bảo ứng dụng chạy được, chỉ thiếu phần gửi mail.
+if (is_file(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require dirname(__DIR__) . '/vendor/autoload.php';
+}
