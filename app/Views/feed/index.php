@@ -14,7 +14,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
             <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm">
                 <?= \App\Core\Csrf::field() ?>
                 <div class="d-flex gap-3">
-                    <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md">
+                    <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md avatar-ring">
                     <textarea name="content" class="form-control composer-input" rows="2" placeholder="Bạn đang nghĩ gì?" maxlength="5000" id="postContent"></textarea>
                 </div>
 
@@ -51,9 +51,13 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 
 <?php if ($posts === []): ?>
     <div class="card surface-card">
-        <div class="card-body text-center fg-secondary py-5">
-            <i class="bi bi-inbox d-block mb-2 fs-2xl"></i>
-            Chưa có bài viết nào. Hãy là người đầu tiên đăng!
+        <div class="empty-state">
+            <span class="empty-icon"><i class="bi bi-inbox"></i></span>
+            <h3>Chưa có bài viết nào</h3>
+            <p>Hãy là người đầu tiên đăng khoảnh khắc của mình lên Koobecaf.</p>
+            <?php if (is_auth()): ?>
+                <a class="btn btn-solid mt-2" href="<?= url('/') ?>#composer"><i class="bi bi-pencil-square me-1"></i>Viết bài ngay</a>
+            <?php endif; ?>
         </div>
     </div>
 <?php else: ?>
