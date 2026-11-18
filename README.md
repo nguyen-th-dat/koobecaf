@@ -24,7 +24,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 | Môi trường | XAMPP (Apache + PHP + MySQL/MariaDB) |
 | Công cụ | Composer, `php -S` (dev server), bộ test tích hợp tự viết |
 
-> Bootstrap 5.3.x và Bootstrap Icons được **vendor sẵn** trong `public/assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet.
+> Bootstrap 5.3.x và Bootstrap Icons được **vendor sẵn** trong `assets/vendor/` nên không cần tải qua CDN — ứng dụng chạy được cả khi môi trường không có Internet.
 
 ---
 
@@ -163,16 +163,15 @@ koobecaf/
 │   ├── seed.sql                    # Dữ liệu mẫu (5 users, bài viết, bình luận, chat...)
 │   └── erd/erd.md                  # Sơ đồ quan hệ thực thể (Mermaid)
 │
-├── public/                         # Document root (đặt hướng dẫn Apache vào đây)
-│   ├── index.php                   # Entry point
-│   ├── router.php                  # Router script cho `php -S`
-│   ├── .htaccess                   # Rewrite + chặn autoindex + cache tĩnh
-│   ├── assets/
-│   │   ├── css/app.css             # CSS riêng (bám theo biến Bootstrap 5.3)
-│   │   ├── js/app.js               # Fetch API: like/comment/share/follow/search/chat polling
-│   │   ├── images/                 # favicon.svg, default.svg
-│   │   └── vendor/                 # Bootstrap 5.3.3 + Bootstrap Icons (bản local)
-│   └── uploads/                    # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
+├── index.php                      # Entry point (chạy tại thư mục gốc)
+├── router.php                     # Router script cho `php -S`
+├── .htaccess                      # Rewrite về index.php + chặn mã nguồn
+├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
+│   ├── css/app.css                # CSS riêng (bám theo biến Bootstrap 5.3)
+│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling
+│   ├── images/                    # favicon.svg, default.svg
+│   └── vendor/                    # Bootstrap 5.3.3 + Bootstrap Icons (bản local)
+├── uploads/                       # Ảnh người dùng tải lên (kèm .htaccess chặn thực thi PHP)
 │
 ├── routes/
 │   └── web.php                     # Toàn bộ định tuyến (web + API)
@@ -224,7 +223,7 @@ Mặc định Document root của XAMPP là `C:\xampp\htdocs`. Có hai cách:
 C:\xampp\htdocs\koobecaf\     ← toàn bộ mã nguồn dự án nằm ở đây
 ```
 
-Khi đó đường dẫn truy cập là `http://localhost/koobecaf/public/`.
+Khi đó đường dẫn truy cập là `http://localhost/koobecaf/`.
 Bỏ qua bước 5.6 (không cần `APP_BASE_PATH`).
 
 **Cách B — đặt ngoài `htdocs` và trỏ Document root (an toàn hơn):**
@@ -234,9 +233,9 @@ Bỏ qua bước 5.6 (không cần `APP_BASE_PATH`).
 
 ```apache
 <VirtualHost *:80>
-    DocumentRoot "D:/projects/koobecaf/public"
+    DocumentRoot "D:/projects/koobecaf"
     ServerName koobecaf.local
-    <Directory "D:/projects/koobecaf/public">
+    <Directory "D:/projects/koobecaf">
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
@@ -252,7 +251,9 @@ Bỏ qua bước 5.6 (không cần `APP_BASE_PATH`).
 
 4. Khởi động lại Apache. Truy cập `http://koobecaf.local`.
 
-> Luôn đặt **Document root trỏ vào thư mục `public/`** — đây là cấu trúc chuẩn, tránh lộ mã nguồn, `.env` và file SQL ra Internet.
+> Ứng dụng chạy ngay tại thư mục gốc dự án. File `.htaccess` ở thư mục gốc chặn truy cập
+> mã nguồn, `.env` và các thư mục hệ thống (`app/`, `config/`, `vendor/`, …) — nhưng
+> **vẫn nên đặt dự án ngoài Document root** để không lộ file nhạy cảm.
 
 ### 5.3. Cài đặt Composer (autoload)
 
