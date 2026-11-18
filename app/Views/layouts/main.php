@@ -5,9 +5,6 @@
  */
 $currentUser = auth_user();
 $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
-$unreadNotifications = auth_id() !== null ? \App\Models\Notification::unreadCount(auth_id()) : 0;
-$unreadMessages = auth_id() !== null ? \App\Models\Conversation::totalUnread(auth_id()) : 0;
-$pendingRequests = auth_id() !== null ? \App\Models\Friendship::countPending(auth_id()) : 0;
 $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 ?>
 <!DOCTYPE html>
@@ -35,18 +32,18 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
 <div class="container-fluid app-shell">
     <div class="row g-0">
         <?php if (is_auth()): ?>
-            <aside class="col-lg-2 sidebar-col d-none d-lg-block">
+            <aside class="lg:col-2 sidebar-col d-none lg:d-block">
                 <?php require __DIR__ . '/partials/sidebar-left.php'; ?>
             </aside>
         <?php endif; ?>
 
-        <main class="<?= is_auth() ? (empty($wide) ? 'col-lg-6 col-xl-7' : 'col-lg-10') : 'col-12' ?> main-col">
+        <main class="<?= is_auth() ? (empty($wide) ? 'lg:col-6 xl:col-7' : 'lg:col-10') : 'col-12' ?> main-col">
             <?php require __DIR__ . '/partials/flash.php'; ?>
             <?= $content ?>
         </main>
 
         <?php if (is_auth() && empty($wide)): ?>
-            <aside class="col-lg-3 col-xl-3 d-none d-lg-block sidebar-col">
+            <aside class="lg:col-3 xl:col-3 d-none lg:d-block sidebar-col">
                 <?php require __DIR__ . '/partials/sidebar-right.php'; ?>
             </aside>
         <?php endif; ?>
@@ -57,7 +54,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
 <?php endif; ?>
 
-<script src="<?= asset('vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-<script src="<?= asset('js/app.js') ?>"></script>
+<script type="module" src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>
