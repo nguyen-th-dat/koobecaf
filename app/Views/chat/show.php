@@ -8,8 +8,8 @@
 $viewerId = auth_id();
 ?>
 <div class="chat-layout">
-    <aside class="chat-sidebar card surface-card d-none md:d-block">
-        <div class="card-body p-0">
+    <aside class="chat-sidebar card surface-card">
+        <div class="card-body p-0 d-flex flex-column">
             <div class="p-3 border-bottom">
                 <h1 class="h6 mb-0"><i class="bi bi-chat-dots me-2"></i>Tin nhắn</h1>
             </div>
