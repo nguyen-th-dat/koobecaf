@@ -22,27 +22,30 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <link rel="canonical" href="<?= e($canonicalUrl ?? url('/')) ?>">
 <?php endif; ?>
     <link rel="icon" href="<?= asset('images/favicon.svg') ?>" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
 </head>
 <body data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>">
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 
-<div class="container-fluid app-shell">
-    <div class="row g-0">
+<div class="app-shell">
+    <div class="app-grid<?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?>">
         <?php if (is_auth()): ?>
-            <aside class="lg:col-2 sidebar-col d-none lg:d-block">
+            <aside class="app-rail app-rail-left">
                 <?php require __DIR__ . '/partials/sidebar-left.php'; ?>
             </aside>
         <?php endif; ?>
 
-        <main class="<?= is_auth() ? (empty($wide) ? 'lg:col-6 xl:col-7' : 'lg:col-10') : 'col-12' ?> main-col">
+        <main class="app-main">
             <?php require __DIR__ . '/partials/flash.php'; ?>
             <?= $content ?>
         </main>
 
         <?php if (is_auth() && empty($wide)): ?>
-            <aside class="lg:col-3 xl:col-3 d-none lg:d-block sidebar-col">
+            <aside class="app-rail app-rail-right">
                 <?php require __DIR__ . '/partials/sidebar-right.php'; ?>
             </aside>
         <?php endif; ?>
