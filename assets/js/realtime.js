@@ -110,13 +110,7 @@
     // -----------------------------------------------------------------
 
     function handleFrame(payload) {
-        window.__kbFrames = window.__kbFrames || [];
-        window.__kbFrames.push(payload.type);
-        try {
-            dispatchFrame(payload);
-        } catch (error) {
-            window.__kbErr = String(error && error.stack ? error.stack : error);
-        }
+        dispatchFrame(payload);
     }
 
     function dispatchFrame(payload) {
@@ -201,8 +195,6 @@
      * giao diện luôn giống hệt bài viết render bình thường.
      */
     async function handleNewPost(post) {
-        window.__kbNew = window.__kbNew || [];
-        window.__kbNew.push('enter ' + JSON.stringify(post && post.id) + ' author=' + JSON.stringify(post && post.author));
         if (!post || !post.id) {
             return;
         }
@@ -457,7 +449,11 @@
     // -----------------------------------------------------------------
 
     function apiUrl(path) {
-        return (body.dataset.baseUrl || '/') + path;
+        // baseUrl có thể là chuỗi rỗng khi ứng dụng nằm ở thư mục gốc —
+        // dùng ?? để không biến '' thành '/' (sẽ tạo URL //api/... sai).
+        const base = document.body.dataset.baseUrl ?? '/';
+
+        return base + path;
     }
 
     function showToast(type, message) {
