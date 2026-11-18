@@ -1246,6 +1246,15 @@ const LEAVE_SECRET_FIELDS = new Set(['password', 'password_confirmation', 'curre
 let pendingNavigation = null;
 let allowUnload = false;
 
+/**
+ * Form đang được gửi đi.
+ *
+ * Nội dung của chính form này không mất khi rời trang (nó đang được gửi lên
+ * server), nên không được tính vào danh sách "sắp mất" — tránh hộp thoại
+ * "Rời khỏi trang web…" của trình duyệt khi bấm nút Đăng bài.
+ */
+let submittingForm = null;
+
 /** Ảnh chụp giá trị ban đầu của các field để phát hiện thay đổi. */
 const initialValues = new WeakMap();
 
@@ -1422,7 +1431,11 @@ function losingForms() {
         });
 
         return { form, label, items };
-    }).filter(item => item.items.length > 0);
+    })
+        // Form đang được gửi đi thì nội dung của nó không mất — nó đang được
+        // gửi lên server (kể cả ảnh đã chọn).
+        .filter(item => item.form !== submittingForm)
+        .filter(item => item.items.length > 0);
 }
 
 /**
@@ -1579,6 +1592,12 @@ document.addEventListener('submit', event => {
     if (allowUnload || event.defaultPrevented) return;
 
     const form = event.target;
+
+    // Nội dung của chính form đang gửi đi không bị mất (kể cả ảnh đã chọn),
+    // nên không được tính vào danh sách "sắp mất" — tránh hộp thoại
+    // "Rời khỏi trang web…" của trình duyệt khi bấm nút Đăng bài.
+    submittingForm = form;
+
     if (!form.dataset.leaveGuard) return;
 
     // Chỉ cảnh báo nếu có nội dung thực sự mất ở form khác.
@@ -1608,6 +1627,7 @@ window.addEventListener('beforeunload', event => {
 // Quay lại trang từ bộ nhớ đệm: cho phép rời trang bình thường trở lại.
 window.addEventListener('pageshow', () => {
     allowUnload = false;
+    submittingForm = null;
 });
 
 function initGuards() {
