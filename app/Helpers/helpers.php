@@ -73,6 +73,27 @@ if (!function_exists('asset')) {
     }
 }
 
+if (!function_exists('absolute_url')) {
+    /**
+     * URL tuyệt đối (có scheme + host) — dùng cho link gửi qua email.
+     *
+     * Dựa trên host của request hiện tại nên đúng với cả khi chạy PHP built-in
+     * server lẫn Apache trong thư mục con. Khi không có HTTP_HOST (ví dụ CLI)
+     * thì lấy từ APP_URL.
+     */
+    function absolute_url(string $path = '/'): string
+    {
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+        if ($host === '') {
+            return rtrim((string) config('app.url', ''), '/') . url($path);
+        }
+
+        $secure = ($_SERVER['HTTPS'] ?? '') !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off';
+
+        return ($secure ? 'https' : 'http') . '://' . $host . url($path);
+    }
+}
+
 if (!function_exists('upload_url')) {
     /** URL hiển thị file đã tải lên. */
     function upload_url(?string $path): ?string
