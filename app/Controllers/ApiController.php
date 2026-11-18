@@ -110,6 +110,60 @@ final class ApiController extends Controller
         Response::success(['comments' => $items]);
     }
 
+    /**
+     * Render sẵn thẻ bài viết (HTML) để client chèn thẳng vào feed realtime.
+     *
+     * Client không tự dựng lại giao diện bài viết — nhờ vậy feed realtime
+     * luôn giống hệt bài viết render từ server.
+     */
+    public function postCard(array $params): void
+    {
+        $viewerId = auth_id();
+        $post = Post::find((int) $params['id']);
+        if ($post === null || !Post::canView($post, $viewerId)) {
+            Response::error('Bài viết không khả dụng.', 404);
+        }
+
+        $html = view_partial(
+            \App\Core\View::path('partials/post-card'),
+            ['post' => $post, 'data' => post_view_data($post, $viewerId)]
+        );
+
+        Response::success([
+            'html'  => $html,
+            'stats' => \App\Services\RealtimeService::stats((int) $post['id']),
+        ]);
+    }
+
+    /**
+     * Render sẵn dòng thông báo (HTML) để client chèn vào danh sách realtime.
+     */
+    public function notificationItem(array $params): void
+    {
+        $userId = auth_id();
+        $notification = Notification::find((int) $params['id']);
+        if ($notification === null || (int) $notification['user_id'] !== $userId) {
+            Response::error('Thông báo không tồn tại.', 404);
+        }
+
+        $actor = User::find((int) $notification['actor_id']);
+        $row = array_merge($notification, [
+            'actor_username'     => $actor['username'] ?? '',
+            'actor_display_name' => $actor['display_name'] ?? '',
+            'actor_avatar_path'  => $actor['avatar_path'] ?? null,
+        ]);
+
+        $html = view_partial(
+            \App\Core\View::path('partials/notification-item'),
+            ['notification' => $row]
+        );
+
+        Response::success([
+            'html'        => $html,
+            'unread'      => Notification::unreadCount($userId),
+        ]);
+    }
+
     private function postPayload(array $post, ?int $viewerId): array
     {
         $postId = (int) $post['id'];
