@@ -26,7 +26,7 @@ abstract class Controller
     protected function fail(string $message, string $redirect, array $keep = []): void
     {
         OldInput::flash($this->oldValues($keep));
-        Session::flash('error', $message);
+        setFlashMessage('error', $message);
         Response::redirect($redirect);
     }
 
@@ -38,7 +38,7 @@ abstract class Controller
     protected function failBack(string $message, string $fallback = '/', array $keep = []): void
     {
         OldInput::flash($this->oldValues($keep));
-        Session::flash('error', $message);
+        setFlashMessage('error', $message);
         Response::back($fallback);
     }
 
