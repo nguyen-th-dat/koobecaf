@@ -19,6 +19,9 @@
                 <i class="bi bi-eye"></i>
             </button>
         </div>
+        <div class="text-end mt-1">
+            <a href="<?= url('/forgot-password') ?>" class="small">Quên mật khẩu?</a>
+        </div>
     </div>
 
     <button class="btn btn-solid w-100" type="submit">Đăng nhập</button>
