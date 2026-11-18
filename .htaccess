@@ -19,7 +19,7 @@ DirectoryIndex index.php
     #    RewriteRule dưới đây có đường dẫn tương đối so với thư mục
     #    chứa file .htaccess nên vẫn đúng khi project nằm trong subdirectory.
     # -------------------------------------------------------------
-    RewriteRule ^(app|config|routes|database|storage|tests|vendor|node_modules|\.git|\.cursor|\.agents|\.aider-desk)/ - [R=404,L]
+    RewriteRule ^(app|config|routes|database|storage|tests|vendor|node_modules|\.git)/ - [R=404,L]
 
     # -------------------------------------------------------------
     # 2. Chuyển tiếp mọi request (trừ file/thư mục thật) về index.php
@@ -32,7 +32,7 @@ DirectoryIndex index.php
 # -------------------------------------------------------------
 # Chặn tải về các tệp cấu hình và tài liệu ở thư mục gốc
 # -------------------------------------------------------------
-<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|skills-lock\.json|phpunit\.xml|\.env.*|DESIGN\.md|PROMT\.md|PROGRESS\.md|README\.md)$">
+<FilesMatch "^(composer\.(json|lock)|package(-lock)?\.json|phpunit\.xml|\.env.*|PROGRESS\.md|README\.md)$">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
