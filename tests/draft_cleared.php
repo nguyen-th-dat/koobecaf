@@ -127,6 +127,7 @@ check('Trang chu bao xoa nhap dang ky/dang nhap', str_contains(bodyAttr($res['bo
 // ------------------------------------------------------------------
 // 3. Dang bai that bai: nhieu nhat la 1 lan
 // ------------------------------------------------------------------
+$res = request('GET', $base . '/posts/create');
 $res = request('POST', $base . '/posts', ['form' => [
     '_token'  => csrfToken($res['body']),
     'content' => str_repeat('x', 5001),
@@ -134,13 +135,14 @@ $res = request('POST', $base . '/posts', ['form' => [
 ]]);
 check('Dang bai that bai chuyen huong', $res['status'] === 302, 'status=' . $res['status']);
 
-$res = request('GET', $base . '/');
-check('Trang chu bao field gia tri cu cua composer', str_contains($res['body'], 'data-old-fields="content,privacy"'), 'data-old-fields=' . bodyAttr($res['body'], 'old'));
-check('Trang chu KHONG bao xoa nhap composer khi bai that bai', !str_contains(bodyAttr($res['body'], 'cleared'), 'composer'), 'cleared=' . bodyAttr($res['body'], 'cleared'));
+$res = request('GET', $base . '/posts/create');
+check('Trang dang bai bao field gia tri cu cua composer', str_contains($res['body'], 'data-old-fields="content,privacy"'), 'data-old-fields=' . bodyAttr($res['body'], 'old'));
+check('Trang dang bai KHONG bao xoa nhap composer khi bai that bai', !str_contains(bodyAttr($res['body'], 'cleared'), 'composer'), 'cleared=' . bodyAttr($res['body'], 'cleared'));
 
 // ------------------------------------------------------------------
 // 4. Dang bai thanh cong: phai bao xoa nhap composer
 // ------------------------------------------------------------------
+$res = request('GET', $base . '/posts/create');
 $res = request('POST', $base . '/posts', ['form' => [
     '_token'  => csrfToken($res['body']),
     'content' => 'Bai viet thanh cong ' . random_int(10000, 99999),
@@ -148,11 +150,11 @@ $res = request('POST', $base . '/posts', ['form' => [
 ]]);
 check('Dang bai thanh cong chuyen huong', $res['status'] === 302, 'status=' . $res['status']);
 
-$res = request('GET', $base . '/');
-check('Trang chu bao xoa nhap composer sau khi dang thanh cong', str_contains(bodyAttr($res['body'], 'cleared'), 'composer'), 'cleared=' . bodyAttr($res['body'], 'cleared'));
+$res = request('GET', $base . '/posts/create');
+check('Trang dang bai bao xoa nhap composer sau khi dang thanh cong', str_contains(bodyAttr($res['body'], 'cleared'), 'composer'), 'cleared=' . bodyAttr($res['body'], 'cleared'));
 
 // Danh sách xoá chỉ dùng một lần
-$res = request('GET', $base . '/');
+$res = request('GET', $base . '/posts/create');
 check('Danh sach xoa nhap chi dung mot lan', !str_contains(bodyAttr($res['body'], 'cleared'), 'composer'), 'cleared=' . bodyAttr($res['body'], 'cleared'));
 
 // ------------------------------------------------------------------
