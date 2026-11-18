@@ -29,6 +29,10 @@ return static function (Router $router): void {
     $router->get('/search', [\App\Controllers\SearchController::class, 'index'], 'search');
     $router->get('/p/{id}', [\App\Controllers\PostController::class, 'show'], 'post.permalink');
 
+    // Tìm kiếm là tính năng công khai nên API gợi ý cũng cho phép khách truy cập
+    $router->get('/api/search/users', [\App\Controllers\ApiController::class, 'searchUsers'], 'api.search.users');
+    $router->get('/api/search/posts', [\App\Controllers\ApiController::class, 'searchPosts'], 'api.search.posts');
+
     // ---------- Yêu cầu đăng nhập ----------
     $router->group(['AuthMiddleware'], static function (Router $router): void {
         // Feed & bài viết
@@ -79,8 +83,6 @@ return static function (Router $router): void {
         $router->get('/api/notifications/unread', [\App\Controllers\ApiController::class, 'unreadNotifications'], 'api.notifications.unread');
         $router->get('/api/messages/unread', [\App\Controllers\ApiController::class, 'unreadMessages'], 'api.messages.unread');
         $router->get('/api/feed', [\App\Controllers\ApiController::class, 'feed'], 'api.feed');
-        $router->get('/api/search/users', [\App\Controllers\ApiController::class, 'searchUsers'], 'api.search.users');
-        $router->get('/api/search/posts', [\App\Controllers\ApiController::class, 'searchPosts'], 'api.search.posts');
         $router->get('/api/posts/{id}/comments', [\App\Controllers\ApiController::class, 'comments'], 'api.posts.comments');
     });
 };
