@@ -56,6 +56,8 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
 <?php endif; ?>
 
+<?php require __DIR__ . '/partials/footer.php'; ?>
+
 <script src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>
