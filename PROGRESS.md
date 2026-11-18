@@ -275,3 +275,17 @@ php -S localhost:8000 -t . router.php
 ```
 
 Đăng nhập: `an` / `Password@123` (hoặc `binh`, `chi`, `dung`, `em` — cùng mật khẩu).
+
+---
+
+## Đợt dọn dẹp project
+
+| Hạng mục | Xử lý |
+|---|---|
+| File tạm | Xoá `tmp/` (6 script debug), `temp/` (rỗng), `storage/logs/*.log` cũ |
+| Upload mồ côi | Quét `post_images.path` + `users.avatar_path` + `users.cover_path` → xoá 36 file không còn tham chiếu (giữ `.htaccess` và `avatars/default-avatar.png`) |
+| File trùng lặp | Xoá `logo.png` + `favicon.png` ở thư mục gốc (712KB mỗi file, không code nào tham chiếu — thực tế dùng `assets/images/logo.png`) và `assets/images/default.svg`, `assets/images/favicon.svg` (không dùng) |
+| Dependency | `package-lock.json` khai báo `bootstrap ^6.0.0-alpha.1` lệch với `package.json` → sinh lại lock chỉ còn `bootstrap-icons@1.13.2`; xoá `playwright` + `playwright-core` (18MB, không nằm trong manifest); cài lại `node_modules` sạch |
+| `.gitignore` | Bỏ `/tests/` và `DESIGN.md` khỏi danh sách ignore (file đã được track nhưng vẫn bị ignore — dễ bị mất khi clone); thêm `/.aider-desk/`; dọn entry trùng lặp |
+| `.htaccess` | Thêm `\.aider-desk` vào rule chặn truy cập mã nguồn |
+| `README.md` | Sửa mô tả công nghệ cho khớp thực tế: CSS tự viết theo `DESIGN.md` (không dùng Bootstrap CSS), Bootstrap Icons 1.13.2, bổ sung `tests/check_classes.php`, `package.json`, `DESIGN.md` vào cây thư mục |
