@@ -416,8 +416,7 @@ function broadcastPostEvent(payload) {
 
     sendToUsers(audience, {
         type: 'feed:event',
-        event: payload.event || 'post:update',
-        post_id: Number(payload.post_id) || 0,
+        event: payload.event || 'post:update',        post_id: Number(payload.post_id) || 0,
         actor: payload.actor || null,
         stats: payload.stats || null,
         comment: payload.comment || null,
@@ -498,7 +497,10 @@ async function dispatchInternalEvent(item) {
         case 'post.commented':
         case 'post.uncommented':
         case 'post.shared':
-            broadcastPostEvent(payload);
+            // Tên sự kiện nằm ở cấp ngoài payload → gắn vào để client biết
+            // loại tương tác (like / comment / share / deleted…). Payload do
+            // PHP gửi có thể ghi đè lại (ví dụ 'post.liked').
+            broadcastPostEvent(Object.assign({}, payload, { event: payload.event || event }));
             return;
         case 'notification.created':
             broadcastNotification(payload);
