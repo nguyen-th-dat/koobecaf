@@ -45,10 +45,15 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
     <link rel="icon" href="<?= asset('images/logo.png') ?>" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=Montserrat:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_versioned('css/app.css') ?>">
     <link rel="stylesheet" href="<?= asset_versioned('css/toast.css') ?>">
+<?php if (!empty($extraCss)): ?>
+    <?php foreach ((array) $extraCss as $cssFile): ?>
+    <link rel="stylesheet" href="<?= asset_versioned($cssFile) ?>">
+    <?php endforeach; ?>
+<?php endif; ?>
 </head>
 <body data-base-url="<?= e(rtrim((string) \App\Core\Env::get('APP_BASE_PATH', ''), '/')) ?>" data-user-id="<?= (int) (auth_id() ?? 0) ?>" data-cleared-drafts="<?= e(implode(',', \App\Core\OldInput::clearedDrafts())) ?>"
       data-ws-enabled="<?= !empty($ws['enabled']) ? '1' : '0' ?>"

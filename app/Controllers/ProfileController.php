@@ -77,6 +77,7 @@ final class ProfileController extends Controller
             'isFollowing' => $viewerId !== null && Follow::isFollowing($viewerId, $userId),
             'friendStatus' => $viewerId !== null ? Friendship::status($viewerId, $userId) : 'none',
             'isSelf'      => $viewerId === $userId,
+            'extraCss'    => ['css/profile.css'],
         ]);
     }
 
