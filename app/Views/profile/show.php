@@ -273,7 +273,7 @@ $tabs = [
     </section>
 
     <!-- ================= 3. Thanh tab điều hướng ================= -->
-    <div class="profile-tabs-wrap">
+    <!-- <div class="profile-tabs-wrap">
         <nav class="profile-tabs mp-tabs" aria-label="Nội dung trang cá nhân">
             <?php foreach ($tabs as $key => $meta): ?>
                 <a class="mp-tab profile-tab-item nav-link<?= $tab === $key ? ' active is-active' : '' ?>"
@@ -285,7 +285,7 @@ $tabs = [
                 </a>
             <?php endforeach; ?>
         </nav>
-    </div>
+    </div> -->
 
     <!-- ================= 4. Nội dung theo tab ================= -->
     <main class="profile-main-content mp-content">
