@@ -1,6 +1,9 @@
 <?php
 /**
- * Thanh điều hướng dưới màn hình + ngăn kéo menu (chỉ dùng cho người đã đăng nhập).
+ * Thanh điều hướng di động (chỉ dùng cho người đã đăng nhập).
+ *
+ * Thanh này nằm ngay dưới topbar và cuộn theo trang (sticky), thay cho vị trí
+ * ghim ở đáy màn hình như trước.
  */
 $unreadMessages = auth_id() !== null ? \App\Models\Conversation::totalUnread(auth_id()) : 0;
 $unreadNotifications = auth_id() !== null ? \App\Models\Notification::unreadCount(auth_id()) : 0;
@@ -11,7 +14,7 @@ if ($base !== '' && str_starts_with($path, $base)) {
 }
 $path = '/' . trim($path, '/');
 ?>
-<nav class="mobile-nav lg:d-none">
+<nav class="mobile-nav lg:d-none" aria-label="Điều hướng di động">
     <a class="<?= $path === '/' ? 'active' : '' ?>" href="<?= url('/') ?>"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
     <a class="<?= $path === '/posts/create' ? 'active' : '' ?>" href="<?= url('/posts/create') ?>"><i class="bi bi-pencil-square"></i><span>Đăng bài</span></a>
     <a class="<?= str_starts_with($path, '/u/') ? 'active' : '' ?>" href="<?= url('/u/' . (auth_user()['username'] ?? '')) ?>"><i class="bi bi-person"></i><span>Cá nhân</span></a>
@@ -25,16 +28,3 @@ $path = '/' . trim($path, '/');
     </a>
     <a class="<?= str_starts_with($path, '/settings') ? 'active' : '' ?>" href="<?= url('/settings/profile') ?>"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
 </nav>
-
-<div class="drawer drawer-start" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
-    <div class="drawer-header">
-        <a class="brand" href="<?= url('/') ?>">
-            <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
-            <span class="brand-text">Koobecaf</span>
-        </a>
-        <button type="button" class="btn-close" data-drawer-dismiss aria-label="Đóng"></button>
-    </div>
-    <div class="drawer-body">
-        <?php require __DIR__ . '/sidebar-left.php'; ?>
-    </div>
-</div>
