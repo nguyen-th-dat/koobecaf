@@ -1,8 +1,8 @@
 <?php
 /**
- * Thanh điều hướng dưới màn hình dành cho khách chưa đăng nhập.
+ * Thanh điều hướng dành cho khách chưa đăng nhập.
  *
- * Người đã đăng nhập dùng `mobile-nav.php` (5 mục + badge); khách chỉ cần
+ * Người đã đăng nhập dùng `mobile-nav.php` (6 mục + badge); khách chỉ cần
  * các đường dẫn công khai nên có thanh gọn hơn.
  */
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';

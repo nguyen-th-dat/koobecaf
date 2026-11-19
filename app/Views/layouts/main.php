@@ -63,6 +63,12 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
       data-ws-conversation-id="<?= (int) ($ws['conversation_id'] ?? ($conversationId ?? 0)) ?>">
 <?php require __DIR__ . '/partials/topbar.php'; ?>
 
+<?php if (is_auth()): ?>
+    <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
+<?php else: ?>
+    <?php require __DIR__ . '/partials/mobile-nav-guest.php'; ?>
+<?php endif; ?>
+
 <div class="app-shell">
     <div class="app-grid<?= is_auth() ? '' : ' is-guest' ?><?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?>">
         <?php if (is_auth()): ?>
@@ -91,12 +97,6 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
     <div class="app-rail-inline<?= is_auth() ? ' is-duplicate' : '' ?>">
         <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
     </div>
-<?php endif; ?>
-
-<?php if (is_auth()): ?>
-    <?php require __DIR__ . '/partials/mobile-nav.php'; ?>
-<?php else: ?>
-    <?php require __DIR__ . '/partials/mobile-nav-guest.php'; ?>
 <?php endif; ?>
 
 <?php require __DIR__ . '/partials/footer.php'; ?>

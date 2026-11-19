@@ -96,9 +96,8 @@
         --kb-ease-out: cubic-bezier(.16, 1, .3, 1);
 
         /* ---- Độ sâu hậu thiên ---- */
-        --kb-topbar-h-sm: 52px;
-        /* Chiều cao thanh điều hướng dưới (mobile) — dùng để nâng toast */
-        --kb-mobile-nav-h: 56px;
+        /* Chiều cao thanh điều hướng ngang (mobile) — nằm ngay dưới topbar */
+        --kb-mobile-nav-h: 60px;
 
         /* ---- Bố cục máy tính ---- */
         --kb-shell-max: 1200px;
@@ -2820,13 +2819,13 @@
     /* ---- Mobile: danh sách hội thoại chiếm trọn màn hình ---- */
     .chat-layout[data-view="list"] .chat-sidebar {
         display: flex;
-        height: calc(100dvh - var(--kb-topbar-h) - 96px);
+        height: calc(100dvh - var(--kb-topbar-h) - var(--kb-mobile-nav-h) - 32px);
         min-height: 420px;
     }
 
     /* ---- Mobile: mở một cuộc trò chuyện — ẩn danh sách, hiện vùng đọc ---- */
     .chat-layout[data-view="conversation"] {
-        height: calc(100dvh - var(--kb-topbar-h) - 84px);
+        height: calc(100dvh - var(--kb-topbar-h) - var(--kb-mobile-nav-h) - 24px);
         min-height: 440px;
     }
 
@@ -3885,18 +3884,25 @@
         margin: 0;
     }
 
-    /* ---------------- Điều hướng di động ---------------- */
+    /* ---------------- Điều hướng di động ----------------
+       Thanh ngang nằm ngay dưới topbar, dính theo khi cuộn trang. */
     .mobile-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        position: sticky;
+        top: var(--kb-topbar-h);
+        z-index: 1029;
         background-color: var(--kb-canvas);
-        border-top: 1px solid var(--kb-hairline-soft);
+        border-bottom: 1px solid var(--kb-hairline-soft);
         display: flex;
         justify-content: space-around;
-        padding: .4rem 0 calc(.4rem + env(safe-area-inset-bottom));
-        z-index: 1030;
+        align-items: stretch;
+        gap: var(--kb-space-xxs);
+        padding: .3rem var(--kb-space-sm);
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .mobile-nav::-webkit-scrollbar {
+        display: none;
     }
 
     .mobile-nav a {
@@ -3921,11 +3927,11 @@
         font-weight: 700;
     }
 
-    /* Gạch chỉ báo phía trên cho mục đang chọn */
+    /* Gạch chỉ báo phía dưới cho mục đang chọn */
     .mobile-nav a.active::before {
         content: "";
         position: absolute;
-        top: -.4rem;
+        bottom: -.35rem;
         left: 50%;
         transform: translateX(-50%);
         width: 16px;
@@ -5416,10 +5422,6 @@
 }
 
 @media (max-width: 991.98px) {
-    .app-shell {
-        padding-bottom: 84px;
-    }
-
     .post-actions .action-btn span {
         display: none;
     }
@@ -5630,7 +5632,7 @@
         position: relative;
         z-index: 1;
         background-color: var(--kb-surface-card);
-        padding-top: calc(var(--kb-topbar-h) + var(--kb-space-md));
+        padding-top: calc(var(--kb-topbar-h) + var(--kb-mobile-nav-h) + var(--kb-space-md));
     }
 
     .chat-layout[data-view="list"][data-chat-start-open="1"] .chat-start-close {
@@ -5721,7 +5723,7 @@
     }
 
     .profile-tabs-wrap {
-        top: var(--kb-topbar-h-sm);
+        top: calc(var(--kb-topbar-h) + var(--kb-mobile-nav-h));
     }
 
     /* Mobile: tab trượt ngang thay vì xuống dòng để tiết kiệm chiều cao */

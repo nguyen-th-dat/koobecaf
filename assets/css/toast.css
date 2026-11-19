@@ -128,7 +128,6 @@
 
 @media (max-width: 767.98px) {
     .toast-container {
-        bottom: calc(var(--kb-mobile-nav-h) + var(--kb-space-sm));
         right: var(--kb-space-sm);
         left: var(--kb-space-sm);
         width: auto;

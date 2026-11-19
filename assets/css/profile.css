@@ -822,7 +822,7 @@
     }
 
     .mp-tabs {
-        top: var(--kb-topbar-h-sm);
+        top: calc(var(--kb-topbar-h) + var(--kb-mobile-nav-h));
         gap: var(--kb-space-md);
     }
 
