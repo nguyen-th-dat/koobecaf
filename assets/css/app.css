@@ -100,9 +100,9 @@
         --kb-mobile-nav-h: 60px;
 
         /* ---- Bố cục máy tính ---- */
-        --kb-shell-max: 1325px;
-        --kb-rail-left: 300px;
-        --kb-rail-right: 275px;
+        --kb-shell-max: 1275px;
+        --kb-rail-left: 250px;
+        --kb-rail-right: 250px;
         --kb-topbar-h: 60px;
         --kb-gutter: 16px;
     }
