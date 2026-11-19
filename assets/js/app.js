@@ -244,11 +244,11 @@ if (topbar) {
 const confirmModal = document.getElementById('kbConfirmModal');
 
 if (confirmModal) {
-    const confirmTitle = confirmModal.querySelector('[data-confirm-title]');
-    const confirmText = confirmModal.querySelector('[data-confirm-text]');
-    const confirmIcon = confirmModal.querySelector('[data-confirm-icon]');
-    const confirmAccept = confirmModal.querySelector('[data-confirm-accept]');
-    const confirmCancel = confirmModal.querySelector('[data-confirm-cancel]');
+    const confirmTitle = confirmModal.querySelector('[data-kb-confirm-title]');
+    const confirmText = confirmModal.querySelector('[data-kb-confirm-text]');
+    const confirmIcon = confirmModal.querySelector('[data-kb-confirm-icon]');
+    const confirmAccept = confirmModal.querySelector('[data-kb-confirm-accept]');
+    const confirmCancel = confirmModal.querySelector('[data-kb-confirm-cancel]');
 
     let confirmResolver = null;
     let confirmLastFocus = null;
@@ -284,7 +284,7 @@ if (confirmModal) {
 
     confirmAccept?.addEventListener('click', () => closeConfirm(true));
     confirmCancel?.addEventListener('click', () => closeConfirm(false));
-    confirmModal.querySelector('[data-confirm-close]')?.addEventListener('click', () => closeConfirm(false));
+    confirmModal.querySelector('[data-kb-confirm-close]')?.addEventListener('click', () => closeConfirm(false));
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !confirmModal.hidden) {
