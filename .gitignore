@@ -34,3 +34,4 @@
 
 /.cursor
 /.tmp
+.tmp/ws.log
