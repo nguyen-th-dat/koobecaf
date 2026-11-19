@@ -380,12 +380,20 @@ check('Notification reply tro ve bai viet dung', $replyLink === '/post/' . $repl
 // 13. So bai viet tren ho so khop voi tab "Bai viet" (regression)
 // ------------------------------------------------------------------
 $res = request('GET', $base . '/u/' . $username);
-preg_match('#<strong>(\d+)</strong><span>Bài viết</span>#u', $res['body'], $sm);
+preg_match('#href="[^"]*\?tab=posts"[^>]*>\s*<strong>(\d+)</strong>#u', $res['body'], $sm);
 $statCount = (int) ($sm[1] ?? 0);
+
+// Tab "Bai viet" hien badge so tong so bai viet cua ho so
+preg_match('#class="mp-tab[^"]*is-active"[^>]*>.*?<em class="mp-tab-count">(\d+)</em>#su', $res['body'], $tm);
+$tabCount = (int) ($tm[1] ?? 0);
 
 $res = request('GET', $base . '/u/' . $username . '?tab=posts');
 $listedCount = preg_match_all('/<article class="card surface-card post-card/', $res['body'], $pm);
-check('So bai viet thong ke khop voi danh sach', $statCount === $listedCount, "stat={$statCount} listed={$listedCount}");
+check(
+    'So bai viet thong ke khop voi danh sach',
+    $statCount > 0 && $statCount === $tabCount && $listedCount === min($statCount, 10),
+    "stat={$statCount} tab={$tabCount} listed={$listedCount}"
+);
 
 // ------------------------------------------------------------------
 // 14. Trang thong bao co phan trang
