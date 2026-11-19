@@ -48,10 +48,8 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
                 <span class="brand-text">Koobecaf</span>
             </a>
 
-            <div class="card surface-card auth-card">
-                <div class="card-body">
-                    <?= $content ?>
-                </div>
+            <div class="auth-card">
+                <?= $content ?>
             </div>
 
             <p class="text-center fg-secondary small mt-3 mb-0">

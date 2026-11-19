@@ -6,12 +6,12 @@
  */
 ?>
 <div class="page-head">
-    <h1><i class="bi bi-pencil-square"></i>Đăng bài viết</h1>
+    <h1>Đăng bài viết</h1>
     <a class="btn btn-outline btn-sm" href="<?= url('/') ?>"><i class="bi bi-arrow-left me-1"></i>Về bảng tin</a>
 </div>
 
-<div class="card surface-card composer-card" id="composer">
-    <div class="card-body">
+<div class="panel composer-card" id="composer">
+    <div class="panel-body">
         <form action="<?= url('/posts') ?>" method="post" enctype="multipart/form-data" id="postForm"
               data-draft="composer" data-leave="keep"
               data-lose-fields="images[]" data-lose-label="Ảnh đã chọn"
@@ -59,7 +59,7 @@
             <div class="composer-preview-label">
                 <i class="bi bi-eye"></i>Xem trước bài viết
             </div>
-            <article class="card surface-card composer-preview-card">
+            <article class="composer-preview-card">
                 <div class="post-body d-flex gap-3 p-3">
                     <img src="<?= e(avatar_url($user['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md avatar-ring">
                     <div class="flex-grow-1 min-w-0">
@@ -75,9 +75,9 @@
         </div>
     </div>
 </div>
-<div class="card surface-card composer-tips mt-3">
-    <div class="card-body">
-        <h2 class="h5 mb-2"><i class="bi bi-lightbulb me-1"></i>Gợi ý khi viết bài</h2>
+<div class="panel composer-tips mt-3">
+    <div class="panel-body">
+        <h2 class="h5 mb-2">Gợi ý khi viết bài</h2>
         <ul class="mb-0 fg-secondary small">
             <li>Chia sẻ khoảnh khắc, câu chuyện hoặc điều bạn đang học.</li>
             <li>Chọn đúng quyền riêng tư trước khi đăng.</li>

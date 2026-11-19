@@ -1,7 +1,10 @@
 <?php
 
 /**
- * Thẻ bài viết dùng chung.
+ * Bài viết trong luồng — phong cách Threads.
+ *
+ * Bố cục: avatar + tên/handle/thời gian → nội dung → ảnh → hành động.
+ * Không dùng thẻ có viền; các bài được tách bằng đường kẻ hairline.
  *
  * @var array $post
  * @var array $data Dữ liệu chuẩn bị từ post_view_data()
@@ -11,9 +14,9 @@ $images = $meta['images'];
 $original = $meta['original'];
 $originalImages = $meta['originalImages'];
 ?>
-<article class="card surface-card post-card mb-3" data-post-id="<?= (int) $post['id'] ?>">
+<article class="post-card" data-post-id="<?= (int) $post['id'] ?>">
     <?php if ($meta['isShared'] && $original !== null): ?>
-        <div class="shared-header d-flex align-items-center gap-2 px-3 pt-3">
+        <div class="shared-header d-flex align-items-center gap-2">
             <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
             <div class="min-w-0">
                 <a class="post-author" href="<?= url('/u/' . $post['username']) ?>"><?= e($post['display_name']) ?></a>
@@ -22,10 +25,10 @@ $originalImages = $meta['originalImages'];
         </div>
     <?php endif; ?>
 
-    <div class="post-body d-flex gap-3 p-3">
+    <div class="post-body d-flex gap-3">
         <?php if (!$meta['isShared'] || $original === null): ?>
             <a href="<?= url('/u/' . $post['username']) ?>">
-                <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-md avatar-ring">
+                <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-md">
             </a>
         <?php endif; ?>
 
@@ -45,7 +48,7 @@ $originalImages = $meta['originalImages'];
                         </div>
                     </div>
                     <?php if ($meta['isOwner']): ?>
-                        <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
+                        <button class="btn icon-btn post-menu-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
                             <i class="bi bi-three-dots"></i>
                         </button>
                         <ul class="menu">
@@ -92,9 +95,9 @@ $originalImages = $meta['originalImages'];
             <?php endif; ?>
 
             <?php if ($meta['isShared'] && $original !== null): ?>
-                <div class="shared-original p-3 mt-2">
+                <div class="shared-original mt-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm avatar-ring">
+                        <img src="<?= e(avatar_url($original['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
                         <div class="min-w-0">
                             <a class="post-author" href="<?= url('/u/' . $original['username']) ?>"><?= e($original['display_name']) ?></a>
                             <small class="post-meta d-block">@<?= e($original['username']) ?> · <?= e(time_ago($original['created_at'])) ?></small>
@@ -112,7 +115,7 @@ $originalImages = $meta['originalImages'];
                     <?php endif; ?>
                 </div>
             <?php elseif (trim((string) $post['content']) !== ''): ?>
-                <p class="post-text mb-2 mt-2" data-clampable><?= nl2br(e($post['content'])) ?></p>
+                <p class="post-text mb-0 mt-1" data-clampable><?= nl2br(e($post['content'])) ?></p>
             <?php endif; ?>
 
             <?php if ($images !== []): ?>
@@ -129,7 +132,7 @@ $originalImages = $meta['originalImages'];
         </div>
     </div>
 
-    <div class="post-stats d-flex align-items-center gap-3 px-3 pb-2 small fg-secondary">
+    <div class="post-stats d-flex align-items-center gap-3">
         <span data-like-count><i class="bi bi-hand-thumbs-up me-1"></i><?= (int) $meta['likeCount'] ?></span>
         <span data-comment-count><i class="bi bi-chat me-1"></i><?= (int) $meta['commentCount'] ?></span>
         <span data-share-count><i class="bi bi-share me-1"></i><?= (int) $meta['shareCount'] ?></span>
@@ -140,7 +143,7 @@ $originalImages = $meta['originalImages'];
         <?php endif; ?>
     </div>
 
-    <div class="post-actions d-flex border-top">
+    <div class="post-actions d-flex">
 
         <!-- Like -->
         <?php if (is_auth()): ?>

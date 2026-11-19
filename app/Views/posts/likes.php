@@ -4,13 +4,13 @@
  * @var array $users
  */
 ?>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0"><i class="bi bi-hand-thumbs-up me-2"></i>Người đã thích</h1>
+<div class="page-head">
+    <h1>Người đã thích</h1>
     <a class="btn btn-outline btn-sm" href="<?= url('/post/' . (int) $post['id']) ?>"><i class="bi bi-arrow-left"></i> Trở lại</a>
 </div>
 
-<div class="card surface-card">
-    <div class="card-body">
+<div class="panel">
+    <div class="panel-body">
         <?php if ($users === []): ?>
             <p class="fg-secondary mb-0">Chưa có ai thích bài viết này.</p>
         <?php else: ?>

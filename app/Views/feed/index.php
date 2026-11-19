@@ -8,21 +8,16 @@
 $viewerId = auth_id();
 $totalPages = max(1, (int) ceil($total / $perPage));
 ?>
-<?php if (is_auth()): ?>
-    <div class="card surface-card welcome-card mb-3">
-        <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                <div>
-                    <h2 class="h5 mb-1">Chào mừng trở lại!</h2>
-                    <p class="fg-secondary mb-0">Có điều gì đó muốn chia sẻ với mọi người?</p>
-                </div>
-                <a class="btn btn-solid" href="<?= url('/posts/create') ?>"><i class="bi bi-pencil-square me-1"></i>Đăng bài</a>
-            </div>
-        </div>
-    </div>
-<?php else: ?>
-    <div class="card surface-card welcome-card mb-3">
-        <div class="card-body">
+<div class="page-head">
+    <h1>Bảng tin</h1>
+    <?php if (is_auth()): ?>
+        <a class="btn btn-solid btn-sm" href="<?= url('/posts/create') ?>"><i class="bi bi-pencil-square me-1"></i>Đăng bài</a>
+    <?php endif; ?>
+</div>
+
+<?php if (!is_auth()): ?>
+    <div class="panel welcome-card mb-3">
+        <div class="panel-body">
             <span class="welcome-mark"><i class="bi bi-cup-hot-fill"></i></span>
             <h1 class="welcome-title">Chào mừng đến Koobecaf</h1>
             <p class="welcome-lead">
@@ -45,7 +40,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 <?php endif; ?>
 
 <?php if ($posts === []): ?>
-    <div class="card surface-card" data-feed-empty>
+    <div class="panel">
         <div class="empty-state">
             <span class="empty-icon"><i class="bi bi-inbox"></i></span>
             <h3>Chưa có bài viết nào</h3>
@@ -56,7 +51,7 @@ $totalPages = max(1, (int) ceil($total / $perPage));
         </div>
     </div>
 <?php else: ?>
-    <div data-feed-list>
+    <div class="feed-stream" data-feed-list>
         <?php foreach ($posts as $post): ?>
             <?php $data = post_view_data($post, $viewerId); ?>
             <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>

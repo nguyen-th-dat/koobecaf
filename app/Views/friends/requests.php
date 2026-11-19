@@ -4,12 +4,12 @@
  */
 ?>
 <div class="page-head">
-    <h1><i class="bi bi-inbox"></i>Lời mời kết bạn</h1>
+    <h1>Lời mời kết bạn</h1>
     <a class="btn btn-outline btn-sm" href="<?= url('/friends') ?>"><i class="bi bi-arrow-left"></i> Bạn bè</a>
 </div>
 
-<div class="card surface-card">
-    <div class="card-body">
+<div class="panel">
+    <div class="panel-body">
         <?php if ($requests === []): ?>
             <div class="empty-state">
                 <span class="empty-icon"><i class="bi bi-inbox"></i></span>

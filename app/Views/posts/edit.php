@@ -9,8 +9,8 @@
     <a class="btn btn-outline btn-sm" href="<?= url('/post/' . (int) $post['id']) ?>"><i class="bi bi-arrow-left me-1"></i>Trở lại</a>
 </div>
 
-<div class="card surface-card composer-card">
-    <div class="card-body">
+<div class="panel composer-card">
+    <div class="panel-body">
         <form action="<?= url('/posts/' . (int) $post['id'] . '/update') ?>" method="post" enctype="multipart/form-data"
               data-draft="post-edit-<?= (int) $post['id'] ?>" data-leave="keep"
               data-lose-fields="images[]" data-lose-label="Ảnh đã chọn"
@@ -101,7 +101,7 @@
             <div class="composer-preview-label">
                 <i class="bi bi-eye"></i>Xem trước bài viết
             </div>
-            <article class="card surface-card composer-preview-card">
+            <article class="composer-preview-card">
                 <div class="post-body d-flex gap-3 p-3">
                     <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="avatar avatar-md avatar-ring">
                     <div class="flex-grow-1 min-w-0">

@@ -11,14 +11,11 @@ $viewerId = auth_id();
 $totalPages = max(1, (int) ceil($totalPosts / $perPage));
 ?>
 <div class="page-head">
-    <h1>
-        <i class="bi bi-search"></i>
-        <?= $keyword === '' ? 'Tìm kiếm' : 'Kết quả cho "' . e($keyword) . '"' ?>
-    </h1>
+    <h1><?= $keyword === '' ? 'Tìm kiếm' : 'Kết quả cho "' . e($keyword) . '"' ?></h1>
 </div>
 
 <?php if ($keyword === ''): ?>
-    <div class="card surface-card">
+    <div class="panel">
         <div class="empty-state">
             <span class="empty-icon"><i class="bi bi-search"></i></span>
             <h3>Tìm kiếm trên Koobecaf</h3>
@@ -26,8 +23,8 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
         </div>
     </div>
 <?php else: ?>
-    <div class="card surface-card mb-3">
-        <div class="card-body">
+    <div class="panel mb-3">
+        <div class="panel-body">
             <div class="rail-title">Người dùng</div>
             <?php if ($users === []): ?>
                 <p class="fg-secondary small mb-0">Không tìm thấy người dùng nào phù hợp.</p>
@@ -48,7 +45,7 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
     <div class="rail-title mb-2">Bài viết (<?= (int) $totalPosts ?>)</div>
 
     <?php if ($posts === []): ?>
-        <div class="card surface-card">
+        <div class="panel">
             <div class="empty-state">
                 <span class="empty-icon"><i class="bi bi-search"></i></span>
                 <h3>Không tìm thấy bài viết nào</h3>
@@ -56,10 +53,12 @@ $totalPages = max(1, (int) ceil($totalPosts / $perPage));
             </div>
         </div>
     <?php else: ?>
-        <?php foreach ($posts as $post): ?>
-            <?php $data = post_view_data($post, $viewerId); ?>
-            <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
-        <?php endforeach; ?>
+        <div class="feed-stream">
+            <?php foreach ($posts as $post): ?>
+                <?php $data = post_view_data($post, $viewerId); ?>
+                <?= view_partial(dirname(__DIR__) . '/partials/post-card.php', ['post' => $post, 'data' => $data]) ?>
+            <?php endforeach; ?>
+        </div>
 
         <?php if ($totalPages > 1): ?>
             <nav aria-label="Phân trang" class="pagination my-3">

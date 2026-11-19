@@ -65,7 +65,7 @@ $dayLabel = static function (string $datetime): string {
 $previousDay = null;
 ?>
 <div class="chat-layout" data-view="conversation">
-    <aside class="chat-sidebar card surface-card">
+    <aside class="chat-sidebar panel">
         <div class="chat-sidebar-head">
             <div class="d-flex align-items-center justify-content-between gap-2">
                 <div class="rail-title mb-0">Hội thoại</div>
@@ -98,7 +98,7 @@ $previousDay = null;
         </div>
     </aside>
 
-    <section class="chat-main card surface-card">
+    <section class="chat-main panel">
         <header class="chat-header">
             <a class="btn btn-subtle btn-sm md:d-none flex-shrink-0" href="<?= url('/chat') ?>" aria-label="Quay lại danh sách hội thoại">
                 <i class="bi bi-arrow-left"></i>

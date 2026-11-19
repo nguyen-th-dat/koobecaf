@@ -19,12 +19,6 @@ $navActive = static function (string $prefix) use ($path): string {
 <header class="topbar sticky-top">
     <div class="container-fluid">
         <div class="topbar-inner">
-            <?php if (is_auth()): ?>
-                <button class="btn icon-btn lg:d-none" type="button" data-drawer-toggle="#mobileSidebar" aria-label="Menu">
-                    <i class="bi bi-list"></i>
-                </button>
-            <?php endif; ?>
-
             <a class="brand" href="<?= url('/') ?>">
                 <img src="<?= asset('images/logo.png') ?>" alt="Koobecaf" class="brand-logo">
                 <span class="brand-text">Koobecaf</span>
@@ -41,11 +35,11 @@ $navActive = static function (string $prefix) use ($path): string {
             <div class="topbar-actions ms-auto">
                 <form class="search-form" action="<?= url('/search') ?>" method="get" role="search">
                     <i class="bi bi-search"></i>
-                    <input type="search" name="q" class="form-control" placeholder="Tìm kiếm người dùng, bài viết..." value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
+                    <input type="search" name="q" class="form-control" placeholder="Tìm kiếm" value="<?= e($_GET['q'] ?? '') ?>" aria-label="Tìm kiếm">
                 </form>
 
                 <?php if (is_auth()): ?>
-                    <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/posts/create') ?>">
+                    <a class="btn btn-solid btn-sm topbar-cta" href="<?= url('/posts/create') ?>" title="Đăng bài">
                         <i class="bi bi-pencil-square"></i><span>Đăng bài</span>
                     </a>
 

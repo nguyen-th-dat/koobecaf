@@ -7,12 +7,12 @@
 $unreadTotal = (int) \App\Models\Conversation::totalUnread(auth_id());
 ?>
 <div class="chat-layout" data-view="list">
-    <aside class="chat-sidebar card surface-card">
+    <aside class="chat-sidebar panel">
         <div class="chat-sidebar-head">
             <div class="d-flex align-items-center justify-content-between gap-2">
                 <div class="rail-title mb-0">Hội thoại</div>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge rounded-pill bg-primary d-none" data-chat-unread-total><?= $unreadTotal ?></span>
+                    <span class="badge rounded-pill d-none" data-chat-unread-total><?= $unreadTotal ?></span>
                     <button type="button" class="btn btn-subtle btn-sm chat-new-chat-btn" data-chat-new-chat aria-label="Bắt đầu cuộc trò chuyện mới" title="Nhắn tin mới">
                         <i class="bi bi-pencil-square"></i>
                     </button>
@@ -40,8 +40,8 @@ $unreadTotal = (int) \App\Models\Conversation::totalUnread(auth_id());
         </div>
     </aside>
 
-    <section class="chat-main card surface-card">
-        <div class="card-body d-flex flex-column justify-content-center h-100">
+    <section class="chat-main panel">
+        <div class="panel-body d-flex flex-column justify-content-center h-100">
             <button type="button" class="btn btn-subtle btn-sm chat-start-close" data-chat-start-close aria-label="Đóng" title="Đóng">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -53,7 +53,7 @@ $unreadTotal = (int) \App\Models\Conversation::totalUnread(auth_id());
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <input type="search" id="chatUserSearch" class="form-control" placeholder="Nhập tên hoặc username..." autocomplete="off"
                            aria-label="Tìm người dùng để nhắn tin">
-                    <div class="search-results card surface-card d-none" id="chatSearchResults" role="listbox"></div>
+                    <div class="search-results panel d-none" id="chatSearchResults" role="listbox"></div>
                 </div>
                 <p class="mt-3 mb-0" style="font-size: 13px;">
                     <i class="bi bi-shield-check me-1" aria-hidden="true"></i>Chỉ người bạn chọn mới có thể đọc tin nhắn này.

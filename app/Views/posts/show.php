@@ -32,7 +32,7 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
     <span class="post-detail-crumb-current">Bài viết #<?= $postId ?></span>
 </nav>
 
-<article class="post-detail card surface-card" data-post-id="<?= $postId ?>">
+<article class="post-detail panel" data-post-id="<?= $postId ?>">
     <header class="post-detail-head">
         <a class="post-detail-avatar" href="<?= url('/u/' . $post['username']) ?>">
             <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="<?= e($authorName) ?>" class="avatar avatar-lg avatar-ring">
@@ -181,7 +181,7 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
     </div>
 </article>
 
-<section class="post-detail-comments card surface-card" id="comments">
+<section class="post-detail-comments panel" id="comments">
     <div class="post-detail-comments-head">
         <h2 class="post-detail-comments-title">
             <i class="bi bi-chat-square-text"></i>

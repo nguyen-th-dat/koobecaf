@@ -7,14 +7,14 @@
  */
 ?>
 <div class="page-head">
-    <h1><i class="bi bi-bell"></i>Thông báo</h1>
+    <h1>Thông báo</h1>
     <?php if ($unread > 0): ?>
         <button class="btn btn-outline btn-sm" id="markAllRead"><i class="bi bi-check2-all me-1"></i>Đánh dấu đã đọc</button>
     <?php endif; ?>
 </div>
 
-<div class="card surface-card">
-    <div class="card-body">
+<div class="panel">
+    <div class="panel-body">
         <ul class="list-unified notification-list" data-notification-list>
             <?php foreach ($notifications as $notification): ?>
                 <?= view_partial(dirname(__DIR__) . '/partials/notification-item.php', ['notification' => $notification]) ?>

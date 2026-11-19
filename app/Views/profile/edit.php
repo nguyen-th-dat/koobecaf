@@ -16,9 +16,9 @@ $coverUrl = !empty($user['cover_path']) ? upload_url($user['cover_path']) : null
 </div>
 
 <!-- ================= Thông tin cá nhân ================= -->
-<div class="card surface-card settings-card mb-3">
-    <div class="card-body">
-        <h2 class="settings-card-title"><i class="bi bi-person-badge me-2"></i>Thông tin cá nhân</h2>
+<div class="panel settings-card mb-3">
+    <div class="panel-body">
+        <h2 class="settings-card-title">Thông tin cá nhân</h2>
 
         <!-- Xem trước ảnh bìa + đại diện -->
         <div class="profile-preview<?= $coverUrl === null ? ' is-empty' : '' ?>"
@@ -80,7 +80,7 @@ $coverUrl = !empty($user['cover_path']) ? upload_url($user['cover_path']) : null
             </div>
 
             <div class="settings-actions">
-                <button class="btn btn-solid" type="submit"><i class="bi bi-check-lg me-1"></i>Lưu thay đổi</button>
+                <button class="btn btn-solid" type="submit">Lưu thay đổi</button>
                 <a class="btn btn-text" href="<?= url('/u/' . $user['username']) ?>">Huỷ</a>
             </div>
         </form>
@@ -90,7 +90,7 @@ $coverUrl = !empty($user['cover_path']) ? upload_url($user['cover_path']) : null
 <!-- ================= Đổi mật khẩu ================= -->
 <div class="card surface-card settings-card mb-3">
     <div class="card-body">
-        <h2 class="settings-card-title"><i class="bi bi-key me-2"></i>Đổi mật khẩu</h2>
+        <h2 class="settings-card-title">Đổi mật khẩu</h2>
         <form action="<?= url('/settings/password') ?>" method="post" data-guard="Mật khẩu đang đổi">
             <?= \App\Core\Csrf::field() ?>
 
@@ -111,7 +111,7 @@ $coverUrl = !empty($user['cover_path']) ? upload_url($user['cover_path']) : null
             </div>
 
             <div class="settings-actions">
-                <button class="btn btn-outline btn-primary" type="submit"><i class="bi bi-shield-lock me-1"></i>Đổi mật khẩu</button>
+                <button class="btn btn-solid" type="submit">Đổi mật khẩu</button>
             </div>
         </form>
     </div>
@@ -120,7 +120,7 @@ $coverUrl = !empty($user['cover_path']) ? upload_url($user['cover_path']) : null
 <!-- ================= Giao diện ================= -->
 <div class="card surface-card settings-card mb-3">
     <div class="card-body">
-        <h2 class="settings-card-title"><i class="bi bi-palette me-2"></i>Giao diện</h2>
+        <h2 class="settings-card-title">Giao diện</h2>
         <form action="<?= url('/settings/theme') ?>" method="post" id="themeForm">
             <?= \App\Core\Csrf::field() ?>
             <input type="hidden" name="theme" id="themeInput" value="<?= e($user['theme']) ?>">
