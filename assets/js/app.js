@@ -237,14 +237,98 @@ if (topbar) {
 
 /* =============================================================
    Xác nhận trước khi xóa
+
+   Dùng hộp thoại dùng chung (#kbConfirmModal) thay cho `window.confirm()`
+   của trình duyệt để giao diện đồng bộ với design system.
    ============================================================= */
-document.addEventListener('submit', (event) => {
-    const form = event.target;
-    const message = form.dataset.confirm;
-    if (message && !window.confirm(message)) {
+const confirmModal = document.getElementById('kbConfirmModal');
+
+if (confirmModal) {
+    const confirmTitle = confirmModal.querySelector('[data-confirm-title]');
+    const confirmText = confirmModal.querySelector('[data-confirm-text]');
+    const confirmIcon = confirmModal.querySelector('[data-confirm-icon]');
+    const confirmAccept = confirmModal.querySelector('[data-confirm-accept]');
+    const confirmCancel = confirmModal.querySelector('[data-confirm-cancel]');
+
+    let confirmResolver = null;
+    let confirmLastFocus = null;
+
+    const closeConfirm = (result) => {
+        confirmModal.hidden = true;
+        document.body.style.overflow = '';
+
+        const resolver = confirmResolver;
+        confirmResolver = null;
+
+        confirmLastFocus?.focus();
+        confirmLastFocus = null;
+
+        resolver?.(result);
+    };
+
+    const openConfirm = ({ title = 'Thông báo', message = '', acceptText = 'Đồng ý', cancelText = 'Huỷ', icon = 'bi-exclamation-triangle-fill' } = {}) =>
+        new Promise((resolve) => {
+            if (confirmTitle) confirmTitle.textContent = title;
+            if (confirmText) confirmText.textContent = message;
+            if (confirmAccept) confirmAccept.textContent = acceptText;
+            if (confirmCancel) confirmCancel.textContent = cancelText;
+            if (confirmIcon) confirmIcon.innerHTML = `<i class="bi ${icon}"></i>`;
+
+            confirmResolver = resolve;
+            confirmLastFocus = document.activeElement;
+
+            confirmModal.hidden = false;
+            document.body.style.overflow = 'hidden';
+            confirmCancel?.focus();
+        });
+
+    confirmAccept?.addEventListener('click', () => closeConfirm(true));
+    confirmCancel?.addEventListener('click', () => closeConfirm(false));
+    confirmModal.querySelector('[data-confirm-close]')?.addEventListener('click', () => closeConfirm(false));
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !confirmModal.hidden) {
+            closeConfirm(false);
+        }
+    });
+
+    // API cho các đoạn mã khác gọi trực tiếp.
+    window.kbConfirm = openConfirm;
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        const message = form.dataset.confirm;
+        if (!message) return;
+
+        // Đã xác nhận rồi — gửi thẳng, không mở lại hộp thoại.
+        if (form.dataset.confirmApproved === '1') {
+            delete form.dataset.confirmApproved;
+            return;
+        }
+
         event.preventDefault();
-    }
-});
+
+        openConfirm({
+            title: form.dataset.confirmTitle || 'Xác nhận',
+            message,
+            acceptText: form.dataset.confirmAccept || 'Xác nhận',
+        }).then((accepted) => {
+            if (!accepted) return;
+
+            form.dataset.confirmApproved = '1';
+            form.submit();
+        });
+    });
+} else {
+    // Không có hộp thoại dùng chung — rơi về hành xử mặc định của trình duyệt.
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        const message = form.dataset.confirm;
+        if (message && !window.confirm(message)) {
+            event.preventDefault();
+        }
+    });
+}
 
 /* =============================================================
    Hiện/ẩn mật khẩu
@@ -339,6 +423,75 @@ if (imageInput && previewBox) {
         renderPreview();
     });
 }
+
+/* =============================================================
+   Bộ soạn bài: đếm ký tự, xem trước, chọn quyền riêng tư
+   ============================================================= */
+(function composerEnhancements() {
+    const textarea = document.getElementById('postContent');
+    const counter = document.querySelector('[data-composer-count]');
+    const counterBox = counter?.closest('.composer-counter');
+
+    if (textarea && counter) {
+        const limit = Number(textarea.getAttribute('maxlength')) || 5000;
+
+        const syncCounter = () => {
+            const length = textarea.value.length;
+            counter.textContent = String(length);
+
+            if (!counterBox) return;
+            counterBox.classList.toggle('is-warning', length >= limit * 0.9 && length < limit);
+            counterBox.classList.toggle('is-danger', length >= limit);
+        };
+
+        textarea.addEventListener('input', syncCounter);
+        syncCounter();
+    }
+
+    // Xem trước: bật/ẩt khối xem trước và đồng bộ nội dung.
+    const previewPanel = document.querySelector('[data-compose-preview-panel]');
+    const previewText = document.querySelector('[data-compose-preview-text]');
+
+    if (previewPanel && textarea) {
+        const previewToggle = document.querySelector('[data-compose-preview]');
+
+        previewToggle?.addEventListener('click', () => {
+            previewPanel.hidden = !previewPanel.hidden;
+            previewToggle.classList.toggle('is-active', !previewPanel.hidden);
+
+            if (!previewPanel.hidden && previewText) {
+                previewText.textContent = textarea.value.trim() || 'Bạn đang nghĩ gì?';
+            }
+        });
+
+        textarea.addEventListener('input', () => {
+            if (previewPanel.hidden || !previewText) return;
+            previewText.textContent = textarea.value.trim() || 'Bạn đang nghĩ gì?';
+        });
+    }
+
+    // Bộ chọn quyền riêng tư: đồng bộ trạng thái hiển thị với radio thật.
+    const privacyGroups = [...document.querySelectorAll('.privacy-picker-options')];
+
+    const syncPrivacyPickers = () => {
+        privacyGroups.forEach((group) => {
+            group.querySelectorAll('.privacy-option').forEach((option) => {
+                const input = option.querySelector('.privacy-option-input');
+                option.classList.toggle('is-active', Boolean(input?.checked));
+            });
+        });
+    };
+
+    privacyGroups.forEach((group) => {
+        group.addEventListener('change', syncPrivacyPickers);
+    });
+
+    syncPrivacyPickers();
+
+    // Nháp được khôi phục bằng cách gán thẳng giá trị, không sinh sự kiện
+    // change — nên cần đồng bộ lại khi form nạp xong.
+    window.KBSyncPrivacyPickers = syncPrivacyPickers;
+})();
 
 /* =============================================================
    Cập nhật số liệu tương tác (thích / bình luận / chia sẻ)
@@ -649,7 +802,15 @@ document.addEventListener('click', async (event) => {
 
     const deleteBtn = event.target.closest('.comment-delete-btn');
     if (deleteBtn) {
-        if (!window.confirm('Bạn có chắc muốn xóa bình luận này?')) return;
+        const confirmed = typeof window.kbConfirm === 'function'
+            ? await window.kbConfirm({
+                title: 'Xóa bình luận',
+                message: 'Bạn có chắc muốn xóa bình luận này? Hành động này không thể hoàn tác.',
+                acceptText: 'Xóa bình luận',
+            })
+            : window.confirm('Bạn có chắc muốn xóa bình luận này?');
+
+        if (!confirmed) return;
         const payload = await request(apiUrl(`/comments/${deleteBtn.dataset.commentId}/delete`), {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken },
@@ -2120,6 +2281,10 @@ function applyDraft(form, draft) {
             }
         });
     });
+
+    // Radio được gán giá trị trực tiếp nên không phát sự kiện change —
+    // cần đồng bộ lại giao diện của bộ chọn quyền riêng tư.
+    window.KBSyncPrivacyPickers?.();
 }
 
 /* =============================================================

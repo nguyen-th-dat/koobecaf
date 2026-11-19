@@ -78,7 +78,7 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
                     <li><a class="menu-item" href="<?= url('/posts/' . $postId . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
                     <li><hr class="menu-divider"></li>
                     <li>
-                        <form action="<?= url('/posts/' . $postId . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này?">
+                        <form action="<?= url('/posts/' . $postId . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác." data-confirm-title="Xóa bài viết" data-confirm-accept="Xóa bài viết">
                             <?= \App\Core\Csrf::field() ?>
                             <button type="submit" class="menu-item fg-danger w-100"><i class="bi bi-trash me-2"></i>Xóa bài viết</button>
                         </form>

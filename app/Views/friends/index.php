@@ -23,7 +23,7 @@
             <?php foreach ($friends as $person): ?>
                 <?php
                 $actions = '<a class="btn icon-btn bordered" href="' . url('/chat/start/' . (int) $person['id']) . '" title="Nhắn tin"><i class="bi bi-chat-dots"></i></a>'
-                    . '<form action="' . url('/friends/' . (int) $person['id'] . '/remove') . '" method="post" data-confirm="Bạn có chắc muốn hủy kết bạn?" class="d-inline">'
+                    . '<form action="' . url('/friends/' . (int) $person['id'] . '/remove') . '" method="post" data-confirm="Bạn có chắc muốn hủy kết bạn?" data-confirm-title="Hủy kết bạn" data-confirm-accept="Hủy kết bạn" class="d-inline">'
                     . \App\Core\Csrf::field()
                     . '<button class="btn btn-outline btn-danger btn-sm" type="submit">Hủy bạn</button></form>';
                 ?>

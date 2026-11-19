@@ -16,7 +16,7 @@ $theme = $currentUser['theme'] ?? (\App\Core\Session::get('theme') ?? 'light');
     <link rel="icon" href="<?= asset('images/logo.png') ?>" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="<?= asset('vendor/bootstrap-icons/css/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_versioned('css/app.css') ?>">
     <link rel="stylesheet" href="<?= asset_versioned('css/toast.css') ?>">
