@@ -35,7 +35,7 @@
                     </div>
                     <div class="edit-media-grid">
                         <?php foreach ($images as $image): ?>
-                            <label class="edit-media-item" for="rm<?= (int) $image['id'] ?>">
+                            <label class="edit-media-item">
                                 <img src="<?= e(upload_url($image['path'])) ?>" alt="" loading="lazy">
                                 <span class="edit-media-check">
                                     <input class="check" type="checkbox" name="remove_images[]" value="<?= (int) $image['id'] ?>" id="rm<?= (int) $image['id'] ?>">

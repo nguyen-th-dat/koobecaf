@@ -33,7 +33,7 @@
     color: var(--kb-on-dark);
     background-color: var(--kb-surface-dark);
     border: 1px solid var(--kb-hairline);
-    border-radius: var(--kb-radius-lg);
+    border-radius: var(--kb-radius-xl);
     box-shadow: var(--kb-shadow-pop);
     pointer-events: auto;
     animation: kb-toast-in .22s var(--kb-ease-out);
