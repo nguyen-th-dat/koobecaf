@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Thẻ bài viết dùng chung.
  *
@@ -48,12 +49,41 @@ $originalImages = $meta['originalImages'];
                             <i class="bi bi-three-dots"></i>
                         </button>
                         <ul class="menu">
-                            <li><a class="menu-item" href="<?= url('/posts/' . (int) $post['id'] . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
-                            <li><hr class="menu-divider"></li>
+                            <!-- Chỉnh sửa -->
                             <li>
-                                <form action="<?= url('/posts/' . (int) $post['id'] . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này?">
+                                <a class="menu-item" href="<?= url('/posts/' . (int) $post['id'] . '/edit') ?>">
+                                    <i class="bi bi-pencil me-2"></i>Chỉnh sửa
+                                </a>
+                            </li>
+
+                            <!-- Sao chép link -->
+                            <li>
+                                <a
+                                    class="menu-item"
+                                    href="#"
+                                    data-action="copy-link"
+                                    data-url="<?= e($meta['permalink']) ?>">
+                                    <i class="bi bi-link-45deg me-2"></i>Sao chép link
+                                </a>
+                            </li>
+
+                            <li>
+                                <hr class="menu-divider">
+                            </li>
+
+                            <!-- Xóa bài viết -->
+                            <li>
+                                <form
+                                    action="<?= url('/posts/' . (int) $post['id'] . '/delete') ?>"
+                                    method="post"
+                                    data-confirm="Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác."
+                                    data-confirm-title="Xóa bài viết"
+                                    data-confirm-accept="Xóa bài viết">
                                     <?= \App\Core\Csrf::field() ?>
-                                    <button type="submit" class="menu-item fg-danger w-100"><i class="bi bi-trash me-2"></i>Xóa bài viết</button>
+
+                                    <button type="submit" class="menu-item fg-danger w-100">
+                                        <i class="bi bi-trash me-2"></i>Xóa bài viết
+                                    </button>
                                 </form>
                             </li>
                         </ul>
@@ -111,33 +141,64 @@ $originalImages = $meta['originalImages'];
     </div>
 
     <div class="post-actions d-flex border-top">
+
+        <!-- Like -->
         <?php if (is_auth()): ?>
-            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>" data-action="like" data-post-id="<?= (int) $post['id'] ?>">
-                <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
-            </button>
-            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="share" data-post-id="<?= (int) $post['id'] ?>">
-                <i class="bi bi-share"></i> <span>Chia sẻ</span>
+            <button
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn<?= $meta['liked'] ? ' active' : '' ?>"
+                data-action="like"
+                data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-hand-thumbs-up"></i>
+                <span>Thích</span>
             </button>
         <?php else: ?>
-            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= url('/login') ?>" title="Đăng nhập để thích bài viết này">
-                <i class="bi bi-hand-thumbs-up"></i> <span>Thích</span>
-            </a>
-            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= url('/login') ?>" title="Đăng nhập để chia sẻ bài viết này">
-                <i class="bi bi-share"></i> <span>Chia sẻ</span>
+            <a
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn"
+                href="<?= url('/login') ?>"
+                title="Đăng nhập để thích bài viết này">
+                <i class="bi bi-hand-thumbs-up"></i>
+                <span>Thích</span>
             </a>
         <?php endif; ?>
+
+        <!-- Comment -->
         <?php if (is_auth()): ?>
-            <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="comment" data-post-id="<?= (int) $post['id'] ?>">
-                <i class="bi bi-chat"></i> <span>Bình luận</span>
+            <button
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn"
+                data-action="comment"
+                data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-chat"></i>
+                <span>Bình luận</span>
             </button>
         <?php else: ?>
-            <a class="btn btn-text flex-fill border-0 rounded-0 action-btn" href="<?= e($meta['permalink']) ?>#comments" title="Xem bình luận">
-                <i class="bi bi-chat"></i> <span>Bình luận</span>
+            <a
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn"
+                href="<?= e($meta['permalink']) ?>#comments"
+                title="Xem bình luận">
+                <i class="bi bi-chat"></i>
+                <span>Bình luận</span>
             </a>
         <?php endif; ?>
-        <button class="btn btn-text flex-fill border-0 rounded-0 action-btn" data-action="copy-link" data-url="<?= e($meta['permalink']) ?>">
-            <i class="bi bi-link-45deg"></i> <span>Sao chép link</span>
-        </button>
+
+        <!-- Share -->
+        <?php if (is_auth()): ?>
+            <button
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn"
+                data-action="share"
+                data-post-id="<?= (int) $post['id'] ?>">
+                <i class="bi bi-share"></i>
+                <span>Chia sẻ</span>
+            </button>
+        <?php else: ?>
+            <a
+                class="btn btn-text flex-fill border-0 rounded-0 action-btn"
+                href="<?= url('/login') ?>"
+                title="Đăng nhập để chia sẻ bài viết này">
+                <i class="bi bi-share"></i>
+                <span>Chia sẻ</span>
+            </a>
+        <?php endif; ?>
+
     </div>
 
     <?php if (is_auth()): ?>
