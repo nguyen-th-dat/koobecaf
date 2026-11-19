@@ -11,11 +11,11 @@ $unreadNotifications = auth_id() !== null ? \App\Models\Notification::unreadCoun
 
 $menu = [
     ['url' => '/',            'icon' => 'bi-house-door',  'label' => 'Trang chủ', 'exact' => true],
-    ['url' => '/posts/create', 'icon' => 'bi-pencil-square', 'label' => 'Đăng bài'],
+    // ['url' => '/posts/create', 'icon' => 'bi-pencil-square', 'label' => 'Đăng bài'],
     ['url' => '/u/' . (auth_user()['username'] ?? ''), 'icon' => 'bi-person', 'label' => 'Trang cá nhân'],
     ['url' => '/friends',     'icon' => 'bi-people',     'label' => 'Bạn bè', 'badge' => $pendingRequests],
     ['url' => '/chat',        'icon' => 'bi-chat-dots',  'label' => 'Tin nhắn', 'badge' => $unreadMessages, 'badgeKey' => 'messages'],
-    ['url' => '/notifications', 'icon' => 'bi-bell',     'label' => 'Thông báo', 'badge' => $unreadNotifications, 'badgeKey' => 'notifications'],
+    // ['url' => '/notifications', 'icon' => 'bi-bell',     'label' => 'Thông báo', 'badge' => $unreadNotifications, 'badgeKey' => 'notifications'],
     ['url' => '/settings/profile', 'icon' => 'bi-gear',  'label' => 'Cài đặt'],
 ];
 ?>
