@@ -770,35 +770,106 @@
     box-shadow: var(--mp-shadow-md);
 }
 
-/* Phân trang bài viết */
+/* Phân trang bài viết - Thiết kế thanh Pill nổi hiện đại */
 .profile-pagination {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
-    margin-top: 32px;
+    gap: 8px;
+    margin: 36px auto 16px;
+    padding: 6px 12px;
+    width: fit-content;
+    max-width: 100%;
+    border-radius: var(--mp-radius-full);
+    background-color: var(--mp-surface-card);
+    border: 1px solid var(--mp-hairline-soft);
+    box-shadow: var(--mp-shadow-sm);
+    flex-wrap: wrap;
 }
 
 .profile-page-nav-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
+    padding: 7px 14px;
+    min-height: 36px;
     border-radius: var(--mp-radius-full);
-    background-color: var(--mp-surface-soft);
-    border: 1px solid var(--mp-hairline);
+    background-color: transparent;
+    border: 1px solid transparent;
     color: var(--mp-ink-deep);
     font-size: 13.5px;
     font-weight: 600;
     text-decoration: none;
+    cursor: pointer;
     transition: all 180ms ease;
+    user-select: none;
 }
 
-.profile-page-nav-btn:hover {
-    background-color: var(--mp-hairline);
+.profile-page-nav-btn:hover:not(.disabled) {
+    background-color: var(--mp-surface-soft);
+    border-color: var(--mp-hairline);
     color: var(--mp-ink-deep);
     text-decoration: none;
     transform: translateY(-1px);
+}
+
+.profile-page-nav-btn:active:not(.disabled) {
+    transform: translateY(0);
+}
+
+.profile-page-nav-btn.disabled {
+    color: var(--mp-stone);
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+
+.profile-page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-page-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: var(--mp-radius-full);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--mp-steel);
+    text-decoration: none;
+    transition: all 180ms ease;
+    user-select: none;
+    font-variant-numeric: tabular-nums;
+}
+
+.profile-page-num:hover:not(.is-active) {
+    background-color: var(--mp-surface-soft);
+    color: var(--mp-ink-deep);
+    text-decoration: none;
+    transform: scale(1.05);
+}
+
+.profile-page-num.is-active {
+    background: linear-gradient(135deg, var(--mp-accent) 0%, var(--mp-accent-hover) 100%);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 2px 8px var(--mp-accent-glow);
+}
+
+.profile-page-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 36px;
+    color: var(--mp-stone);
+    font-size: 14px;
+    user-select: none;
 }
 
 .profile-page-indicator {
@@ -1214,51 +1285,87 @@
 }
 
 /* =============================================================
-   Trạng thái rỗng (Empty State)
+   Trạng thái rỗng (Empty State) - Nâng cấp phong cách hiện đại
    ============================================================= */
 .profile-empty-state,
 .mp-empty {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 48px 20px;
+    padding: 56px 24px;
     border-radius: var(--mp-radius-xxl);
-    background-color: var(--mp-surface-soft);
-    border: 1px dashed var(--mp-hairline);
-    max-width: 600px;
-    margin: 20px auto;
+    background: linear-gradient(180deg, var(--mp-surface-card) 0%, var(--mp-surface-soft) 100%);
+    border: 1.5px dashed var(--mp-hairline);
+    max-width: 620px;
+    margin: 28px auto;
+    overflow: hidden;
+    box-shadow: var(--mp-shadow-sm);
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.profile-empty-state:hover,
+.mp-empty:hover {
+    border-color: var(--mp-steel);
+    box-shadow: var(--mp-shadow-md);
+}
+
+/* Hào quang màu accent mềm mại phía sau biểu tượng rỗng */
+.profile-empty-ambient {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--mp-accent-soft) 0%, transparent 70%);
+    pointer-events: none;
+    filter: blur(14px);
+    opacity: 0.85;
 }
 
 .profile-empty-icon,
 .mp-empty-icon {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    background-color: var(--mp-canvas);
-    color: var(--mp-steel);
-    font-size: 28px;
-    margin-bottom: 16px;
-    box-shadow: var(--mp-shadow-sm);
+    background: linear-gradient(135deg, var(--mp-canvas) 0%, var(--mp-surface-soft) 100%);
+    color: var(--mp-accent);
+    font-size: 30px;
+    margin-bottom: 20px;
+    border: 2px solid var(--mp-hairline-soft);
+    box-shadow: var(--mp-shadow-md);
+    transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 260ms ease;
+}
+
+.profile-empty-state:hover .profile-empty-icon,
+.mp-empty:hover .mp-empty-icon {
+    transform: scale(1.08) rotate(4deg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .profile-empty-state h3,
 .mp-empty h3 {
-    margin: 0 0 8px;
-    font-size: 19px;
+    margin: 0 0 10px;
+    font-size: 20px;
     font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
     color: var(--mp-ink-deep);
 }
 
 .profile-empty-state p,
 .mp-empty p {
-    margin: 0 0 16px;
+    margin: 0 0 20px;
     font-size: 14.5px;
-    line-height: 1.55;
+    line-height: 1.6;
     color: var(--mp-slate);
     max-width: 44ch;
 }
@@ -1400,5 +1507,33 @@
     .profile-display-name,
     .mp-name {
         font-size: 20px;
+    }
+
+    .profile-pagination {
+        gap: 4px;
+        padding: 4px 8px;
+    }
+
+    .profile-page-nav-btn {
+        padding: 6px 10px;
+        font-size: 12.5px;
+    }
+
+    .profile-page-num {
+        min-width: 32px;
+        height: 32px;
+        font-size: 12.5px;
+    }
+
+    .profile-empty-state,
+    .mp-empty {
+        padding: 40px 16px;
+    }
+
+    .profile-empty-icon,
+    .mp-empty-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
     }
 }
