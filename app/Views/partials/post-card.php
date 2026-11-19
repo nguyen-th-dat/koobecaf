@@ -14,7 +14,7 @@ $images = $meta['images'];
 $original = $meta['original'];
 $originalImages = $meta['originalImages'];
 ?>
-<article class="post-card" data-post-id="<?= (int) $post['id'] ?>">
+<article class="card surface-card post-card" data-post-id="<?= (int) $post['id'] ?>">
     <?php if ($meta['isShared'] && $original !== null): ?>
         <div class="shared-header d-flex align-items-center gap-2">
             <img src="<?= e(avatar_url($post['avatar_path'])) ?>" alt="" class="avatar avatar-sm">
