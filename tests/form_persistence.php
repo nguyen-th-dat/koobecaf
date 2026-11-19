@@ -210,7 +210,12 @@ $res = request('POST', $base . '/posts/' . $postId . '/update', ['form' => [
 check('Sua bai viet that bai chuyen huong', $res['status'] === 302, 'status=' . $res['status']);
 
 $res = request('GET', $base . '/posts/' . $postId . '/edit');
-check('Giu lai quyen rieng tu sau khi sua that bai', str_contains($res['body'], '<option value="followers" selected>'), 'khong thay option selected');
+// Bộ chọn quyền riêng tư dùng radio, nên giá trị đang chọn được đánh dấu bằng thuộc tính checked.
+check(
+    'Giu lai quyen rieng tu sau khi sua that bai',
+    (bool) preg_match('/name="privacy"[^>]*value="followers"[^>]*checked|value="followers"[^>]*checked/', $res['body']),
+    'khong thay radio followers checked'
+);
 
 // ------------------------------------------------------------------
 // 5. Trang dang bai: giu lai noi dung composer khi dang bai that bai
