@@ -39,12 +39,12 @@ $hue = abs(crc32($user['username'])) % 360;
 // Danh sách các tab hiển thị
 $tabs = [
     'posts'     => ['label' => 'Bài viết',        'icon' => 'bi-journal-text',  'count' => $stats['posts'] ?? 0],
-    'photos'    => ['label' => 'Ảnh',             'icon' => 'bi-images',        'count' => $stats['photos'] ?? 0],
-    'friends'   => ['label' => 'Bạn bè',          'icon' => 'bi-people',        'count' => $stats['friends'] ?? 0],
-    'followers' => ['label' => 'Người theo dõi',  'icon' => 'bi-person-heart',  'count' => $stats['followers'] ?? 0],
-    'following' => ['label' => 'Đang theo dõi',   'icon' => 'bi-person-check',  'count' => $stats['following'] ?? 0],
-    'shared'    => ['label' => 'Đã chia sẻ',      'icon' => 'bi-share',         'count' => $stats['shares'] ?? 0],
+    // 'photos'    => ['label' => 'Ảnh',             'icon' => 'bi-images',        'count' => $stats['photos'] ?? 0],
+    // 'friends'   => ['label' => 'Bạn bè',          'icon' => 'bi-people',        'count' => $stats['friends'] ?? 0],
+    // 'followers' => ['label' => 'Người theo dõi',  'icon' => 'bi-person-heart',  'count' => $stats['followers'] ?? 0],
+    // 'following' => ['label' => 'Đang theo dõi',   'icon' => 'bi-person-check',  'count' => $stats['following'] ?? 0],
     'comments'  => ['label' => 'Bình luận',       'icon' => 'bi-chat-dots',     'count' => $stats['comments'] ?? 0],
+    'shared'    => ['label' => 'Đã chia sẻ',      'icon' => 'bi-share',         'count' => $stats['shares'] ?? 0],
 ];
 ?>
 
