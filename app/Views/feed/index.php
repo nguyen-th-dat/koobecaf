@@ -39,6 +39,19 @@ $totalPages = max(1, (int) ceil($total / $perPage));
     </div>
 <?php endif; ?>
 
+<?php if (is_auth()): ?>
+    <div class="feed-quick-composer mb-3">
+        <img src="<?= e(avatar_url(auth_user()['avatar_path'] ?? null)) ?>" alt="" class="quick-composer-avatar">
+        <a href="<?= url('/posts/create') ?>" class="quick-composer-input">
+            <span><?= e(auth_user()['display_name'] ?? '') ?>, bạn đang nghĩ gì thế?</span>
+        </a>
+        <a href="<?= url('/posts/create') ?>" class="quick-composer-btn" title="Đăng ảnh">
+            <i class="bi bi-images text-success"></i>
+            <span>Ảnh/Video</span>
+        </a>
+    </div>
+<?php endif; ?>
+
 <?php if ($posts === []): ?>
     <div class="panel">
         <div class="empty-state">
