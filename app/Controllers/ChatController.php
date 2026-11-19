@@ -11,6 +11,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\NotificationService;
+use App\Services\RealtimeService;
 
 final class ChatController extends Controller
 {
@@ -158,6 +159,17 @@ final class ChatController extends Controller
         foreach (Conversation::memberIds($conversationId) as $memberId) {
             NotificationService::message($memberId, $userId, $conversationId);
         }
+
+        // Đẩy tin nhắn realtime tới các thành viên: trường hợp này xảy ra khi
+        // WebSocket của người gửi đang chết và client fallback sang HTTP.
+        RealtimeService::chatMessage($conversationId, [
+            'id'              => $messageId,
+            'conversation_id' => $conversationId,
+            'sender_id'       => $userId,
+            'body'            => $body,
+            'created_at'      => date('Y-m-d H:i:s'),
+            'sender'          => RealtimeService::userPayload($userId),
+        ]);
 
         Response::success([
             'id'         => $messageId,

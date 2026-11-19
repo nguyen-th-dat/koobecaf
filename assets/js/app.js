@@ -1495,7 +1495,12 @@ if (chatForm && chatMessages) {
         try {
             // Ưu tiên WebSocket, chỉ dùng HTTP khi chưa kết nối được.
             if (chatState.realtime && typeof window.KBChatSend === 'function') {
-                window.KBChatSend(body);
+                try {
+                    await window.KBChatSend(body);
+                } catch (error) {
+                    // WebSocket chết giữa lúc gửi — fallback sang HTTP.
+                    await sendViaHttp(body);
+                }
             } else {
                 await sendViaHttp(body);
             }

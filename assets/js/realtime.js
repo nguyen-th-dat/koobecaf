@@ -11,6 +11,10 @@
  * Nếu WebSocket không khả dụng, client âm thầm bỏ qua — trang chat sẽ tiếp
  * tục dùng cơ chế polling dự phòng của app.js.
  *
+ * Token và ticket đều có thời hạn ngắn. Khi server báo hết hạn, client tự xin
+ * cấp lại và thử lại trên chính kết nối đang mở — không phải đóng rồi kết
+ * nối lại (điều này trước đây khiến phiên chat kẹt vĩnh viễn sau 5 phút).
+ *
  * Dữ liệu khởi tạo lấy từ <body data-ws-...> do layout main.php render.
  */
 
@@ -19,9 +23,9 @@
 
     const body = document.body;
     const enabled = body.dataset.wsEnabled === '1';
-    const url = body.dataset.wsUrl || '';
-    const token = body.dataset.wsToken || '';
-    const ticket = body.dataset.wsTicket || '';
+    let url = body.dataset.wsUrl || '';
+    let token = body.dataset.wsToken || '';
+    let ticket = body.dataset.wsTicket || '';
     const conversationId = Number(body.dataset.wsConversationId || 0);
 
     if (!enabled || !url || !token) {
@@ -38,6 +42,10 @@
     let typingTimer = null;
     let typingSent = false;
     let closedByUser = false;
+    let localIdCounter = 0;
+
+    /** Tin nhắn đang chờ server xác nhận, theo local_id. */
+    const pendingMessages = new Map();
 
     const MAX_RECONNECT_DELAY = 15000;
 
@@ -72,6 +80,7 @@
             if (chat) {
                 chat.state.realtime = false;
             }
+            rejectAllPending(new Error('Mất kết nối.'));
             if (!closedByUser) {
                 scheduleReconnect();
             }
@@ -83,7 +92,7 @@
     }
 
     function scheduleReconnect() {
-        if (reconnectTimer !== null) {
+        if (reconnectTimer !== null || closedByUser) {
             return;
         }
         reconnectTimer = setTimeout(() => {
@@ -106,51 +115,79 @@
     }
 
     // -----------------------------------------------------------------
+    // Làm mới token / ticket
+    // -----------------------------------------------------------------
+
+    /**
+     * Xin token đăng nhập mới.
+     *
+     * Token chỉ sống WS_TOKEN_TTL giây; một tab mở lâu sẽ hết hạn token.
+     */
+    async function refreshToken() {
+        try {
+            const response = await fetch(apiUrl('/api/ws/session'), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const payload = await response.json();
+            if (!payload.success || !payload.data.token) {
+                return false;
+            }
+
+            token = payload.data.token;
+
+            // Server có thể đã được cấu hình lại cổng/đường dẫn → cập nhật.
+            if (payload.data.url) {
+                url = payload.data.url;
+            }
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /** Xin ticket của cuộc trò chuyện hiện tại (dùng khi ticket cũ hết hạn). */
+    async function refreshTicket() {
+        if (conversationId <= 0) {
+            return false;
+        }
+
+        try {
+            const response = await fetch(apiUrl(`/api/ws/ticket/${conversationId}`), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const payload = await response.json();
+            if (!payload.success || !payload.data.ticket) {
+                return false;
+            }
+
+            ticket = payload.data.ticket;
+
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    // -----------------------------------------------------------------
     // Xử lý frame từ server
     // -----------------------------------------------------------------
 
     function handleFrame(payload) {
-        dispatchFrame(payload);
-    }
-
-    function dispatchFrame(payload) {
         switch (payload.type) {
             case 'auth:ok':
-                if (chat) {
-                    chat.state.realtime = true;
-                    sendFrame({ type: 'subscribe', ticket });
-                }
+                onAuthOk(payload);
                 break;
 
             case 'subscribe:ok':
-                // Đã đăng ký kênh — gửi trạng thái đã đọc cho các tin nhắn còn lại.
-                if (chat) {
-                    chat.state.peer = (payload.conversation && payload.conversation.peer) || null;
-                }
-                sendFrame({ type: 'read', conversation_id: conversationId });
+                onSubscribeOk(payload);
                 break;
 
-            case 'message:new': {
-                if (!chat) {
-                    break;
-                }
-                const message = payload.message || {};
-                const isMine = Number(message.sender_id) === window.KB_USER_ID;
-                chat.appendMessage({
-                    id: message.id,
-                    sender_id: message.sender_id,
-                    body: message.body,
-                    created_at: message.created_at,
-                    is_mine: isMine,
-                    avatar_url: isMine ? '' : peerAvatarUrl(),
-                });
-                if (!isMine) {
-                    sendFrame({ type: 'read', conversation_id: conversationId });
-                    markPeerOnline();
-                }
-                refreshBadges();
+            case 'message:new':
+                onMessageNew(payload);
                 break;
-            }
 
             case 'message:read':
                 if (chat && Number(payload.reader_id) !== window.KB_USER_ID) {
@@ -160,6 +197,10 @@
 
             case 'typing':
                 showTyping(payload.typing);
+                break;
+
+            case 'presence':
+                onPresence(payload);
                 break;
 
             case 'notification:new':
@@ -178,15 +219,151 @@
                 handleSocialEvent(payload);
                 break;
 
+            case 'pong':
+                break;
+
             case 'error':
-                if (typeof window.showToast === 'function') {
-                    window.showToast('error', payload.message || 'Lỗi realtime.');
-                }
+                onError(payload);
                 break;
 
             default:
                 break;
         }
+    }
+
+    function onAuthOk(payload) {
+        if (chat) {
+            chat.state.realtime = true;
+
+            if (ticket) {
+                sendFrame({ type: 'subscribe', ticket });
+            }
+        }
+    }
+
+    function onSubscribeOk(payload) {
+        if (!chat) {
+            return;
+        }
+
+        chat.state.peer = (payload.conversation && payload.conversation.peer) || null;
+
+        // Gửi trạng thái đã đọc cho các tin nhắn còn lại.
+        sendFrame({ type: 'read', conversation_id: conversationId });
+
+        if (payload.conversation && payload.conversation.peer_online) {
+            markPeerOnline();
+        }
+    }
+
+    function onMessageNew(payload) {
+        const message = payload.message || {};
+        const messageConversationId = Number(message.conversation_id) || 0;
+
+        // Tin nhắn của chính mình vừa gửi qua WebSocket → server đã xác nhận.
+        if (payload.local_id) {
+            resolvePending(payload.local_id, message);
+        }
+
+        // Tin nhắn của cuộc trò chuyện khác → không thêm vào khung chat.
+        // Thông báo (toast + badge) do sự kiện notification:new đảm nhiệm.
+        if (messageConversationId !== conversationId) {
+            refreshBadges();
+            return;
+        }
+
+        if (!chat) {
+            return;
+        }
+
+        const isMine = Number(message.sender_id) === window.KB_USER_ID;
+        chat.appendMessage({
+            id: message.id,
+            sender_id: message.sender_id,
+            body: message.body,
+            created_at: message.created_at,
+            is_mine: isMine,
+            avatar_url: isMine ? '' : peerAvatarUrl(),
+        });
+
+        if (!isMine) {
+            sendFrame({ type: 'read', conversation_id: conversationId });
+            markPeerOnline();
+        }
+
+        refreshBadges();
+    }
+
+    /**
+     * Xử lý lỗi từ server.
+     *
+     * Lỗi không chí mạng (fatal = false) giữ nguyên kết nối: client tự xin
+     * token/ticket mới rồi thử lại.
+     */
+    function onError(payload) {
+        if (payload.reason === 'token_expired') {
+            refreshToken().then((ok) => {
+                if (!ok) {
+                    return;
+                }
+                if (!sendFrame({ type: 'auth', token })) {
+                    // Socket đã động trong lúc chờ token mới → kết nối lại.
+                    scheduleReconnect();
+                }
+            });
+
+            return;
+        }
+
+        if (payload.reason === 'ticket_expired') {
+            refreshTicket().then((ok) => {
+                if (!ok) {
+                    return;
+                }
+                if (!sendFrame({ type: 'subscribe', ticket })) {
+                    scheduleReconnect();
+                }
+            });
+
+            return;
+        }
+
+        if (payload.local_id) {
+            rejectPending(payload.local_id, new Error(payload.message || 'Không gửi được tin nhắn.'));
+        }
+
+        if (typeof window.showToast === 'function') {
+            window.showToast('error', payload.message || 'Lỗi realtime.');
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // Tin nhắn đang chờ xác nhận
+    // -----------------------------------------------------------------
+
+    function resolvePending(localId, message) {
+        const pending = pendingMessages.get(localId);
+        if (!pending) {
+            return;
+        }
+        pendingMessages.delete(localId);
+        pending.resolve(message);
+    }
+
+    function rejectPending(localId, error) {
+        const pending = pendingMessages.get(localId);
+        if (!pending) {
+            return;
+        }
+        pendingMessages.delete(localId);
+        pending.reject(error);
+    }
+
+    function rejectAllPending(error) {
+        for (const pending of pendingMessages.values()) {
+            pending.reject(error);
+        }
+        pendingMessages.clear();
     }
 
     // -----------------------------------------------------------------
@@ -267,10 +444,8 @@
         const author = post.author || {};
         const name = author.display_name || 'Có người';
         const text = author.username ? `@${author.username} ` : '';
-        window.__kbToast = (window.__kbToast || 0) + 1;
-        window.__kbToastMsg = `${name} ${text}vừa đăng bài viết mới.`;
 
-        showToast('info', window.__kbToastMsg);
+        showToast('info', `${name} ${text}vừa đăng bài viết mới.`);
     }
 
     // -----------------------------------------------------------------
@@ -390,18 +565,22 @@
     // -----------------------------------------------------------------
 
     async function handleNotification(payload) {
-        // Sự kiện từ chat (tin nhắn mới) không có payload thông báo — chỉ cần
+        const notification = payload.notification || null;
+
+        // Thông báo từ chat (tin nhắn mới) không kèm payload đầy đủ — chỉ cần
         // làm mới badge, không được đặt badge về 0.
-        if (payload.type_name) {
+        if (!notification) {
             refreshBadges();
 
             return;
         }
 
-        const notification = payload.notification || {};
-        const unread = Number(payload.unread_count) || 0;
+        if (payload.unread_count !== undefined && payload.unread_count !== null) {
+            updateNotificationBadge(Number(payload.unread_count) || 0);
+        } else {
+            refreshBadges();
+        }
 
-        updateNotificationBadge(unread);
         await appendNotificationItem(notification);
 
         const actor = notification.actor || {};
@@ -487,21 +666,36 @@
     // -----------------------------------------------------------------
 
     if (chat) {
+        /**
+         * Gửi tin nhắn qua WebSocket.
+         *
+         * Trả về Promise resolve khi server xác nhận đã lưu tin nhắn, reject
+         * khi server từ chối — app.js dùng promise này để fallback sang HTTP.
+         *
+         * @returns {Promise<object>}
+         */
         window.KBChatSend = function (bodyText) {
-            const sent = sendFrame({
-                type: 'message',
-                conversation_id: conversationId,
-                body: bodyText,
+            return new Promise((resolve, reject) => {
+                const localId = `kb-${Date.now()}-${++localIdCounter}`;
+
+                if (!sendFrame({
+                    type: 'message',
+                    conversation_id: conversationId,
+                    body: bodyText,
+                    local_id: localId,
+                })) {
+                    reject(new Error('WebSocket chưa sẵn sàng.'));
+
+                    return;
+                }
+
+                pendingMessages.set(localId, { resolve, reject });
+
+                // Chặn an toàn: server im lặng thì báo lỗi để app.js fallback.
+                setTimeout(() => {
+                    rejectPending(localId, new Error('Gửi tin nhắn quá thời gian chờ.'));
+                }, 10000);
             });
-
-            if (!sent) {
-                // WebSocket chết giữa lúc gửi — fallback sang HTTP.
-                return window.KBChat.sendViaHttp
-                    ? window.KBChat.sendViaHttp(bodyText)
-                    : false;
-            }
-
-            return true;
         };
     }
 
@@ -517,6 +711,22 @@
         }
         typingIndicator.classList.toggle('d-none', !isTyping);
     }
+
+    /**
+     * Username của người đối diện.
+     *
+     * Lưu lại ngay khi script khởi động vì sau đó nhãn sẽ bị thay bằng
+     * "Đang online" / "Ngoại tuyến".
+     */
+    const peerHandle = (() => {
+        const text = document.querySelector('[data-chat-peer-status-text]');
+        const handle = text ? text.textContent.trim() : '';
+        if (text && handle) {
+            text.dataset.kbHandle = handle;
+        }
+
+        return handle;
+    })();
 
     /** Ảnh đại diện của người đối diện (dùng cho tin nhắn realtime). */
     function peerAvatarUrl() {
@@ -535,10 +745,42 @@
 
         const text = document.querySelector('[data-chat-peer-status-text]');
         if (text) {
-            const handle = text.textContent.trim();
             text.textContent = 'Đang online';
             text.classList.add('is-online');
-            text.title = handle;
+            text.title = peerHandle;
+        }
+    }
+
+    /** Đánh dấu người đối diện đã offline. */
+    function markPeerOffline() {
+        const dot = document.querySelector('[data-chat-peer-status]');
+        if (dot) {
+            dot.classList.remove('online');
+            dot.classList.add('offline');
+            dot.title = 'Ngoại tuyến';
+        }
+
+        const text = document.querySelector('[data-chat-peer-status-text]');
+        if (text) {
+            text.textContent = peerHandle;
+            text.classList.remove('is-online');
+            text.title = peerHandle;
+        }
+    }
+
+    /** Cập nhật trạng thái online/offline của người đối diện. */
+    function onPresence(payload) {
+        if (Number(payload.conversation_id) !== conversationId) {
+            return;
+        }
+        if (Number(payload.user_id) === Number(window.KB_USER_ID)) {
+            return;
+        }
+
+        if (payload.online) {
+            markPeerOnline();
+        } else {
+            markPeerOffline();
         }
     }
 

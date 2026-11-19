@@ -232,6 +232,7 @@ koobecaf/
 │   ├── ws_protocol.js              # 9 kiểm tra token/ticket WebSocket (Node, không cần server)
 │   ├── ws_e2e.js                   # 12 kiểm tra end-to-end WebSocket (Node, cần server đang chạy)
 │   ├── ws_feed.js                  # 10 kiểm tra end-to-end feed/thông báo WebSocket (Node, cần server đang chạy)
+│   ├── ws_upgrade.js               # 13 kiểm tra tính năng nâng cấp WebSocket (Node, cần server đang chạy)
 │   ├── ws_send.js                  # Tool: gửi tin nhắn qua WebSocket (Node)
 │   ├── ws_typing.js                # Tool: gửi trạng thái đang gõ qua WebSocket (Node)
 │   ├── pages.php                   # Render toan bộ route + API, bắt lỗi PHP
@@ -561,23 +562,40 @@ Mọi frame là JSON với trường `type`:
 |---|---|
 | `{type:"auth", token}` | Xác thực bằng token lấy từ `/api/ws/session` |
 | `{type:"subscribe", ticket}` | Đăng ký theo dõi một cuộc trò chuyện |
-| `{type:"message", conversation_id, body}` | Gửi tin nhắn (tối đa 5000 ký tự) |
+| `{type:"message", conversation_id, body, local_id}` | Gửi tin nhắn (tối đa 5000 ký tự) |
 | `{type:"typing", conversation_id, typing}` | Báo đang gõ / ngừng gõ |
 | `{type:"read", conversation_id}` | Đánh dấu đã đọc |
 | `{type:"ping"}` | Kiểm tra kết nối |
 
 | Server → Client | Ý nghĩa |
 |---|---|
-| `{type:"auth:ok", user}` | Xác thực thành công |
-| `{type:"subscribe:ok", conversation}` | Đăng ký kênh thành công |
-| `{type:"message:new", message}` | Tin nhắn mới trong cuộc trò chuyện |
+| `{type:"auth:ok", user, conversations}` | Xác thực thành công |
+| `{type:"subscribe:ok", conversation}` | Đăng ký kênh thành công (`peer_online` cho biết bạn bè đang online) |
+| `{type:"message:new", message, local_id}` | Tin nhắn mới trong cuộc trò chuyện |
 | `{type:"message:read", ids, reader_id}` | Tin nhắn đã được đọc |
 | `{type:"typing", user_id, typing}` | Người kia đang gõ |
+| `{type:"presence", conversation_id, user_id, online}` | Bạn bè vào / rời cuộc trò chuyện |
 | `{type:"notification:new", ...}` | Có thông báo mới (cập nhật badge) |
 | `{type:"feed:post", post}` | Bài viết mới — client chèn lên đầu feed |
 | `{type:"feed:event", event, post_id, actor, stats, comment}` | Cập nhật like / bình luận / chia sẻ của một bài viết |
 | `{type:"feed:social", event, actor, target}` | Theo dõi / kết bạn (follow, unfollow, friend.requested, friend.accepted) |
-| `{type:"error", message}` | Lỗi (token hết hạn, không có quyền, …) |
+| `{type:"error", message, fatal, reason?}` | Lỗi (xem bên dưới) |
+
+**Xử lý lỗi**
+
+Frame `error` có trường `fatal`:
+
+- `fatal: true` → lỗi không phục hồi (token sai, không có quyền) — server đóng socket.
+- `fatal: false` → lỗi có thể xử lý, **giữ nguyên kết nối**. Kèm `reason` để client biết cần làm gì:
+
+| `reason` | Client phản ứng |
+|---|---|
+| `token_expired` | Xin token mới từ `/api/ws/session` rồi gửi lại `{type:"auth"}` |
+| `ticket_expired` | Xin ticket mới từ `/api/ws/ticket/{id}` rồi gửi lại `{type:"subscribe"}` |
+| `unauthenticated` | Gửi `{type:"auth"}` trước khi làm việc khác |
+| `forbidden` | Không có quyền với cuộc trò chuyện đó |
+
+Frame `error` cũng có thể kèm `local_id` — đúng `local_id` của tin nhắn đang chờ xác nhận, để client biết tin nào bị từ chối.
 
 #### Tính năng đã triển khai
 
@@ -587,7 +605,11 @@ Mọi frame là JSON với trường `type`:
 - Chỉ báo **đang gõ** của người kia.
 - Tự đánh dấu **đã đọc** (✓✓) khi người kia mở cuộc trò chuyện.
 - Badge số tin nhắn chưa đọc cập nhật tức thì.
+- Chấm trạng thái **online / offline** của người đối diện cập nhật theo thời gian thực.
+- Tin nhắn **được xác nhận** bởi server (`local_id`) — nếu server từ chối, client báo lỗi
+  và fallback sang HTTP thay vì mất tin nhắn.
 - **Fallback về polling**: nếu WebSocket không khả dụng, trang chat tự chuyển sang AJAX polling 5 giây — người dùng không bị gián đoạn.
+- Tin nhắn gửi qua **HTTP fallback** vẫn được đẩy realtime tới bạn bè (sự kiện `chat.message`).
 
 **Feed**
 
@@ -606,18 +628,24 @@ Mọi frame là JSON với trường `type`:
 
 - Kết nối WebSocket duy trì ở **mọi trang đã đăng nhập** (token được layout `main.php` cấp tự động).
 - Tự **kết nối lại** khi mất mạng (backoff luỹ thừa 1s → 15s).
+- **Tự làm mới token / ticket** khi hết hạn mà không phải đóng kết nối — phiên chat không bị
+  "kẹt" sau `WS_TOKEN_TTL` giây như trước.
+- User **tự vào phòng** mọi cuộc trò chuyện của mình khi xác thực → nhận được tin nhắn
+  ngay cả khi đang ở trang khác (feed, thông báo), không chỉ trang `/chat/{id}`.
 
 #### Bảo mật
 
 | Biện pháp | Chi tiết |
 |---|---|
 | Xác thực | HMAC-SHA256 với `APP_KEY`; `timingSafeEqual` khi so sánh chữ ký |
-| Token ngắn hạn | Hết hạn sau `WS_TOKEN_TTL` giây (mặc định 300) |
+| Token ngắn hạn | Hết hạn sau `WS_TOKEN_TTL` giây (mặc định 300) — client tự làm mới |
 | Phân tách mục đích | Token đăng nhập và ticket cuộc trò chuyện dùng `purpose` khác nhau → ticket không thể dùng để đăng nhập và ngược lại |
 | Phân quyền | Server kiểm tra `conversation_members` trước khi subscribe/gửi; client không tự khai báo quyền |
 | SQL injection | 100% prepared statement qua `mysql2` (`connection.execute`) |
 | Payload | Giới hạn 16 KB mỗi frame; nội dung tin nhắn tối đa 5000 ký tự |
-| Heartbeat | Ping/pong mỗi 30s, đóng kết nối treo |
+| Heartbeat | Ping/pong mỗi 30s cho **mọi** socket (kể cả chưa xác thực), đóng kết nối treo |
+| Timeout xác thực | Socket mở mà không xác thực bị đóng sau `WS_AUTH_TIMEOUT_MS` (mặc định 10s) |
+| Chống spam | Tối đa `WS_RATE_LIMIT` tin nhắn mỗi `WS_RATE_WINDOW_MS` (mặc định 20 tin / 10s) |
 | Endpoint nội bộ | `/internal/publish` chỉ nhận body có chữ ký HMAC hợp lệ; so sánh bằng `timingSafeEqual` |
 | Phân quyền feed | `audience` (tác giả + người theo dõi + bạn bè) do PHP tính sẵn theo mức quyền riêng tư của bài viết |
 
@@ -671,6 +699,7 @@ Bộ test WebSocket (cần `npm run ws` đang chạy cho `ws_e2e.js`):
 node tests/ws_protocol.js                          # 9 kiểm tra token/ticket (không cần server)
 node tests/ws_e2e.js                               # 12 kiểm tra end-to-end WebSocket
 node tests/ws_feed.js                              # 10 kiểm tra end-to-end feed/thông báo
+node tests/ws_upgrade.js                           # 13 kiểm tra tính năng nâng cấp
 ```
 
 Kết quả mong đợi:
@@ -686,6 +715,7 @@ PASS: 13 | FAIL: 0     (leave_guard.js)
 PASS: 9  | FAIL: 0     (ws_protocol.js)
 PASS: 12 | FAIL: 0     (ws_e2e.js — cần npm run ws)
 PASS: 10 | FAIL: 0     (ws_feed.js — cần npm run ws)
+PASS: 13 | FAIL: 0     (ws_upgrade.js — cần npm run ws)
 FAIL: 0                (pages.php — không có lỗi/warning nào)
 ```
 

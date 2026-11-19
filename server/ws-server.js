@@ -12,7 +12,8 @@
  *   node server/ws-server.js
  *
  * Môi trường (đọc từ .env của ứng dụng):
- *   WS_ENABLED, WS_HOST, WS_PORT, WS_PATH, WS_TOKEN_TTL, APP_KEY, DB_*
+ *   WS_ENABLED, WS_HOST, WS_PORT, WS_PATH, WS_TOKEN_TTL, WS_HEARTBEAT_MS,
+ *   WS_AUTH_TIMEOUT_MS, WS_RATE_LIMIT, APP_KEY, DB_*
  */
 
 const http = require('http');
@@ -48,6 +49,11 @@ const CONFIG = {
     path: String(env('WS_PATH', '/ws')),
     appKey: String(env('APP_KEY', '')),
     heartbeatMs: Number(env('WS_HEARTBEAT_MS', 30000)),
+    /** Thời gian chờ client xác thực sau khi mở kết nối. */
+    authTimeoutMs: Number(env('WS_AUTH_TIMEOUT_MS', 10000)),
+    /** Số tin nhắn tối đa gửi trong `rateWindowMs` (chống spam). */
+    rateLimit: Number(env('WS_RATE_LIMIT', 20)),
+    rateWindowMs: Number(env('WS_RATE_WINDOW_MS', 10000)),
     maxBodyLength: 16 * 1024,
     db: {
         host: String(env('DB_HOST', '127.0.0.1')),
@@ -64,10 +70,19 @@ if (!CONFIG.appKey) {
     process.exit(1);
 }
 
+if (!CONFIG.enabled) {
+    console.log('[ws] WS_ENABLED=false — WebSocket server không khởi động.');
+    process.exit(0);
+}
+
 /** @type {Database} */
 let db;
 
-/** @type {Map<string, {userId:number, sockets:Set<import('ws').WebSocket>, rooms:Map<number,object>}>} */
+/**
+ * Socket đang kết nối, gom theo user.
+ *
+ * @type {Map<number, Set<import('ws').WebSocket>>}
+ */
 const clients = new Map();
 
 let nextClientId = 1;
@@ -96,11 +111,14 @@ function send(socket, payload) {
     }
 }
 
+/**
+ * Lỗi khiến kết nối không thể tiếp tục (token sai, không xác thực…).
+ *
+ * Server gửi frame `error` rồi đóng socket.
+ */
 function fail(socket, message, code = 4000) {
-    send(socket, { type: 'error', message });
+    send(socket, { type: 'error', message, code, fatal: true });
 
-    // Chờ khung 'error' được gửi đi rồi mới đóng socket, tránh client không
-    // kịp nhận thông báo lỗi.
     try {
         socket.close(code, message.slice(0, 100));
     } catch (error) {
@@ -108,13 +126,28 @@ function fail(socket, message, code = 4000) {
     }
 }
 
+/**
+ * Lỗi nghiệp vụ — kết nối vẫn dùng được, chỉ báo lỗi cho client.
+ *
+ * Client có thể tự xử lý (ví dụ: token hết hạn → xin token mới rồi xác thực
+ * lại trên chính kết nối này) thay vì phải đóng rồi kết nối lại.
+ */
+function reject(socket, message, extra = {}) {
+    send(socket, Object.assign({ type: 'error', message, fatal: false }, extra));
+}
+
+/** User đang online (có ít nhất một socket đã xác thực). */
+function isOnline(userId) {
+    return clients.has(userId);
+}
+
 /** Gửi tới mọi socket đang đăng nhập của một user. */
 function sendToUser(userId, payload) {
-    const client = clients.get(String(userId));
-    if (!client) {
+    const sockets = clients.get(Number(userId));
+    if (!sockets) {
         return;
     }
-    for (const socket of client.sockets) {
+    for (const socket of sockets) {
         send(socket, payload);
     }
 }
@@ -132,13 +165,22 @@ function sendToUsers(userIds, payload) {
     }
 }
 
-/** Gửi tới mọi thành viên của một cuộc trò chuyện (trừ socket đã loại trừ nếu muốn). */
-function sendToConversation(conversationId, payload, exceptSocket = null) {
-    for (const client of clients.values()) {
-        if (!client.rooms.has(conversationId)) {
+/**
+ * Gửi tới các socket của các thành viên của cuộc trò chuyện.
+ *
+ * Không giới hạn theo phòng đã subscribe: tin nhắn tới một cuộc trò chuyện
+ * là thông tin chung của cả hai thành viên, kể cả khi họ đang ở trang khác
+ * (client tự quyết định có hiển thị hay không).
+ *
+ * @param {number[]} memberIds Danh sách user thuộc cuộc trò chuyện.
+ */
+function sendToConversationMembers(memberIds, payload, exceptSocket = null) {
+    for (const memberId of memberIds) {
+        const sockets = clients.get(Number(memberId));
+        if (!sockets) {
             continue;
         }
-        for (const socket of client.sockets) {
+        for (const socket of sockets) {
             if (socket === exceptSocket) {
                 continue;
             }
@@ -147,13 +189,16 @@ function sendToConversation(conversationId, payload, exceptSocket = null) {
     }
 }
 
-function conversationOf(socket, conversationId) {
-    const client = clients.get(String(socket._kbUserId));
-    if (!client) {
-        return null;
+/** Gửi tới các socket đã subscribe phòng chat (dùng cho typing / read). */
+function sendToConversationRoom(conversationId, payload, exceptSocket = null) {
+    for (const client of clients.values()) {
+        for (const socket of client) {
+            if (socket === exceptSocket || !socket._kbRooms.has(conversationId)) {
+                continue;
+            }
+            send(socket, payload);
+        }
     }
-
-    return client.rooms.get(conversationId) || null;
 }
 
 function parsePayload(raw) {
@@ -170,38 +215,150 @@ function parsePayload(raw) {
 }
 
 // -----------------------------------------------------------------
+// Presence — trạng thái online trong từng cuộc trò chuyện
+// -----------------------------------------------------------------
+
+/**
+ * Báo trạng thái online/offline của một thành viên cho các socket đang mở
+ * đúng cuộc trò chuyện đó.
+ *
+ * @param {number} userId       User vừa kết nối / ngắt kết nối.
+ * @param {number[]} peerIds    Các thành viên cần thông báo.
+ * @param {number} conversationId Cuộc trò chuyện chung.
+ */
+function broadcastPresenceTo(userId, peerIds, conversationId, online) {
+    for (const peerId of peerIds) {
+        if (peerId === userId) {
+            continue;
+        }
+
+        const sockets = clients.get(peerId);
+        if (!sockets) {
+            continue;
+        }
+
+        for (const socket of sockets) {
+            if (!socket._kbRooms.has(conversationId)) {
+                continue;
+            }
+            send(socket, {
+                type: 'presence',
+                conversation_id: conversationId,
+                user_id: userId,
+                online,
+            });
+        }
+    }
+}
+
+/**
+ * Gom peer theo cuộc trò chuyện để phát trạng thái online/offline.
+ *
+ * @param {number} userId
+ * @returns {Promise<Map<number, number[]>>}
+ */
+async function peersByConversation(userId) {
+    const rows = await db.conversationPeers(userId);
+    const grouped = new Map();
+
+    for (const row of rows) {
+        if (!grouped.has(row.conversation_id)) {
+            grouped.set(row.conversation_id, []);
+        }
+        grouped.get(row.conversation_id).push(row.peer_id);
+    }
+
+    return grouped;
+}
+
+/**
+ * Báo trạng thái online/offline của một thành viên cho các socket đang mở
+ * đúng cuộc trò chuyện đó.
+ */
+async function broadcastPresence(userId, conversationId, online) {
+    const memberIds = await db.memberIds(conversationId);
+
+    broadcastPresenceTo(userId, memberIds, conversationId, online);
+}
+
+/** Báo offline cho toàn bộ bạn bè của user vừa ngắt kết nối hoàn toàn. */
+async function notifyOffline(userId) {
+    const grouped = await peersByConversation(userId);
+
+    for (const [conversationId, peerIds] of grouped) {
+        broadcastPresenceTo(userId, peerIds, conversationId, false);
+    }
+}
+
+// -----------------------------------------------------------------
 // Xử lý sự kiện từ client
 // -----------------------------------------------------------------
 
 async function handleAuth(socket, payload) {
-    if (socket._kbClientId) {
-        fail(socket, 'Phiên đã được xác thực.', 4002);
-        return;
-    }
-
     const auth = verifyToken(String(payload.token || ''), CONFIG.appKey);
     if (!auth || auth.uid <= 0) {
-        fail(socket, 'Token không hợp lệ hoặc đã hết hạn.', 4001);
+        // Token hết hạn: giữ kết nối để client xin token mới rồi xác thực lại.
+        // Token sai hoàn toàn thì đóng kết nối.
+        const expired = isExpiredToken(payload.token);
+        if (expired) {
+            reject(socket, 'Token đã hết hạn.', { reason: 'token_expired' });
+
+            return;
+        }
+
+        fail(socket, 'Token không hợp lệ.', 4001);
+
         return;
     }
 
     const user = await db.user(auth.uid);
     if (!user) {
         fail(socket, 'Người dùng không tồn tại.', 4001);
+
+        return;
+    }
+
+    // Xác thực lại trên cùng socket (sau khi token hết hạn) — thay thế thông tin
+    // cũ, không nhân đôi socket.
+    if (socket._kbClientId) {
+        socket._kbUserId = auth.uid;
+
+        send(socket, {
+            type: 'auth:ok',
+            user: {
+                id: Number(user.id),
+                username: user.username,
+                display_name: user.display_name,
+                avatar_path: user.avatar_path || null,
+            },
+        });
+
         return;
     }
 
     socket._kbClientId = String(nextClientId++);
     socket._kbUserId = auth.uid;
-    socket._kbRooms = new Map();
 
     const clientId = socket._kbClientId;
-    let client = clients.get(String(auth.uid));
-    if (!client) {
-        client = { userId: auth.uid, sockets: new Set(), rooms: new Map() };
-        clients.set(String(auth.uid), client);
+    let sockets = clients.get(auth.uid);
+    if (!sockets) {
+        sockets = new Set();
+        clients.set(auth.uid, sockets);
     }
-    client.sockets.add(socket);
+    sockets.add(socket);
+
+    if (socket._kbAuthTimer) {
+        clearTimeout(socket._kbAuthTimer);
+        socket._kbAuthTimer = null;
+    }
+
+    // Tự động vào phòng của mọi cuộc trò chuyện mà user là thành viên.
+    // Nhờ vậy tin nhắn tới vẫn hiện realtime dù user đang ở trang khác
+    // (trang danh sách hội thoại, feed…) thay vì chỉ trang /chat/{id}.
+    const conversationIds = await db.conversationIds(auth.uid);
+    for (const conversationId of conversationIds) {
+        socket._kbRooms.set(conversationId, { peer: {} });
+    }
 
     send(socket, {
         type: 'auth:ok',
@@ -211,102 +368,180 @@ async function handleAuth(socket, payload) {
             display_name: user.display_name,
             avatar_path: user.avatar_path || null,
         },
+        conversations: conversationIds,
     });
 
-    log(`auth ok: user=${auth.uid} socket=${clientId}`);
+    // Báo trạng thái online cho các thành viên khác trong những cuộc trò chuyện
+    // đang mở cùng user.
+    const grouped = await peersByConversation(auth.uid);
+    for (const [conversationId, peerIds] of grouped) {
+        broadcastPresenceTo(auth.uid, peerIds, conversationId, true);
+    }
+
+    log(`auth ok: user=${auth.uid} socket=${clientId} rooms=${conversationIds.length}`);
+}
+
+/** Kiểm tra token đã hết hạn (dùng để phân biệt lỗi "hết hạn" và "sai"). */
+function isExpiredToken(token) {
+    const raw = String(token || '');
+    const index = raw.lastIndexOf('.');
+    if (index <= 0) {
+        return false;
+    }
+
+    try {
+        const padded = raw.slice(0, index).replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(Buffer.from(padded, 'base64').toString('utf8'));
+
+        return Number(payload.exp) > 0 && Number(payload.exp) * 1000 < Date.now();
+    } catch (error) {
+        return false;
+    }
 }
 
 async function handleSubscribe(socket, payload) {
     if (!socket._kbUserId) {
-        fail(socket, 'Chưa xác thực.', 4001);
+        reject(socket, 'Chưa xác thực.', { reason: 'unauthenticated' });
+
         return;
     }
 
     const ticket = verifyTicket(String(payload.ticket || ''), CONFIG.appKey);
     if (!ticket) {
-        fail(socket, 'Ticket không hợp lệ hoặc đã hết hạn.', 4001);
+        // Ticket hết hạn → client xin ticket mới rồi subscribe lại, giữ kết nối.
+        reject(socket, 'Ticket không hợp lệ hoặc đã hết hạn.', { reason: 'ticket_expired' });
+
         return;
     }
     if (ticket.uid !== socket._kbUserId) {
         fail(socket, 'Ticket không thuộc về bạn.', 4003);
+
         return;
     }
 
     const conversationId = ticket.cid;
     if (!(await db.isMember(conversationId, socket._kbUserId))) {
         fail(socket, 'Bạn không có quyền truy cập cuộc trò chuyện này.', 4003);
+
         return;
     }
 
-    const client = clients.get(String(socket._kbUserId));
-    client.rooms.set(conversationId, { peer: ticket.peer || {} });
+    socket._kbRooms.set(conversationId, { peer: ticket.peer || {} });
 
     send(socket, {
         type: 'subscribe:ok',
         conversation: {
             id: conversationId,
             peer: ticket.peer || {},
+            peer_online: isOnline(Number((ticket.peer || {}).id) || 0),
         },
     });
+
+    // Báo cho phía kia biết mình đang online trong cuộc trò chuyện này.
+    await broadcastPresence(socket._kbUserId, conversationId, true);
 }
 
 async function handleMessage(socket, payload) {
     if (!socket._kbUserId) {
-        fail(socket, 'Chưa xác thực.', 4001);
+        reject(socket, 'Chưa xác thực.', { reason: 'unauthenticated' });
+
         return;
     }
 
     const body = String(payload.body === undefined || payload.body === null ? '' : payload.body).trim();
     if (body === '') {
-        fail(socket, 'Nội dung tin nhắn không được để trống.');
+        reject(socket, 'Nội dung tin nhắn không được để trống.', { local_id: payload.local_id ?? null });
+
         return;
     }
     if (body.length > 5000) {
-        fail(socket, 'Nội dung tin nhắn quá dài.');
+        reject(socket, 'Nội dung tin nhắn quá dài.', { local_id: payload.local_id ?? null });
+
+        return;
+    }
+
+    // Chống spam: giới hạn số tin nhắn gửi trong một khoảng thời gian.
+    if (!allowMessage(socket)) {
+        reject(socket, 'Bạn gửi tin quá nhanh, hãy chậm lại.', { local_id: payload.local_id ?? null });
+
         return;
     }
 
     const conversationId = Number(payload.conversation_id) || 0;
-    const room = conversationOf(socket, conversationId);
-    if (!room) {
-        fail(socket, 'Bạn chưa đăng ký theo dõi cuộc trò chuyện này.', 4003);
-        return;
-    }
     if (!(await db.isMember(conversationId, socket._kbUserId))) {
-        fail(socket, 'Bạn không có quyền truy cập cuộc trò chuyện này.', 4003);
+        reject(socket, 'Bạn không có quyền truy cập cuộc trò chuyện này.', {
+            local_id: payload.local_id ?? null,
+            reason: 'forbidden',
+        });
+
         return;
     }
 
-    const messageId = await db.createMessage(conversationId, socket._kbUserId, body);
-    const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const created = await db.createMessage(conversationId, socket._kbUserId, body);
+    const sender = await db.user(socket._kbUserId);
 
     const message = {
-        id: messageId,
+        id: created.id,
         conversation_id: conversationId,
         sender_id: socket._kbUserId,
         body,
-        created_at: createdAt,
+        created_at: created.created_at,
+        sender: sender
+            ? {
+                id: Number(sender.id),
+                username: sender.username,
+                display_name: sender.display_name,
+            }
+            : null,
     };
 
     // Gửi cho tất cả thành viên đang online (bao gồm người gửi để đồng bộ client).
-    sendToConversation(conversationId, {
+    const memberIds = await db.memberIds(conversationId);
+    sendToConversationMembers(memberIds, {
         type: 'message:new',
         message,
+        local_id: payload.local_id ?? null,
     });
 
     // Thông báo cho các thành viên khác + cập nhật badge unread.
-    const memberIds = await db.memberIds(conversationId);
     for (const memberId of memberIds) {
         if (memberId === socket._kbUserId) {
             continue;
         }
-        await db.notify(memberId, socket._kbUserId, 'message', conversationId);
+
+        const notificationId = await db.notify(memberId, socket._kbUserId, 'message', conversationId);
         sendToUser(memberId, {
             type: 'notification:new',
-            type_name: 'message',
-            conversation_id: conversationId,
+            notification: {
+                id: notificationId,
+                type: 'message',
+                entity_id: conversationId,
+                label: 'đã gửi cho bạn một tin nhắn',
+                icon: 'bi-envelope-fill',
+                actor: sender
+                    ? {
+                        id: Number(sender.id),
+                        username: sender.username,
+                        display_name: sender.display_name,
+                        avatar_path: sender.avatar_path || null,
+                    }
+                    : null,
+            },
+            unread_count: await db.unreadNotificationCount(memberId),
         });
     }
+}
+
+/** Cho phép tối đa `CONFIG.rateLimit` tin nhắn mỗi `rateWindowMs`. */
+function allowMessage(socket) {
+    const now = Date.now();
+    if (!socket._kbRate || now - socket._kbRate.startedAt > CONFIG.rateWindowMs) {
+        socket._kbRate = { startedAt: now, count: 0 };
+    }
+
+    socket._kbRate.count += 1;
+
+    return socket._kbRate.count <= CONFIG.rateLimit;
 }
 
 async function handleTyping(socket, payload) {
@@ -315,11 +550,11 @@ async function handleTyping(socket, payload) {
     }
 
     const conversationId = Number(payload.conversation_id) || 0;
-    if (!conversationOf(socket, conversationId)) {
+    if (!socket._kbRooms.has(conversationId)) {
         return;
     }
 
-    sendToConversation(conversationId, {
+    sendToConversationRoom(conversationId, {
         type: 'typing',
         conversation_id: conversationId,
         user_id: socket._kbUserId,
@@ -333,7 +568,7 @@ async function handleRead(socket, payload) {
     }
 
     const conversationId = Number(payload.conversation_id) || 0;
-    if (!conversationOf(socket, conversationId)) {
+    if (!socket._kbRooms.has(conversationId)) {
         return;
     }
 
@@ -342,7 +577,7 @@ async function handleRead(socket, payload) {
         return;
     }
 
-    sendToConversation(conversationId, {
+    sendToConversationRoom(conversationId, {
         type: 'message:read',
         conversation_id: conversationId,
         reader_id: socket._kbUserId,
@@ -353,7 +588,8 @@ async function handleRead(socket, payload) {
 async function handleFrame(socket, raw) {
     const payload = parsePayload(raw);
     if (!payload) {
-        send(socket, { type: 'error', message: 'Frame không hợp lệ.' });
+        reject(socket, 'Frame không hợp lệ.');
+
         return;
     }
 
@@ -379,7 +615,7 @@ async function handleFrame(socket, raw) {
             send(socket, { type: 'pong', time: Date.now() });
             return;
         default:
-            send(socket, { type: 'error', message: `Unknown type: ${type}` });
+            reject(socket, `Unknown type: ${type}`);
     }
 }
 
@@ -416,7 +652,8 @@ function broadcastPostEvent(payload) {
 
     sendToUsers(audience, {
         type: 'feed:event',
-        event: payload.event || 'post:update',        post_id: Number(payload.post_id) || 0,
+        event: payload.event || 'post:update',
+        post_id: Number(payload.post_id) || 0,
         actor: payload.actor || null,
         stats: payload.stats || null,
         comment: payload.comment || null,
@@ -454,6 +691,36 @@ function broadcastSocial(payload) {
     });
 }
 
+    /**
+     * Đẩy tin nhắn chat vừa được gửi qua HTTP (fallback) tới các thành viên.
+     *
+     * Khi WebSocket của người gửi đang chết, client gửi tin qua HTTP; nếu không
+     * có bước này thì phía bạn bè sẽ không thấy tin nhắn cho tới lần polling kế
+     * tiếp.
+     */
+    function broadcastChatMessage(payload) {
+        const conversationId = Number(payload.conversation_id) || 0;
+        if (conversationId <= 0) {
+            return;
+        }
+
+        const message = payload.message || null;
+        if (!message) {
+            return;
+        }
+
+        const recipients = Array.isArray(payload.audience) && payload.audience.length > 0
+            ? payload.audience.map(Number)
+            : [];
+
+        for (const userId of recipients) {
+            sendToUser(userId, {
+                type: 'message:new',
+                message,
+                local_id: null,
+            });
+        }
+    }
 /**
  * Xử lý body của endpoint nội bộ `/internal/publish`.
  */
@@ -507,6 +774,9 @@ async function dispatchInternalEvent(item) {
             return;
         case 'social':
             broadcastSocial(payload);
+            return;
+        case 'chat.message':
+            broadcastChatMessage(payload);
             return;
         default:
             log(`bỏ qua sự kiện không hợp lệ: ${event}`);
@@ -570,6 +840,7 @@ async function main() {
             res.end(JSON.stringify({
                 status: 'ok',
                 clients: clients.size,
+                sockets: Array.from(clients.values()).reduce((sum, set) => sum + set.size, 0),
                 uptime: Math.round(process.uptime()),
             }));
 
@@ -628,6 +899,20 @@ async function main() {
         socket.isAlive = true;
         socket._kbClientId = null;
         socket._kbUserId = 0;
+        socket._kbRooms = new Map();
+        socket._kbRate = null;
+
+        // Socket mở mà không xác thực sẽ bị đóng sau một khoảng thời gian —
+        // tránh giữ kết nối rác.
+        socket._kbAuthTimer = setTimeout(() => {
+            if (!socket._kbClientId) {
+                try {
+                    socket.close(4001, 'auth timeout');
+                } catch (error) {
+                    // ignore
+                }
+            }
+        }, CONFIG.authTimeoutMs);
 
         socket.on('pong', () => {
             socket.isAlive = true;
@@ -636,23 +921,36 @@ async function main() {
         socket.on('message', (raw) => {
             handleFrame(socket, raw.toString()).catch((error) => {
                 console.error('[ws] Lỗi xử lý frame:', error);
-                send(socket, { type: 'error', message: 'Đã xảy ra lỗi khi xử lý yêu cầu.' });
+                reject(socket, 'Đã xảy ra lỗi khi xử lý yêu cầu.');
             });
         });
 
         socket.on('close', () => {
+            if (socket._kbAuthTimer) {
+                clearTimeout(socket._kbAuthTimer);
+                socket._kbAuthTimer = null;
+            }
+
+            const userId = socket._kbUserId;
             const clientId = socket._kbClientId;
             if (!clientId) {
                 return;
             }
 
-            const client = clients.get(String(socket._kbUserId));
-            if (client) {
-                client.sockets.delete(socket);
-                if (client.sockets.size === 0) {
-                    clients.delete(String(socket._kbUserId));
+            const sockets = clients.get(userId);
+            if (sockets) {
+                sockets.delete(socket);
+                if (sockets.size === 0) {
+                    clients.delete(userId);
+
+                    // Người dùng rời đi hoàn toàn → báo offline cho các phòng
+                    // chat mà họ đang ở.
+                    notifyOffline(userId).catch((error) => {
+                        console.error('[ws] Lỗi phát trạng thái offline:', error);
+                    });
                 }
             }
+
             log(`closed: socket=${clientId}`);
         });
 
@@ -663,19 +961,18 @@ async function main() {
         log(`connection từ ${request.socket.remoteAddress}`);
     });
 
+    // Heartbeat cho MỌI socket (kể cả chưa xác thực) — dọn kết nối treo.
     const heartbeat = setInterval(() => {
-        for (const client of clients.values()) {
-            for (const socket of client.sockets) {
-                if (socket.isAlive === false) {
-                    socket.terminate();
-                    continue;
-                }
-                socket.isAlive = false;
-                try {
-                    socket.ping();
-                } catch (error) {
-                    socket.terminate();
-                }
+        for (const socket of wss.clients) {
+            if (socket.isAlive === false) {
+                socket.terminate();
+                continue;
+            }
+            socket.isAlive = false;
+            try {
+                socket.ping();
+            } catch (error) {
+                socket.terminate();
             }
         }
     }, CONFIG.heartbeatMs);
@@ -690,8 +987,8 @@ async function main() {
     const shutdown = async () => {
         log('đang tắt...');
         clearInterval(heartbeat);
-        for (const client of clients.values()) {
-            for (const socket of client.sockets) {
+        for (const sockets of clients.values()) {
+            for (const socket of sockets) {
                 socket.close(1001, 'server shutdown');
             }
         }

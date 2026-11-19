@@ -4,7 +4,10 @@
   "description": "Koobecaf - WebSocket server cho chat realtime",
   "scripts": {
     "ws": "node server/ws-server.js",
-    "ws:test": "node tests/ws_protocol.js"
+    "ws:test": "node tests/ws_protocol.js",
+    "ws:test:e2e": "node tests/ws_e2e.js",
+    "ws:test:feed": "node tests/ws_feed.js",
+    "ws:test:upgrade": "node tests/ws_upgrade.js"
   },
   "dependencies": {
     "bootstrap-icons": "^1.13.2",

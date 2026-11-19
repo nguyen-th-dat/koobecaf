@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\WsPublisher;
 use App\Models\Comment;
+use App\Models\Conversation;
 use App\Models\Post;
 use App\Models\User;
 
@@ -117,6 +118,24 @@ final class RealtimeService
             'actor'    => self::userPayload($actorId),
             'stats'    => self::stats($postId),
         ], $extra));
+    }
+
+    /**
+     * Phát sự kiện "tin nhắn mới" tới các thành viên cuộc trò chuyện.
+     *
+     * Dùng khi tin nhắn được gửi qua HTTP (fallback lúc WebSocket chết):
+     * nếu không phát sự kiện này thì phía bạn bè chỉ thấy tin nhắn ở lần
+     * polling kế tiếp (5 giây sau).
+     *
+     * @param array<string,mixed> $message
+     */
+    public static function chatMessage(int $conversationId, array $message): void
+    {
+        WsPublisher::publish('chat.message', [
+            'conversation_id' => $conversationId,
+            'audience'         => Conversation::memberIds($conversationId),
+            'message'          => $message,
+        ]);
     }
 
     /** Phát sự kiện theo dõi / kết bạn tới các bên liên quan. */

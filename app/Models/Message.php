@@ -11,13 +11,15 @@ final class Message
     public static function create(int $conversationId, int $senderId, string $body): int
     {
         return Database::transaction(static function () use ($conversationId, $senderId, $body): int {
-            $id = Database::insert(
+            // UPDATE trước rồi INSERT: ngược thứ tự sẽ giữ shared-lock khoá
+            // ngoại rồi lại xin exclusive-lock trên cùng dòng conversations →
+            // hai tin gửi song song dễ bị MySQL báo deadlock.
+            Database::run('UPDATE conversations SET updated_at = NOW() WHERE id = ?', [$conversationId]);
+
+            return Database::insert(
                 'INSERT INTO messages (conversation_id, sender_id, body) VALUES (?, ?, ?)',
                 [$conversationId, $senderId, $body]
             );
-            Database::run('UPDATE conversations SET updated_at = NOW() WHERE id = ?', [$conversationId]);
-
-            return $id;
         });
     }
 

@@ -1,0 +1,54 @@
+[ws] đang lắng nghe tại ws://127.0.0.1:8080/ws
+[ws] database: root@127.0.0.1:3306/koobecaf
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=1 rooms=5
+[ws] connection từ 127.0.0.1
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=2 rooms=5
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=2 socket=3 rooms=52
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=3 socket=4 rooms=45
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=3 socket=5 rooms=45
+[ws] closed: socket=3
+[ws] closed: socket=5
+[ws] closed: socket=4
+[ws] closed: socket=2
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=6 rooms=5
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=2 socket=7 rooms=52
+[ws] closed: socket=7
+[ws] closed: socket=6
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=8 rooms=5
+[ws] closed: socket=8
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=9 rooms=5
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=184 socket=10 rooms=1
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=183 socket=11 rooms=1
+[ws] closed: socket=11
+[ws] connection từ 127.0.0.1
+[ws] closed: socket=10
+[ws] auth ok: user=2 socket=12 rooms=52
+[ws] closed: socket=12
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=13 rooms=5
+[ws] connection từ 127.0.0.1
+[ws] closed: socket=13
+[ws] closed: socket=9
+[ws] closed: socket=1
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=2 socket=14 rooms=52
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=15 rooms=5
+[ws] closed: socket=15
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=16 rooms=5
+[ws] closed: socket=14
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=2 socket=17 rooms=52
+[ws] closed: socket=17
