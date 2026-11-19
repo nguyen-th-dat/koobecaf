@@ -1749,7 +1749,7 @@
 
     /* ---------------- Khung ứng dụng: lưới 3 cột ---------------- */
     .app-shell {
-        max-width: var(--kb-shell-max);
+        max-width: 1400px;
         margin: 0 auto;
         padding: var(--kb-space-lg) var(--kb-space-xl) var(--kb-space-section);
     }

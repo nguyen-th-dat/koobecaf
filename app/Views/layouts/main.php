@@ -81,7 +81,7 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
             <?= $content ?>
         </main>
 
-        <!-- <?php if (is_auth() && empty($wide)): ?>
+        <?php if (is_auth() && empty($wide)): ?>
             <aside class="app-rail app-rail-right">
                 <?php if (!empty($rightRail)): ?>
                     <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
@@ -89,7 +89,7 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
                     <?php require __DIR__ . '/partials/sidebar-right.php'; ?>
                 <?php endif; ?>
             </aside>
-        <?php endif; ?> -->
+        <?php endif; ?>
     </div>
 </div>
 
