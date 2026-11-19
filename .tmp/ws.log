@@ -150,3 +150,45 @@
 [ws] closed: socket=16
 [ws] connection từ 127.0.0.1
 [ws] auth ok: user=1 socket=50 rooms=5
+[ws] closed: socket=49
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=51 rooms=2
+[ws] closed: socket=51
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=52 rooms=2
+[ws] closed: socket=52
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=53 rooms=2
+[ws] closed: socket=53
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=54 rooms=2
+[ws] closed: socket=54
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=55 rooms=2
+[ws] closed: socket=55
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=56 rooms=2
+[ws] closed: socket=56
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=57 rooms=2
+[ws] closed: socket=57
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=58 rooms=2
+[ws] closed: socket=58
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=59 rooms=2
+[ws] closed: socket=59
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=60 rooms=2
+[ws] closed: socket=60
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=61 rooms=2
+[ws] closed: socket=61
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=62 rooms=2
+[ws] closed: socket=62
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=83 socket=63 rooms=2
+[ws] closed: socket=50
+[ws] connection từ 127.0.0.1
+[ws] auth ok: user=1 socket=64 rooms=5
