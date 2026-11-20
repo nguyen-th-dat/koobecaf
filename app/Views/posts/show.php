@@ -70,17 +70,19 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
                 </a>
             <?php endif; ?>
 
-            <?php if ($isOwner): ?>
-                <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
-                    <i class="bi bi-three-dots"></i>
-                </button>
-                <ul class="menu">
+            <button class="btn icon-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
+                <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="menu">
+                <?php if ($isOwner): ?>
                     <li><a class="menu-item" href="<?= url('/posts/' . $postId . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
-                    <li>
-                        <button type="button" class="menu-item" data-action="copy-link" data-url="<?= e($data['permalink']) ?>">
-                            <i class="bi bi-link-45deg me-2"></i>Sao chép link
-                        </button>
-                    </li>
+                <?php endif; ?>
+                <li>
+                    <button type="button" class="menu-item" data-action="copy-link" data-url="<?= e($data['permalink']) ?>">
+                        <i class="bi bi-link-45deg me-2"></i>Sao chép link
+                    </button>
+                </li>
+                <?php if ($isOwner): ?>
                     <li><hr class="menu-divider"></li>
                     <li>
                         <form action="<?= url('/posts/' . $postId . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác." data-confirm-title="Xóa bài viết" data-confirm-accept="Xóa bài viết">
@@ -88,8 +90,8 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
                             <button type="submit" class="menu-item fg-danger w-100"><i class="bi bi-trash me-2"></i>Xóa bài viết</button>
                         </form>
                     </li>
-                </ul>
-            <?php endif; ?>
+                <?php endif; ?>
+            </ul>
         </div>
     </header>
 

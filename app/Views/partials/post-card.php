@@ -47,29 +47,31 @@ $originalImages = $meta['originalImages'];
                             <?php endif; ?>
                         </div>
                     </div>
-                    <?php if ($meta['isOwner']): ?>
-                        <button class="btn icon-btn post-menu-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="menu">
+                    <button class="btn icon-btn post-menu-btn" type="button" data-menu-toggle data-menu-placement="bottom-end" aria-label="Tuỳ chọn">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="menu">
+                        <?php if ($meta['isOwner']): ?>
                             <!-- Chỉnh sửa -->
                             <li>
                                 <a class="menu-item" href="<?= url('/posts/' . (int) $post['id'] . '/edit') ?>">
                                     <i class="bi bi-pencil me-2"></i>Chỉnh sửa
                                 </a>
                             </li>
+                        <?php endif; ?>
 
-                            <!-- Sao chép link -->
-                            <li>
-                                <button
-                                    type="button"
-                                    class="menu-item"
-                                    data-action="copy-link"
-                                    data-url="<?= e($meta['permalink']) ?>">
-                                    <i class="bi bi-link-45deg me-2"></i>Sao chép link
-                                </button>
-                            </li>
+                        <!-- Sao chép link -->
+                        <li>
+                            <button
+                                type="button"
+                                class="menu-item"
+                                data-action="copy-link"
+                                data-url="<?= e($meta['permalink']) ?>">
+                                <i class="bi bi-link-45deg me-2"></i>Sao chép link
+                            </button>
+                        </li>
 
+                        <?php if ($meta['isOwner']): ?>
                             <li>
                                 <hr class="menu-divider">
                             </li>
@@ -89,8 +91,8 @@ $originalImages = $meta['originalImages'];
                                     </button>
                                 </form>
                             </li>
-                        </ul>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </ul>
                 </div>
             <?php endif; ?>
 
