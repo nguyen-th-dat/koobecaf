@@ -877,6 +877,15 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+/** Biến URL trong văn bản thành thẻ <a> để bấm được (nội dung đã escape trước). */
+function linkifyHtml(escaped) {
+    return escaped.replace(/\bhttps?:\/\/[^\s<>"'`]+/gi, (match) => {
+        const url = match.replace(/[.,;:!?]+$/, '');
+        const suffix = match.slice(url.length);
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${suffix}`;
+    });
+}
+
 function timeAgo(value) {
     if (!value) return '';
     const diff = Math.floor((Date.now() - new Date(value.replace(' ', 'T')).getTime()) / 1000);
@@ -1619,7 +1628,7 @@ if (chatForm && chatMessages) {
         row.innerHTML = `
             ${avatar}
             <div class="chat-bubble">
-                <div class="chat-text">${escapeHtml(message.body).replace(/\n/g, '<br>')}</div>
+                <div class="chat-text">${linkifyHtml(escapeHtml(message.body)).replace(/\n/g, '<br>')}</div>
                 <small class="chat-time">${formatMessageTime(message.created_at)}${
                     isMine ? ' <i class="bi bi-check2" data-read-mark="1" title="Đã gửi"></i>' : ''
                 }</small>

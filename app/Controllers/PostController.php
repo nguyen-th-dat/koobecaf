@@ -46,7 +46,7 @@ final class PostController extends Controller
             'likers'   => \App\Models\Like::usersByPost($postId, 8),
             'related'  => Post::byUser($authorId, $viewerId, 4),
             'rightRail' => 'post-rail',
-            'canonicalUrl' => url('/p/' . $postId),
+            'canonicalUrl' => absolute_url('/p/' . $postId),
             'metaTags' => $this->openGraphTags($post),
         ]);
     }
@@ -64,7 +64,7 @@ final class PostController extends Controller
             'og:site_name'  => (string) config('app.name', 'Koobecaf'),
             'og:title'       => $post['display_name'] . ' trên ' . config('app.name', 'Koobecaf'),
             'og:description' => excerpt($post['content'], 160),
-            'og:url'         => url('/p/' . (int) $post['id']),
+            'og:url'         => absolute_url('/p/' . (int) $post['id']),
         ];
 
         if ($images !== []) {

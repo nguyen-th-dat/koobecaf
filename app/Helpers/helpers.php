@@ -435,3 +435,23 @@ if (!function_exists('excerpt')) {
         return mb_substr($text, 0, $length) . '...';
     }
 }
+
+if (!function_exists('linkify')) {
+    /**
+     * Biến các URL trong văn bản thành thẻ <a> để người nhận bấm được.
+     *
+     * Nội dung đã được escape trước khi gọi, nên chỉ URL khớp mẫu mới được
+     * thay thế — không có rủi ro chèn HTML từ dữ liệu người dùng.
+     */
+    function linkify(string $text): string
+    {
+        $pattern = '#\bhttps?://[^\s<>"\'`]+#i';
+
+        return (string) preg_replace_callback($pattern, static function (array $matches): string {
+            $url = rtrim($matches[0], '.,;:!?');
+            $suffix = substr($matches[0], strlen($url));
+
+            return '<a href="' . e($url) . '" target="_blank" rel="noopener noreferrer">' . e($url) . '</a>' . $suffix;
+        }, $text);
+    }
+}

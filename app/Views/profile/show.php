@@ -519,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-profile-copy]').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
-            const link = button.dataset.profileCopy || window.location.href;
+            const link = new URL(button.dataset.profileCopy, window.location.origin).href;
             try {
                 await navigator.clipboard.writeText(link);
                 if (typeof showToast === 'function') {
@@ -529,8 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 window.prompt('Sao chép liên kết trang cá nhân:', link);
-            }
-        });
+            }        });
     });
 });
 </script>

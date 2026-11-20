@@ -3852,6 +3852,18 @@
         line-height: 1.5;
     }
 
+    /* Link trong tin nhắn (ví dụ bài viết được chia sẻ) phải bấm được. */
+    .chat-text a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        word-break: break-all;
+    }
+
+    .chat-text a:hover {
+        text-decoration: none;
+    }
+
     .chat-time {
         display: block;
         font-size: .68rem;

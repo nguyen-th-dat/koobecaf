@@ -192,8 +192,8 @@ final class RealtimeService
             'author'       => self::userPayload((int) $post['user_id']),
             'images'       => $images,
             'original'     => self::originalPayload($post),
-            'url'          => url('/post/' . $postId),
-            'permalink'    => url('/p/' . $postId),
+            'url'          => absolute_url('/post/' . $postId),
+            'permalink'    => absolute_url('/p/' . $postId),
             'stats'        => self::stats($postId),
         ];
     }

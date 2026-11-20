@@ -156,7 +156,7 @@ $previousDay = null;
                         <?php endif; ?>
 
                         <div class="chat-bubble">
-                            <div class="chat-text"><?= nl2br(e($message['body'])) ?></div>
+                            <div class="chat-text"><?= nl2br(linkify(e($message['body']))) ?></div>
                             <small class="chat-time">
                                 <?= e(format_date($message['created_at'], 'H:i')) ?>
                                 <?php if ($isMine): ?>

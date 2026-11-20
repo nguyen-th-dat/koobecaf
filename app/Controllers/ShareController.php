@@ -77,7 +77,7 @@ final class ShareController extends Controller
         Response::success([
             'post' => [
                 'id'         => (int) $post['id'],
-                'permalink'  => url('/p/' . (int) $post['id']),
+                'permalink'  => absolute_url('/p/' . (int) $post['id']),
                 'content'    => (string) $post['content'],
                 'author'     => [
                     'display_name' => (string) $post['display_name'],
@@ -112,7 +112,8 @@ final class ShareController extends Controller
 
         $conversationId = Conversation::between($userId, $targetId);
         $body = trim((string) $this->request->input('body', ''));
-        $link = url('/p/' . (int) $post['id']);
+        // Gửi URL tuyệt đối để người nhận bấm được trong khung chat.
+        $link = absolute_url('/p/' . (int) $post['id']);
         $text = $body !== '' ? $body . ' ' . $link : $link;
 
         $messageId = Message::create($conversationId, $userId, $text);
