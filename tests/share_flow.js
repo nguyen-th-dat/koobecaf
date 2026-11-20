@@ -67,7 +67,11 @@ async function main() {
     await page.waitForSelector('#kbShareModal:not([hidden])', { timeout: 5000 });
     check('Mở modal khi bấm nút Chia sẻ', true);
 
-    // 2. Preview bài viết có dữ liệu.
+    // 2. Preview bài viết có dữ liệu (dữ liệu nạp bất đồng bộ sau khi mở modal).
+    await page.waitForFunction(
+        () => document.querySelector('[data-share-preview-author]').textContent.trim() !== '',
+        { timeout: 5000 }
+    );
     const preview = await page.evaluate(() => ({
         author: document.querySelector('[data-share-preview-author]').textContent.trim(),
         excerpt: document.querySelector('[data-share-preview-excerpt]').textContent.trim(),
