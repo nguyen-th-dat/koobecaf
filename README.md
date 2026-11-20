@@ -752,7 +752,7 @@ Kết quả mong đợi:
 ```
 PASS: 56 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
-PASS: 30 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
+PASS: 30 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=stmp)
 PASS: 23 | FAIL: 0     (form_persistence.php)
 PASS: 9  | FAIL: 0     (draft_cleared.php)
 PASS: 14 | FAIL: 0     (draft_engine.js)
