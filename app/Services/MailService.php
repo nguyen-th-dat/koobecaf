@@ -13,7 +13,10 @@ use PHPMailer\PHPMailer\PHPMailer;
  *
  * Hai chế độ được hỗ trợ qua biến MAIL_DRIVER:
  *   - smtp: gửi thật qua SMTP server.
- *   - log : ghi nội dung email vào storage/logs (môi trường dev, chưa cấu hình SMTP).
+ *   - log : chỉ ghi nội dung email vào storage/logs (môi trường dev, chưa cấu hình SMTP).
+ *
+ * Dù đi chế độ nào, nội dung email gửi đi cũng được ghi lại vào storage/logs
+ * để tra cứu được link đặt lại mật khẩu và để kiểm thử đọc token.
  */
 final class MailService
 {
@@ -25,7 +28,7 @@ final class MailService
     public static function send(string $toEmail, string $toName, string $subject, string $htmlBody): bool
     {
         if ((string) config('mail.driver', 'smtp') === 'log') {
-            return self::writeToLog($toEmail, $toName, $subject, $htmlBody);
+            return self::writeToLog($toEmail, $toName, $subject, $htmlBody, 'log');
         }
 
         $mail = new PHPMailer(true);
@@ -50,6 +53,8 @@ final class MailService
 
             $mail->send();
 
+            self::writeToLog($toEmail, $toName, $subject, $htmlBody, 'smtp');
+
             return true;
         } catch (MailException $e) {
             Logger::error('Gửi mail tới ' . $toEmail . ' thất bại: ' . $e->getMessage());
@@ -67,10 +72,11 @@ final class MailService
         };
     }
 
-    private static function writeToLog(string $toEmail, string $toName, string $subject, string $htmlBody): bool
+    private static function writeToLog(string $toEmail, string $toName, string $subject, string $htmlBody, string $driver): bool
     {
         Logger::info(sprintf(
-            "Mail (driver=log)\n  To: %s <%s>\n  Subject: %s\n  Body: %s",
+            "Mail (driver=%s)\n  To: %s <%s>\n  Subject: %s\n  Body: %s",
+            $driver,
             $toName,
             $toEmail,
             $subject,
