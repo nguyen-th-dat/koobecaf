@@ -1814,7 +1814,7 @@
     /* Trang chạy độc lập (ví dụ trang cá nhân): bỏ hai cột phụ, nội dung
        được canh giữa với bề rộng đọc thoải mái. */
     .app-grid.is-solo {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: minmax(0, 960px);
         justify-content: center;
     }
 
@@ -6110,7 +6110,7 @@
         }
 
         .app-grid.is-solo {
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: minmax(0, 960px);
             justify-content: center;
         }
 
@@ -6163,7 +6163,7 @@
         }
 
         .app-grid.is-solo {
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: minmax(0, 960px);
             justify-content: center;
         }
 

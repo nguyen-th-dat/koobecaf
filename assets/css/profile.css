@@ -73,6 +73,7 @@
     --mp-accent-hover: hsl(var(--profile-hue, var(--mp-hue, 210)) 72% 40%);
     --mp-accent-soft: hsl(var(--profile-hue, var(--mp-hue, 210)) 72% 46% / 0.12);
     --mp-accent-glow: hsl(var(--profile-hue, var(--mp-hue, 210)) 72% 46% / 0.25);
+    --mp-banner-h: 280px;
 
     background-color: var(--mp-canvas);
     color: var(--mp-ink);
@@ -101,6 +102,9 @@
     overflow: hidden;
     box-shadow: inset 0 0 0 1px var(--mp-hairline);
     transition: transform 300ms ease;
+    /* Ảnh bìa nằm trên khối định danh để nút sửa ảnh bìa luôn bấm được;
+       avatar (z-index cao hơn) vẫn trồi lên trên ảnh bìa. */
+    z-index: 1;
 }
 
 .profile-banner.is-generated,
@@ -160,13 +164,15 @@
     text-decoration: none;
 }
 
-/* Thanh định danh cá nhân */
+/* Thanh định danh cá nhân
+   ------------------------------------------------------------------
+   Khối này nằm ngay dưới ảnh bìa; chỉ avatar trồi lên trên ảnh bìa.
+   Nhờ vậy tên hiển thị và các nút không bao giờ nằm đè lên ảnh bìa. */
 .profile-identity-bar {
     display: flex;
     align-items: flex-start;
     gap: 28px;
     padding: 0 20px 20px;
-    margin-top: -64px;
     position: relative;
     z-index: 10;
 }
@@ -179,6 +185,7 @@
     width: 136px;
     height: 136px;
     padding: 4px;
+    margin-top: -68px;
     border-radius: var(--mp-radius-xxxl);
     background-color: var(--mp-canvas);
     box-shadow: var(--mp-shadow-md);
@@ -225,7 +232,7 @@
 .mp-id {
     flex: 1 1 360px;
     min-width: 0;
-    padding-top: 68px;
+    padding-top: 20px;
 }
 
 .profile-head-row,
@@ -1272,11 +1279,12 @@
     .mp-avatar-block {
         width: 112px;
         height: 112px;
+        margin-top: -56px;
     }
 
     .profile-identity-main,
     .mp-id {
-        padding-top: 52px;
+        padding-top: 18px;
     }
 
     .profile-display-name,
@@ -1307,13 +1315,13 @@
         align-items: flex-start;
         gap: 16px;
         padding: 0 12px 16px;
-        margin-top: -48px;
     }
 
     .profile-avatar-wrapper,
     .mp-avatar-block {
         width: 92px;
         height: 92px;
+        margin-top: -46px;
         border-radius: var(--mp-radius-xxl);
     }
 
@@ -1331,7 +1339,14 @@
     .profile-head-row,
     .mp-id-head {
         flex-direction: column;
+        align-items: stretch;
         gap: 14px;
+    }
+
+    /* Trong cột dọc, flex-basis trở thành chiều cao — phải về 0 để tránh
+       khoảng trống lớn giữa tên hiển thị và nhóm nút. */
+    .profile-title-group {
+        flex: 0 0 auto;
     }
 
     .profile-actions-group,
