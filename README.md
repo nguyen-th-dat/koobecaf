@@ -1,6 +1,6 @@
 # Koobecaf — Nền tảng mạng xã hội (PHP thuần + MySQL)
 
->Tôi thấy có trend tạo một mạng xã hội để thay thế các mạng xã hội lớn. Dù nó là bất khả thi nhưng tôi vẫn muốn tự tạo ra trang mạng xã hội theo cá nhân hóa của mình.
+>Tôi thấy có trend (vibe code) tạo một mạng xã hội để thay thế các mạng xã hội lớn. Dù nó là bất khả thi nhưng tôi vẫn muốn tự tạo ra trang mạng xã hội theo cá nhân hóa của mình. Koobecaf chỉ đang cơ bản.
 
 Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ bản, được xây dựng bằng **PHP 8.2 thuần** (không dùng Laravel), **MySQL/MariaDB (InnoDB)** và **CSS tự viết theo design system**. Toàn bộ Backend, Frontend và Database đều là mã nguồn thật, có thể triển khai và chạy trực tiếp trên XAMPP.
 
@@ -21,7 +21,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 | Lớp | Công nghệ |
 |---|---|
 | Backend | PHP 8.2+, MVC thuần, PDO (prepared statements), PHP Session, Composer (PSR-4 autoload) |
-| Frontend | HTML5, CSS3 (design system tự viết trong `assets/css/app.css`), JavaScript ES6+ (Fetch API), Bootstrap Icons 1.13.2 |
+| Frontend | HTML5, CSS3 (design system tự viết trong `assets/css/app.css`, riêng trang cá nhân ở `assets/css/profile.css`), JavaScript ES6+ (Fetch API), Bootstrap Icons 1.13.2 |
 | Database | MySQL 8.0+ / MariaDB 10.4+, InnoDB, `utf8mb4_unicode_ci` |
 | Môi trường | XAMPP (Apache + PHP + MySQL/MariaDB) |
 | Công cụ | Composer, `php -S` (dev server), bộ test tích hợp tự viết |
@@ -41,15 +41,24 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Quản lý phiên bằng PHP Session, **regenerate Session ID** sau khi đăng nhập/đăng ký.
 - Cookie phiên an toàn (`HttpOnly`, `SameSite=Lax`, `Secure` khi bật `SESSION_SECURE`).
 - Đổi mật khẩu (yêu cầu xác nhận mật khẩu hiện tại).
-- **Quên mật khẩu**: gửi email qua PHPMailer chứa link đặt lại mật khẩu (token random 32 byte, lưu dạng SHA-256, hết hạn sau 60 phút, dùng một lần).
-- **Đặt lại mật khẩu**: token hợp lệ mới cho đổi mật khẩu; phản hồi luôn giống nhau dù email có tồn tại hay không để không tiết lộ tài khoản đã đăng ký.
+- **Quên mật khẩu — quy trình 2 bước có xác nhận**:
+  1. Người dùng nhập email hoặc username → `POST /forgot-password/check` kiểm tra tài khoản, **chưa gửi email**; server trả về tên hiển thị + email để hiển thị màn hình xác nhận. Nút "Tiếp tục" bị **disable** trong lúc đang chờ kết quả, và chỉ mở lại khi server trả lời.
+  2. Người dùng bấm **"Tiếp tục"** → `POST /forgot-password/send` mới gửi email. Nút **"Không phải tôi"** → `POST /forgot-password/cancel` huỷ yêu cầu và xoá session xác nhận.
+  - Email chứa **link đặt lại mật khẩu** (token random 32 byte, lưu dạng SHA-256, hết hạn sau 60 phút, dùng một lần) **và mã 6 chữ số**.
+- **Nhập mã 6 số**: `POST /forgot-password/verify-code` → `POST /reset-password` (mở form đặt mật khẩu bằng mã đã xác thực, không cần token trong link).
+  - Mã lưu dạng `code_hash` (SHA-256) trong cột `password_resets.code_hash`, có index riêng; mã đã dùng bị vô hiệu hoá.
+  - Chỉ nhận mã đúng định dạng 6 chữ số; tối đa **5 lần thử sai** cho mỗi phiên rồi yêu cầu lại mã mới.
+- **Đặt lại mật khẩu**: token hoặc mã 6 số hợp lệ mới cho đổi mật khẩu; phản hồi luôn giống nhau dù email có tồn tại hay không để không tiết lộ tài khoản đã đăng ký.
 
 ### 2.2. Hồ sơ cá nhân (Profile)
 - Trang cá nhân theo username: `/u/{username}`.
 - Hiển thị avatar, ảnh bìa, tên hiển thị, username, tiểu sử, ngày tham gia.
-- Thống kê: số bài viết, số bạn bè, số người theo dõi, số đang theo dõi.
+- **Layout một cột** (`$solo` → `.app-grid.is-solo`): bỏ hẳn sidebar trái/phải, cột nội dung căn giữa (max 960px) — không còn khoảng trống lệch trái trên desktop.
+- **Masthead** gồm ảnh bìa + avatar + tên + nút hành động; nút "Chỉnh sửa ảnh bìa" và badge đổi avatar nằm **trong vùng ảnh bìa** nên không bị tên/nút đè lên; avatar lấn lên mép dưới ảnh bìa bằng `margin-top` âm (không dùng `z-index` chồng lớp).
+- Dải số liệu gọn: Bài viết · Ảnh · Bình luận · Lượt đã thích.
+- 5 tab: Bài viết · Ảnh · Bình luận · Đã chia sẻ · **Kết nối** (gộp Bạn bè / Người theo dõi / Đang theo dõi vào một nhóm chip con) — thanh tab không bị dài quá mức.
 - Sửa hồ sơ, đổi avatar, đổi ảnh bìa (upload nhiều ảnh, MIME + extension + dung lượng, tên file ngẫu nhiên).
-- 6 tab: Bài viết · Bình luận · Đã chia sẻ · Bạn bè · Người theo dõi · Đang theo dõi.
+- Nút **"Sao chép liên kết"** copy **URL tuyệt đối** (`http://host/u/{username}`), không phải đường dẫn tương đối.
 
 ### 2.3. Bảng tin (News Feed)
 - Feed gồm bài của chính mình + người được theo dõi + bạn bè.
@@ -64,7 +73,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Xem trước ảnh trước khi đăng (client-side).
 - Sửa / xóa bài viết của mình, có hộp thoại xác nhận trước khi xóa.
 - Quyền riêng tư: **Public / Followers / Private**, thực thi ở tầng SQL (không chỉ ẩn/hiện giao diện).
-- URL riêng cho mỗi bài viết: `/p/{id}` (permalink), kèm Open Graph metadata + canonical URL.
+- URL riêng cho mỗi bài viết: `/p/{id}` (permalink), kèm Open Graph metadata + **canonical URL tuyệt đối** (`absolute_url()`), và mọi link chia sẻ đều là URL đầy đủ.
 - Trang chi tiết bài viết: `/post/{id}`.
 
 ### 2.5. Like
@@ -80,7 +89,8 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 
 ### 2.7. Chia sẻ (Shares)
 - **Chia sẻ nội bộ**: tạo bài viết mới tham chiếu bài gốc (`shared_post_id`), kèm nội dung người chia sẻ; hiển thị thẻ bài gốc.
-- **Chia sẻ liên kết**: nút "Sao chép link" copy permalink `/p/{id}`.
+- **Chia sẻ liên kết**: nút "Sao chép link" copy **URL tuyệt đối** (`http://host/p/{id}`) — qua `absolute_url()`, không phải đường dẫn tương đối.
+- Gửi link bài viết vào khung chat cũng dùng URL tuyệt đối, và tin nhắn có URL được **tự động link hoá** thành thẻ `<a>` bấm được.
 - Hai cơ chế này tách biệt hoàn toàn, không lẫn lộn.
 
 ### 2.8. Bạn bè & Theo dõi
@@ -93,6 +103,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 - Gửi/nhận tin nhắn, lịch sử tin nhắn, thời gian gửi, trạng thái đã đọc/chưa đọc (icon ✓ / ✓✓).
 - AJAX polling mỗi 5 giây, badge số tin nhắn chưa đọc cập nhật tự động.
 - Chỉ thành viên cuộc trò chuyện mới đọc được tin nhắn (kiểm tra backend).
+- Tin nhắn chứa URL được **link hoá** (`linkify()` phía PHP + `linkifyHtml()` phía JS cho tin nhắn realtime) → hiển thị thành link bấm được, mở tab mới với `rel="noopener noreferrer"`.
 - **WebSocket realtime** (tuỳ chọn): nhận tin nhắn tức thì, chỉ báo đang gõ, tự đánh dấu đã đọc, tự kết nối lại khi mất mạng. Tự fallback về polling khi WebSocket server không chạy — xem [mục 5.8](#58-websocket-chat--feed--thông-báo-realtime).
 
 ### 2.10. Thông báo (Notifications)
@@ -109,6 +120,7 @@ Koobecaf là một nền tảng mạng xã hội hoàn chỉnh ở mức cơ b�
 ### 2.12. Giao diện
 - Light Mode / Dark Mode, lưu theo tài khoản (`users.theme`) và trong session.
 - Responsive: sidebar → offcanvas + bottom navigation trên mobile.
+- Trang cá nhân dùng **layout một cột** riêng (`is-solo`): cột nội dung căn giữa, ảnh bìa + avatar lấn nhẹ, tab cuộn ngang khi màn hình hẹp.
 
 ### 2.13. Giữ giá trị form (Form persistence)
 Ba tầng bảo vệ dữ liệu người dùng đã nhập, không mất khi tải lại trang hoặc gửi lỗi:
@@ -150,6 +162,8 @@ koobecaf/
 │   │   ├── Router.php             # Định tuyến regex, hỗ trợ {id}/{username}
 │   │   ├── Session.php            # Quản lý session & flash message
 │   │   ├── Validator.php          # Validate dữ liệu đầu vào
+│   │   ├── WebSocketToken.php     # Sinh token/ticket HMAC cho WebSocket
+│   │   ├── WsPublisher.php        # Đẩy sự kiện realtime sang Node.js (POST /internal/publish)
 │   │   └── View.php               # Render view + layout
 │   ├── Middleware/
 │   │   ├── AuthMiddleware.php     # Yêu cầu đăng nhập
@@ -160,18 +174,19 @@ koobecaf/
 │   │   ├── Like.php      Message.php     Notification.php
 │   │   ├── PasswordReset.php  Post.php    PostImage.php   Share.php
 │   │   └── User.php
-│   ├── Controllers/               # 14 controller
+│   ├── Controllers/               # 15 controller
 │   │   ├── ApiController.php       AuthController.php     ChatController.php
 │   │   ├── CommentController.php  FeedController.php     FollowController.php
 │   │   ├── FriendController.php   LikeController.php     NotificationController.php
 │   │   ├── PasswordController.php PostController.php     ProfileController.php
-│   │   ├── SearchController.php   ShareController.php
+│   │   ├── SearchController.php   ShareController.php    WebSocketController.php
 │   ├── Services/
 │   │   ├── MailService.php         # Gửi email qua PHPMailer (SMTP hoặc driver log)
 │   │   ├── NotificationService.php # Sinh thông báo theo loại sự kiện
+│   │   ├── RealtimeService.php     # Sinh payload sự kiện realtime (URL tuyệt đối)
 │   │   └── UploadService.php       # Upload ảnh an toàn
 │   ├── Helpers/
-│   │   └── helpers.php             # e(), url(), absolute_url(), asset(), time_ago()...
+│   │   └── helpers.php             # e(), url(), absolute_url(), linkify(), asset(), time_ago()...
 │   └── Views/
 │       ├── layouts/                # main.php, auth.php + partials (topbar, sidebars, mobile-nav, flash)
 │       ├── partials/               # post-card.php, comment-item.php
@@ -202,8 +217,11 @@ koobecaf/
 ├── .htaccess                      # Rewrite về index.php + chặn mã nguồn
 ├── assets/                        # Tài nguyên tĩnh phục vụ trực tiếp
 │   ├── css/app.css                # Design system tự viết (token, layout, component)
-│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling + lưu nháp form
+│   ├── css/profile.css            # Giao diện trang cá nhân (masthead, dải số liệu, tab, lưới ảnh)
+│   ├── css/toast.css              # Toast góc phải dưới
+│   ├── js/app.js                  # Fetch API: like/comment/share/follow/search/chat polling + lưu nháp form + linkify
 │   ├── js/realtime.js             # Client WebSocket (chat + feed + thông báo realtime, tự fallback về polling)
+│   ├── js/toast.js                # Hệ thống toast
 │   ├── images/logo.png            # Logo thương hiệu
 │   └── vendor/                    # Bootstrap Icons (bản local)
 │
@@ -434,7 +452,7 @@ MAIL_DEBUG=false
 | Biến | Ý nghĩa |
 |---|---|
 | `APP_DEBUG` | `true` = hiện chi tiết lỗi. **Luôn đặt `false` khi triển khai production.** |
-| `APP_URL` | URL gốc dùng cho permalink & Open Graph. |
+| `APP_URL` | URL gốc đầy đủ — dùng cho permalink, Open Graph, canonical và **mọi link chia sẻ** (gửi vào chat / sao chép link). Phải khớp với địa chỉ người dùng thực sự truy cập. |
 | `APP_BASE_PATH` | Nếu ứng dụng nằm trong thư mục con (Cách A), điền `/koobecaf`. |
 | `SESSION_SECURE` | `true` khi chạy qua HTTPS (đặt cookie `Secure`). |
 | `MAIL_DRIVER` | `smtp` = gửi mail thật. `log` = ghi nội dung email vào `storage/logs/` (dùng khi dev chưa có SMTP). |
@@ -543,6 +561,33 @@ Kết quả:
 ```
 
 Server cũng có endpoint kiểm tra sức khỏe tại `http://127.0.0.1:8080/health`.
+
+> Trên Windows, nếu chạy `node server/ws-server.js` trực tiếp thì đóng terminal cũng tắt server. Chạy nền tách biệt:
+>
+> ```powershell
+> Start-Process node -ArgumentList "server/ws-server.js" -WindowStyle Hidden `
+>   -RedirectStandardOutput .tmp/ws.log -RedirectStandardError .tmp/ws.err.log
+> ```
+
+#### Bước 3.1 — Chẩn đoán khi không gửi được sự kiện
+
+`app/Core/WsPublisher.php` gọi `POST http://127.0.0.1:8080/internal/publish` (timeout 2 giây). Nếu server
+đang tắt, mỗi sự kiện sẽ log ở mức `INFO` vào `storage/logs/app-YYYY-MM-DD.log`, kèm **nguyên nhân cụ thể**:
+
+```
+[2026-11-20 21:45:53] INFO: Không gửi được sự kiện "post.created" tới WebSocket server: Connection timed out after 2002 milliseconds (http://127.0.0.1:8080/internal/publish)
+[2026-11-20 21:46:10] INFO: Không gửi được sự kiện "post.liked" tới WebSocket server: HTTP 401 — Chữ ký không hợp lệ
+```
+
+| Log ghi | Nguyên nhân |
+|---|---|
+| `Connection timed out after N milliseconds` | WebSocket server không chạy hoặc bị chặn port. |
+| `Connection refused` / `Could not resolve host` | Server chưa start, hoặc `WS_HOST`/`WS_PORT` sai. |
+| `HTTP 401` | `APP_KEY` giữa PHP và Node **không khớp** — token cũ cũng bị vô hiệu hoá. |
+| `HTTP 404` | Endpoint `/internal/publish` không tồn tại — đang chạy nhầm phiên bản `server/`. |
+
+> Server WebSocket **không bắt buộc**: thiếu server, ứng dụng vẫn chạy, chat tự fallback về polling 5 giây.
+> Tuy nhiên mỗi lần publish sẽ chờ tới hết timeout 2 giây — nên nên khởi động server khi phát triển.
 
 #### Bước 4 — Chạy song song với ứng dụng
 
@@ -683,10 +728,10 @@ Bộ test là script PHP thuần, gọi HTTP tới ứng dụng đang chạy. Kh
 php -S localhost:8000 -t . router.php
 
 # Terminal 2
-php tests/smoke.php        http://localhost:8000   # 54 kiểm tra end-to-end
+php tests/smoke.php        http://localhost:8000   # 56 kiểm tra end-to-end
 php tests/extended.php     http://localhost:8000   # 40 kiểm tra biên
-php tests/password_reset.php http://localhost:8000 # 21 kiểm tra quên/đặt lại mật khẩu
-php tests/form_persistence.php http://localhost:8000 # 20 kiểm tra giữ giá trị form
+php tests/password_reset.php http://localhost:8000 # 30 kiểm tra quên/đặt lại mật khẩu (kèm mã 6 số)
+php tests/form_persistence.php http://localhost:8000 # 23 kiểm tra giữ giá trị form
 php tests/draft_cleared.php http://localhost:8000   # 9 kiểm tra xoá nháp sau khi gửi thành công
 node tests/draft_engine.js                          # 14 kiểm tra logic lưu nháp (không cần server)
 node tests/leave_guard.js                           # 13 kiểm tra logic cảnh báo rời trang (không cần server)
@@ -705,10 +750,10 @@ node tests/ws_upgrade.js                           # 13 kiểm tra tính năng n
 Kết quả mong đợi:
 
 ```
-PASS: 54 | FAIL: 0     (smoke.php)
+PASS: 56 | FAIL: 0     (smoke.php)
 PASS: 40 | FAIL: 0     (extended.php)
-PASS: 21 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
-PASS: 20 | FAIL: 0     (form_persistence.php)
+PASS: 30 | FAIL: 0     (password_reset.php — cần MAIL_DRIVER=log)
+PASS: 23 | FAIL: 0     (form_persistence.php)
 PASS: 9  | FAIL: 0     (draft_cleared.php)
 PASS: 14 | FAIL: 0     (draft_engine.js)
 PASS: 13 | FAIL: 0     (leave_guard.js)
@@ -768,6 +813,7 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 | Nhóm | Route |
 |---|---|
 | Xác thực | `GET/POST /login`, `GET/POST /register`, `POST /logout` |
+| Quên mật khẩu | `GET /forgot-password`, `POST /forgot-password` (fallback không JS), `POST /forgot-password/check`, `POST /forgot-password/send`, `POST /forgot-password/cancel`, `POST /forgot-password/verify-code`, `GET/POST /reset-password` |
 | Công khai | `GET /`, `GET /post/{id}`, `GET /p/{id}`, `GET /u/{username}`, `GET /search` |
 | Bài viết | `GET /posts/create`, `POST /posts`, `GET /posts/{id}/edit`, `POST /posts/{id}/update|delete|like|comment|share` |
 | Bình luận | `POST /comments/{id}/update|delete` |
@@ -779,11 +825,10 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 | API AJAX | `GET /api/feed`, `/api/search/users`, `/api/search/posts`, `/api/posts/{id}/comments`, `/api/notifications/unread`, `/api/messages/unread` |
 | API realtime | `GET /api/posts/{id}/card` (render HTML thẻ bài viết), `GET /api/notifications/{id}/item` (render HTML dòng thông báo) |
 | WebSocket | `GET /api/ws/session` (cấp token đăng nhập), `GET /api/ws/ticket/{id}` (cấp ticket theo cuộc trò chuyện) |
-| WebSocket | `GET /api/ws/session` (cấp token đăng nhập), `GET /api/ws/ticket/{id}` (cấp ticket theo cuộc trò chuyện) |
 
 ### 8.2. Cấu trúc database
 
-12 bảng InnoDB, `utf8mb4_unicode_ci`:
+13 bảng InnoDB, `utf8mb4_unicode_ci`:
 
 | Bảng | Quan hệ chính |
 |---|---|
@@ -799,6 +844,7 @@ HTML response  ──►  hoặc  JSON response (Response::success / Response::e
 | `conversation_members` | n-n `conversations` × `users`, UNIQUE `(conversation_id, user_id)` |
 | `messages` | thuộc `conversations`, người gửi thuộc `users` |
 | `notifications` | thuộc `users`, người gây ra thuộc `users` |
+| `password_resets` | thuộc `users`; UNIQUE `token_hash`, index `code_hash` (mã 6 số), hết hạn theo `expires_at` |
 
 Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 
@@ -818,7 +864,10 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 | SQL integrity | FK + UNIQUE + CHECK logic ở tầng ứng dụng: cấm tự follow, cấm tự kết bạn, cấm Like trùng |
 | Rò rỉ thông tin | `APP_DEBUG=false` ở production, lỗi ghi vào `storage/logs/`, không hiển thị stack trace cho người dùng |
 | Quên mật khẩu | Token random 32 byte, database chỉ lưu bản SHA-256; hết hạn 60 phút; dùng một lần rồi vô hiệu hóa; phản hồi giống nhau dù email có tồn tại hay không |
+| Mã 6 số | Chỉ lưu `code_hash` (SHA-256); tối đa 5 lần thử sai mỗi phiên; mã đã dùng bị vô hiệu hoá |
 | Link đặt lại mật khẩu | Host lấy từ `APP_URL` (không dùng header `Host` của request) để chống host header injection |
+| URL tuyệt đối | `absolute_url()` dựng link chia sẻ/canonical/Open Graph từ `APP_URL` — không dựa vào header `Host` của request |
+| Link trong tin nhắn | `linkify()` chỉ nhận URL `http(s)`, escape trước khi chèn thẻ `<a target="_blank" rel="noopener noreferrer">` |
 | Cấu hình | `.env` nằm ngoài Git (`.gitignore`), `.htaccess` chặn autoindex + lộ phiên bản Apache |
 | WebSocket | Xác thực HMAC-SHA256 bằng `APP_KEY` (`timingSafeEqual`), token hạn 300s, ticket tách `purpose` khỏi token đăng nhập, kiểm tra `conversation_members` ở server, prepared statement 100%, giới hạn 16 KB/frame |
 
@@ -833,6 +882,8 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 - **Cron dọn file rác**: nên thêm tác vụ định kỳ xóa file upload mồ côi (không còn tham chiếu trong `post_images`).
 - **WebSocket server**: chạy dưới systemd/pm2 để tự khởi động lại; nhiều tiến trình cần Redis pub/sub để đồng bộ tin nhắn, feed và thông báo giữa các node.
 - **`APP_KEY`**: bắt buộc cho WebSocket, phải là secret và **không đổi** sau khi token đã được cấp (đổi sẽ vô hiệu hoá các token cũ).
+- **`APP_URL`**: phải là URL đầy đủ và khớp với nơi người dùng thực sự truy cập — mọi link chia sẻ, canonical và Open Graph đều dựng từ biến này.
+- **Log WebSocket**: khi thấy dòng `Không gửi được sự kiện ...` trong `storage/logs/`, đọc phần sau dấu `:` để biết server chưa chạy, sai `APP_KEY` hay sai endpoint — xem [mục 5.8.1](#bước-31--chẩn-doán-khi-không-gửi-được-sự-kiện).
 
 ---
 
@@ -841,15 +892,15 @@ Chi tiết ERD: [`database/erd/erd.md`](database/erd/erd.md).
 Gợi ý (chưa triển khai):
 
 1. **Like bình luận** và **đính kèm ảnh cho bình luận** (bảng `comment_likes`, `comment_images`).
-3. **Hashtag & mention** — trường `hashtags`, `mentions` trên bài viết/bình luận, trang `/tag/{hashtag}`.
-4. **Tin nhắn nhóm** — thay `conversations` 1-1 bằng nhóm nhiều thành viên (protocol `subscribe` đã hỗ trợ sẵn theo `conversation_id`).
-5. **Khuyến nghị nội dung** — thuật toán gợi ý dựa trên lịch sử follow/like.
-6. **Ẩn danh / báo cáo nội dung** — bảng `reports` và quy trình kiểm duyệt.
-7. **Tìm kiếm toàn văn** — chuyển `LIKE` sang MySQL FULLTEXT index khi dữ liệu lớn.
-8. **Cache tầng ứng dụng** — Redis cho session, unread count, feed và pub/sub giữa nhiều tiến trình WebSocket.
-9. **Chia sẻ ra mạng xã hội khác** — tích hợp Open Graph API để đăng bài lên Facebook/Twitter.
-10. **Test tự động hóa** — PHPUnit + browser test (Playwright) cho luồng E2E.
-11. **Đồng bộ nhiều thiết bị** — thêm `device_id` vào session để đồng bộ trạng thái đã đọc giữa các thiết bị.
+2. **Hashtag & mention** — trường `hashtags`, `mentions` trên bài viết/bình luận, trang `/tag/{hashtag}`.
+3. **Tin nhắn nhóm** — thay `conversations` 1-1 bằng nhóm nhiều thành viên (protocol `subscribe` đã hỗ trợ sẵn theo `conversation_id`).
+4. **Khuyến nghị nội dung** — thuật toán gợi ý dựa trên lịch sử follow/like.
+5. **Ẩn danh / báo cáo nội dung** — bảng `reports` và quy trình kiểm duyệt.
+6. **Tìm kiếm toàn văn** — chuyển `LIKE` sang MySQL FULLTEXT index khi dữ liệu lớn.
+7. **Cache tầng ứng dụng** — Redis cho session, unread count, feed và pub/sub giữa nhiều tiến trình WebSocket.
+8. **Chia sẻ ra mạng xã hội khác** — tích hợp Open Graph API để đăng bài lên Facebook/Twitter.
+9. **Test tự động hóa** — PHPUnit + browser test (Playwright) cho luồng E2E.
+10. **Đồng bộ nhiều thiết bị** — thêm `device_id` vào session để đồng bộ trạng thái đã đọc giữa các thiết bị.
 
 ---
 
