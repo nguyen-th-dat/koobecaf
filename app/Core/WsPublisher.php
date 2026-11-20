@@ -46,9 +46,14 @@ final class WsPublisher
 
         $signature = hash_hmac('sha256', $body, self::key());
 
-        $response = self::post($url, $body, $signature);
+        $error = null;
+        $response = self::post($url, $body, $signature, $error);
         if ($response === false) {
-            Logger::info('Không gửi được sự kiện "' . $event . '" tới WebSocket server.');
+            Logger::info(
+                'Không gửi được sự kiện "' . $event . '" tới WebSocket server'
+                . ($error !== null ? ': ' . $error : '.') . ' ('
+                . $url . ')'
+            );
 
             return false;
         }
@@ -58,8 +63,10 @@ final class WsPublisher
 
     /**
      * Gửi POST và trả về nội dung phản hồi, hoặc false khi thất bại.
+     *
+     * @param string|null $error Nhận mô tả nguyên nhân thất bại (nếu có).
      */
-    private static function post(string $url, string $body, string $signature): string|false
+    private static function post(string $url, string $body, string $signature, ?string &$error = null): string|false
     {
         $headers = [
             'Content-Type: application/json',
@@ -69,6 +76,8 @@ final class WsPublisher
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             if ($ch === false) {
+                $error = 'không khởi tạo được cURL';
+
                 return false;
             }
 
@@ -83,9 +92,18 @@ final class WsPublisher
 
             $response = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $curlError = curl_error($ch);
             curl_close($ch);
 
-            if ($response === false || $status < 200 || $status >= 300) {
+            if ($response === false) {
+                $error = $curlError !== '' ? $curlError : 'không kết nối được tới ' . $url;
+
+                return false;
+            }
+
+            if ($status < 200 || $status >= 300) {
+                $error = 'HTTP ' . $status . ' — ' . substr(trim((string) $response), 0, 200);
+
                 return false;
             }
 
@@ -105,6 +123,8 @@ final class WsPublisher
 
         $response = @file_get_contents($url, false, $context);
         if ($response === false) {
+            $error = 'không kết nối được tới ' . $url;
+
             return false;
         }
 
