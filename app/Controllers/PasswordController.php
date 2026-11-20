@@ -18,6 +18,15 @@ final class PasswordController extends Controller
     /** Khoá lưu bước xác nhận của luồng quên mật khẩu trong session. */
     private const CONFIRM_KEY = '_pwd_reset_confirm';
 
+    /** Khoá lưu mã 6 số đã xác thực, dùng để sang bước đặt mật khẩu mới. */
+    private const CODE_KEY = '_pwd_reset_code';
+
+    /** Khoá đếm số lần người dùng nhập sai mã 6 số. */
+    private const CODE_ATTEMPTS_KEY = '_pwd_reset_code_attempts';
+
+    /** Số lần thử sai tối đa cho mã 6 số trong cùng một phiên. */
+    private const MAX_CODE_ATTEMPTS = 5;
+
     /**
      * Trang yêu cầu quên mật khẩu.
      */
@@ -65,7 +74,7 @@ final class PasswordController extends Controller
     }
 
     /**
-     * Gửi email chứa link đặt lại mật khẩu (chạy sau khi người dùng bấm "Tiếp tục").
+     * Gửi email chứa link đặt lại mật khẩu và mã 6 số (chạy sau khi người dùng bấm "Tiếp tục").
      */
     public function sendResetLink(): void
     {
@@ -80,8 +89,8 @@ final class PasswordController extends Controller
             Response::error('Không tìm thấy tài khoản nào khớp với thông tin bạn đã nhập.', 404);
         }
 
-        $token = PasswordReset::create((int) $user['id']);
-        $sent = $this->sendMail((array) $user, $token);
+        $reset = PasswordReset::createWithCode((int) $user['id']);
+        $sent = $this->sendMail((array) $user, $reset['token'], $reset['code']);
 
         Session::forget(self::CONFIRM_KEY);
 
@@ -98,6 +107,7 @@ final class PasswordController extends Controller
     public function cancelReset(): void
     {
         Session::forget(self::CONFIRM_KEY);
+        Session::forget(self::CODE_KEY);
 
         Response::success([]);
     }
@@ -113,7 +123,7 @@ final class PasswordController extends Controller
         $email = $this->request->string('email');
 
         $validator = (new Validator($this->request->all()))
-            ->required('email', 'Email hoặc tên đăng nhập');
+            ->required('email', 'Email hoặc tên đăng khẩu');
 
         if ($validator->fails()) {
             $this->fail((string) $validator->firstError(), '/forgot-password', ['email']);
@@ -126,8 +136,8 @@ final class PasswordController extends Controller
         $user = User::findByIdentifier($email);
 
         if ($user !== null) {
-            $token = PasswordReset::create((int) $user['id']);
-            $sent = $this->sendMail((array) $user, $token);
+            $reset = PasswordReset::createWithCode((int) $user['id']);
+            $sent = $this->sendMail((array) $user, $reset['token'], $reset['code']);
 
             if (!$sent) {
                 setFlashMessage('error', 'Không gửi được email. Vui lòng thử lại sau ít phút.');
@@ -142,18 +152,64 @@ final class PasswordController extends Controller
 
     /**
      * Trang đặt lại mật khẩu.
+     *
+     * Hai đường vào: bằng token trong link email, hoặc bằng mã 6 số đã xác thực.
      */
     public function showResetForm(): void
     {
         $token = $this->request->string('token');
 
-        if ($token === '' || PasswordReset::findValid($token) === null) {
-            $this->invalidToken();
+        if ($token !== '') {
+            if (PasswordReset::findValid($token) === null) {
+                $this->invalidToken();
+
+                return;
+            }
+
+            $this->view('auth/reset-password', ['title' => 'Đặt lại mật khẩu', 'token' => $token], 'layouts/auth');
 
             return;
         }
 
-        $this->view('auth/reset-password', ['title' => 'Đặt lại mật khẩu', 'token' => $token], 'layouts/auth');
+        if (Session::has(self::CODE_KEY)) {
+            $this->view('auth/reset-password', ['title' => 'Đặt lại mật khẩu', 'token' => ''], 'layouts/auth');
+
+            return;
+        }
+
+        $this->invalidToken();
+    }
+
+    /**
+     * Kiểm tra mã 6 số người dùng nhập từ email.
+     *
+     * Mã hợp lệ được ghi vào session để sang bước đặt mật khẩu mới.
+     */
+    public function verifyCode(): void
+    {
+        $code = $this->request->string('code');
+
+        if (!self::isValidCode($code)) {
+            Response::error('Mã phải gồm 6 chữ số.', 422);
+        }
+
+        if (self::codeAttempts() >= self::MAX_CODE_ATTEMPTS) {
+            Response::error('Bạn đã thử quá nhiều lần. Vui lòng yêu cầu mã mới.', 429);
+        }
+
+        $reset = PasswordReset::findValidByCode($code);
+        if ($reset === null) {
+            self::increaseCodeAttempts();
+            Response::error('Mã không đúng hoặc đã hết hạn.', 404);
+        }
+
+        Session::set(self::CODE_KEY, [
+            'user_id' => (int) $reset['user_id'],
+            'code'    => $code,
+        ]);
+        Session::forget(self::CODE_ATTEMPTS_KEY);
+
+        Response::success(['verified' => true]);
     }
 
     /**
@@ -164,24 +220,46 @@ final class PasswordController extends Controller
         $token = $this->request->string('token');
         $password = (string) $this->request->input('password', '');
 
-        $reset = PasswordReset::findValid($token);
-        if ($reset === null) {
-            $this->invalidToken();
-
-            return;
-        }
-
         $validator = (new Validator($this->request->all()))
             ->required('password', 'Mật khẩu')
             ->min('password', 8, 'Mật khẩu')
             ->matches('password_confirmation', 'password', 'Mật khẩu xác nhận');
 
         if ($validator->fails()) {
-            $this->fail((string) $validator->firstError(), '/reset-password?token=' . urlencode($token));
+            $this->fail((string) $validator->firstError(), $this->resetFallbackUrl($token));
         }
 
-        User::updatePassword($reset['user_id'], $password);
-        PasswordReset::markUsed($token);
+        if ($token !== '') {
+            $reset = PasswordReset::findValid($token);
+            if ($reset === null) {
+                $this->invalidToken();
+
+                return;
+            }
+
+            User::updatePassword($reset['user_id'], $password);
+            PasswordReset::markUsed($token);
+        } else {
+            $code = Session::get(self::CODE_KEY);
+            if (!is_array($code) || !isset($code['user_id'])) {
+                $this->invalidToken();
+
+                return;
+            }
+
+            $reset = PasswordReset::findValidByCode((string) $code['code']);
+            if ($reset === null) {
+                Session::forget(self::CODE_KEY);
+                $this->invalidToken();
+
+                return;
+            }
+
+            User::updatePassword($reset['user_id'], $password);
+            PasswordReset::markCodeUsed((string) $code['code']);
+        }
+
+        Session::forget(self::CODE_KEY);
 
         setFlashMessage('success', 'Đặt lại mật khẩu thành công. Bạn có thể đăng nhập với mật khẩu mới.');
         Response::redirect('/login');
@@ -190,7 +268,7 @@ final class PasswordController extends Controller
     /**
      * Gửi email cho người dùng vừa yêu cầu đặt lại mật khẩu.
      */
-    private function sendMail(array $user, string $token): bool
+    private function sendMail(array $user, string $token, string $code): bool
     {
         $resetUrl = absolute_url('/reset-password?token=' . urlencode($token));
 
@@ -198,6 +276,7 @@ final class PasswordController extends Controller
             'appName'  => (string) config('app.name', 'Koobecaf'),
             'userName' => (string) $user['display_name'],
             'resetUrl' => $resetUrl,
+            'code'     => $code,
             'minutes'  => PasswordReset::EXPIRE_MINUTES,
         ], '');
 
@@ -211,8 +290,19 @@ final class PasswordController extends Controller
 
     private function invalidToken(): void
     {
-        setFlashMessage('error', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.');
+        Session::forget(self::CODE_KEY);
+        setFlashMessage('error', 'Link hoặc mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu lại.');
         Response::redirect('/forgot-password');
+    }
+
+    /**
+     * Đường quay lại form đặt lại mật khẩu khi báo lỗi.
+     */
+    private function resetFallbackUrl(string $token): string
+    {
+        return $token !== ''
+            ? '/reset-password?token=' . urlencode($token)
+            : '/reset-password';
     }
 
     /**
@@ -225,5 +315,23 @@ final class PasswordController extends Controller
         }
 
         return (bool) preg_match('/^[a-zA-Z0-9_]{3,30}$/', $identifier);
+    }
+
+    /** Mã đặt lại mật khẩu gồm đúng 6 chữ số. */
+    private static function isValidCode(string $code): bool
+    {
+        return (bool) preg_match('/^\d{6}$/', $code);
+    }
+
+    /** Số lần đã nhập sai mã trong phiên hiện tại. */
+    private static function codeAttempts(): int
+    {
+        return (int) Session::get(self::CODE_ATTEMPTS_KEY, 0);
+    }
+
+    /** Ghi nhận một lần nhập sai mã. */
+    private static function increaseCodeAttempts(): void
+    {
+        Session::set(self::CODE_ATTEMPTS_KEY, self::codeAttempts() + 1);
     }
 }

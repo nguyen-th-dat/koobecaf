@@ -19,6 +19,7 @@ return static function (Router $router): void {
         $router->post('/forgot-password/check', [\App\Controllers\PasswordController::class, 'checkAccount'], 'password.forgot.check');
         $router->post('/forgot-password/send', [\App\Controllers\PasswordController::class, 'sendResetLink'], 'password.forgot.send');
         $router->post('/forgot-password/cancel', [\App\Controllers\PasswordController::class, 'cancelReset'], 'password.forgot.cancel');
+        $router->post('/forgot-password/verify-code', [\App\Controllers\PasswordController::class, 'verifyCode'], 'password.forgot.verify-code');
         $router->get('/reset-password', [\App\Controllers\PasswordController::class, 'showResetForm'], 'password.reset');
         $router->post('/reset-password', [\App\Controllers\PasswordController::class, 'reset'], 'password.reset.post');
     });

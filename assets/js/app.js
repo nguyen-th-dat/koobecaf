@@ -443,13 +443,15 @@ document.addEventListener('click', (event) => {
 });
 
 /* =============================================================
-   Quên mật khẩu — kiểm tra tài khoản rồi mới gửi email
+   Quên mật khẩu — kiểm tra tài khoản rồi mới gửi email, sau đó nhập mã 6 số
    ============================================================= */
 const forgotForm = document.querySelector('[data-forgot-form]');
 if (forgotForm) {
     const submitBtn = forgotForm.querySelector('[data-forgot-submit]');
     const sendBtn = forgotForm.querySelector('[data-forgot-send]');
     const cancelBtn = forgotForm.querySelector('[data-forgot-cancel]');
+    const verifyBtn = forgotForm.querySelector('[data-forgot-verify]');
+    const codeInput = forgotForm.querySelector('[name="code"]');
     const steps = forgotForm.querySelectorAll('[data-forgot-step]');
 
     /** Bật/tắt một bước của form. */
@@ -515,10 +517,35 @@ if (forgotForm) {
             return;
         }
 
-        showToast('success', 'Đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
-        showStep(1);
-        forgotForm.querySelector('[name="email"]').value = '';
-        clearFormDraft(forgotForm);
+        showToast('success', 'Đã gửi mã và link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
+        showStep(3);
+        codeInput?.focus();
+    });
+
+    verifyBtn?.addEventListener('click', async () => {
+        const code = (codeInput?.value ?? '').trim();
+
+        if (!/^\d{6}$/.test(code)) {
+            showToast('error', 'Mã phải gồm 6 chữ số.');
+            return;
+        }
+
+        setBusy(verifyBtn, true, 'Đang kiểm tra...');
+
+        const payload = await request(apiUrl('/forgot-password/verify-code'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ code: code }),
+        });
+
+        setBusy(verifyBtn, false);
+
+        if (!payload.success) {
+            showToast('error', payload.message ?? 'Mã không đúng.');
+            return;
+        }
+
+        window.location.href = apiUrl('/reset-password');
     });
 
     cancelBtn?.addEventListener('click', async () => {
@@ -530,6 +557,11 @@ if (forgotForm) {
 
         showStep(1);
         showToast('info', 'Đã huỷ yêu cầu đặt lại mật khẩu.');
+    });
+
+    // Ô mã chỉ nhận chữ số.
+    codeInput?.addEventListener('input', () => {
+        codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
     });
 }
 

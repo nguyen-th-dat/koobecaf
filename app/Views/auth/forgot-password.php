@@ -1,10 +1,11 @@
 <?php
 /**
- * Trang quên mật khẩu — hai bước.
+ * Trang quên mật khẩu — ba bước.
  *
  * Bước 1: nhập email hoặc tên đăng nhập → hệ thống kiểm tra tài khoản.
  * Bước 2: báo người dùng đã tìm thấy tài khoản, bấm "Tiếp tục" thì mới gửi
- *         email chứa link đặt lại mật khẩu, bấm "Không phải tôi" thì huỷ.
+ *         email chứa link và mã 6 số, bấm "Không phải tôi" thì huỷ.
+ * Bước 3: nhập mã 6 số để mở form đặt mật khẩu mới.
  *
  * @var string $email
  */
@@ -32,12 +33,37 @@ $email = (string) old('email');
                 <p class="mb-0"><span data-forgot-name></span> — <span data-forgot-email></span></p>
             </div>
         </div>
-        <p class="form-text mb-0">Chọn "Tiếp tục" để chúng tôi gửi link đặt lại mật khẩu tới hộp thư này.</p>
+        <p class="form-text mb-0">Chọn "Tiếp tục" để chúng tôi gửi mã và link đặt lại mật khẩu tới hộp thư này.</p>
     </div>
 
     <div class="d-none" data-forgot-step="2">
         <button class="btn btn-solid w-100 mb-2" type="button" data-forgot-send>
             <i class="bi bi-send me-1"></i>Tiếp tục
+        </button>
+        <button class="btn btn-outline w-100" type="button" data-forgot-cancel>
+            Không phải tôi
+        </button>
+    </div>
+
+    <div class="mb-3 d-none" data-forgot-step="3">
+        <label class="form-label" for="resetCode">Mã đặt lại mật khẩu</label>
+        <input
+            type="text"
+            class="form-control forgot-code"
+            id="resetCode"
+            name="code"
+            inputmode="numeric"
+            pattern="\d{6}"
+            maxlength="6"
+            placeholder="000000"
+            autocomplete="one-time-code"
+            spellcheck="false">
+        <div class="form-text">Nhập mã 6 chữ số trong email để tiếp tục.</div>
+    </div>
+
+    <div class="d-none" data-forgot-step="3">
+        <button class="btn btn-solid w-100 mb-2" type="button" data-forgot-verify>
+            Xác nhận mã
         </button>
         <button class="btn btn-outline w-100" type="button" data-forgot-cancel>
             Không phải tôi

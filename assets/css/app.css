@@ -4400,6 +4400,16 @@
         word-break: break-word;
     }
 
+    /* Ô nhập mã 6 số */
+    .forgot-code {
+        font-family: var(--kb-font-body);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 10px;
+        text-align: center;
+        padding: var(--kb-space-sm) var(--kb-space-sm) var(--kb-space-sm) calc(var(--kb-space-sm) + 10px);
+    }
+
     /* ---------------- Trang lỗi ---------------- */
     .error-page {
         display: flex;
