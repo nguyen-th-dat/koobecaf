@@ -225,19 +225,19 @@ $isNetworkTab = in_array($tab, array_keys($network), true);
 
     <!-- ================= 2. Dải số liệu gọn ================= -->
     <section class="profile-metrics-strip mp-metrics" aria-label="Thống kê hoạt động">
-        <div class="profile-metric mp-metric">
+        <div class="mp-metric">
             <strong><?= (int) ($stats['posts'] ?? 0) ?></strong>
             <span>Bài viết</span>
         </div>
-        <div class="profile-metric mp-metric">
+        <div class="mp-metric">
             <strong><?= (int) ($stats['photos'] ?? 0) ?></strong>
             <span>Ảnh</span>
         </div>
-        <div class="profile-metric mp-metric">
+        <div class="mp-metric">
             <strong><?= (int) ($stats['comments'] ?? 0) ?></strong>
             <span>Bình luận</span>
         </div>
-        <div class="profile-metric mp-metric">
+        <div class="mp-metric">
             <strong><?= (int) ($stats['likes'] ?? 0) ?></strong>
             <span>Lượt đã thích</span>
         </div>
