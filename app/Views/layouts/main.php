@@ -70,8 +70,8 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
 <?php endif; ?>
 
 <div class="app-shell">
-    <div class="app-grid<?= is_auth() ? '' : ' is-guest' ?><?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?>">
-        <?php if (is_auth()): ?>
+    <div class="app-grid<?= is_auth() ? '' : ' is-guest' ?><?= (!empty($wide) && is_auth()) ? ' is-wide' : '' ?><?= (!empty($solo)) ? ' is-solo' : '' ?>">
+        <?php if (is_auth() && empty($solo)): ?>
             <aside class="app-rail app-rail-left">
                 <?php require __DIR__ . '/partials/sidebar-left.php'; ?>
             </aside>
@@ -81,7 +81,7 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
             <?= $content ?>
         </main>
 
-        <?php if (is_auth() && empty($wide)): ?>
+        <?php if (is_auth() && empty($wide) && empty($solo)): ?>
             <aside class="app-rail app-rail-right">
                 <?php if (!empty($rightRail)): ?>
                     <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
@@ -93,7 +93,7 @@ $ws['enabled'] = !empty($ws['enabled']) && !empty($ws['token']);
     </div>
 </div>
 
-<?php if (!empty($rightRail)): ?>
+<?php if (!empty($rightRail) && empty($solo)): ?>
     <div class="app-rail-inline<?= is_auth() ? ' is-duplicate' : '' ?>">
         <?php require __DIR__ . '/partials/' . $rightRail . '.php'; ?>
     </div>

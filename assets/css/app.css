@@ -1811,6 +1811,18 @@
         justify-content: center;
     }
 
+    /* Trang chạy độc lập (ví dụ trang cá nhân): bỏ hai cột phụ, nội dung
+       được canh giữa với bề rộng đọc thoải mái. */
+    .app-grid.is-solo {
+        grid-template-columns: minmax(0, 1fr);
+        justify-content: center;
+    }
+
+    .app-grid.is-solo .app-main {
+        width: 100%;
+        max-width: 960px;
+    }
+
     /* ---------------- Trang chủ khách: thẻ chào mừng ---------------- */
     .welcome-card {
         overflow: hidden;
@@ -6097,6 +6109,11 @@
             justify-content: center;
         }
 
+        .app-grid.is-solo {
+            grid-template-columns: minmax(0, 1fr);
+            justify-content: center;
+        }
+
         .app-rail-left {
             display: block;
             position: sticky;
@@ -6142,6 +6159,11 @@
 
         .app-grid.is-guest {
             grid-template-columns: minmax(0, 680px);
+            justify-content: center;
+        }
+
+        .app-grid.is-solo {
+            grid-template-columns: minmax(0, 1fr);
             justify-content: center;
         }
 

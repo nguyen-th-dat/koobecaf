@@ -1,6 +1,6 @@
 <?php
 /**
- * Trang cá nhân — phong cách Koobecaf Modern.
+ * Trang cá nhân — Koobecaf Modern.
  *
  * @var array $user
  * @var array $stats
@@ -36,16 +36,23 @@ $avatarUrl = avatar_url($user['avatar_path'] ?? null);
 // Sắc nhấn sinh từ username: mỗi người dùng có một dải màu riêng biệt
 $hue = abs(crc32($user['username'])) % 360;
 
-// Danh sách các tab hiển thị
+// Tab điều hướng nội dung — số đếm đã nằm ở dải số liệu nên không lặp lại ở đây.
 $tabs = [
-    'posts'     => ['label' => 'Bài viết',        'icon' => 'bi-journal-text',  'count' => $stats['posts'] ?? 0],
-    // 'photos'    => ['label' => 'Ảnh',             'icon' => 'bi-images',        'count' => $stats['photos'] ?? 0],
-    // 'friends'   => ['label' => 'Bạn bè',          'icon' => 'bi-people',        'count' => $stats['friends'] ?? 0],
-    // 'followers' => ['label' => 'Người theo dõi',  'icon' => 'bi-person-heart',  'count' => $stats['followers'] ?? 0],
-    // 'following' => ['label' => 'Đang theo dõi',   'icon' => 'bi-person-check',  'count' => $stats['following'] ?? 0],
-    'comments'  => ['label' => 'Bình luận',       'icon' => 'bi-chat-dots',     'count' => $stats['comments'] ?? 0],
-    'shared'    => ['label' => 'Đã chia sẻ',      'icon' => 'bi-share',         'count' => $stats['shares'] ?? 0],
+    'posts'    => ['label' => 'Bài viết',   'icon' => 'bi-journal-text'],
+    'photos'   => ['label' => 'Ảnh',        'icon' => 'bi-images'],
+    'comments' => ['label' => 'Bình luận',  'icon' => 'bi-chat-dots'],
+    'shared'   => ['label' => 'Đã chia sẻ', 'icon' => 'bi-share'],
 ];
+
+// Bộ lọc nhóm người dùng (bạn bè / người theo dõi / đang theo dõi) gộp chung
+// một tab "Kết nối" để thanh điều hướng không bị dài quá mức.
+$network = [
+    'friends'   => ['label' => 'Bạn bè',          'icon' => 'bi-people',       'count' => (int) ($stats['friends'] ?? 0),   'empty' => 'Chưa có bạn bè nào.'],
+    'followers' => ['label' => 'Người theo dõi',   'icon' => 'bi-person-heart', 'count' => (int) ($stats['followers'] ?? 0), 'empty' => 'Chưa có người theo dõi nào.'],
+    'following' => ['label' => 'Đang theo dõi',   'icon' => 'bi-person-check', 'count' => (int) ($stats['following'] ?? 0), 'empty' => 'Chưa theo dõi người dùng nào.'],
+];
+
+$isNetworkTab = in_array($tab, array_keys($network), true);
 ?>
 
 <div class="mp profile-page" style="--profile-hue: <?= (int) $hue ?>; --mp-hue: <?= (int) $hue ?>;">
@@ -98,10 +105,6 @@ $tabs = [
 
                         <div class="profile-handle-row">
                             <span class="profile-handle">@<?= e($user['username']) ?></span>
-                            <button type="button" class="profile-copy-link-btn" data-profile-copy="<?= e($profileBase) ?>" title="Sao chép liên kết trang cá nhân">
-                                <i class="bi bi-link-45deg"></i>
-                                <span>Sao chép liên kết</span>
-                            </button>
                         </div>
                     </div>
 
@@ -116,23 +119,16 @@ $tabs = [
                                 <i class="bi bi-plus-circle"></i>
                                 <span>Tạo bài viết</span>
                             </a>
-                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Chia sẻ hồ sơ" aria-label="Chia sẻ hồ sơ">
-                                <i class="bi bi-share"></i>
+                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Sao chép liên kết hồ sơ" aria-label="Sao chép liên kết hồ sơ">
+                                <i class="bi bi-link-45deg"></i>
                             </button>
                         <?php elseif (!is_auth()): ?>
                             <a class="profile-btn profile-btn-primary" href="<?= url('/login') ?>">
                                 <i class="bi bi-person-plus-fill"></i>
-                                <span>Kết bạn</span>
+                                <span>Đăng nhập để kết nối</span>
                             </a>
-                            <button class="profile-btn profile-btn-secondary" type="button" data-action="follow" data-user-id="<?= (int) $user['id'] ?>">
-                                <i class="bi bi-person-plus"></i>
-                                <span>Theo dõi</span>
-                            </button>
-                            <a class="profile-btn profile-btn-icon" href="<?= url('/login') ?>" title="Nhắn tin" aria-label="Nhắn tin">
-                                <i class="bi bi-chat-dots-fill"></i>
-                            </a>
-                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Chia sẻ hồ sơ" aria-label="Chia sẻ hồ sơ">
-                                <i class="bi bi-share"></i>
+                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Sao chép liên kết hồ sơ" aria-label="Sao chép liên kết hồ sơ">
+                                <i class="bi bi-link-45deg"></i>
                             </button>
                         <?php else: ?>
                             <!-- Nút trạng thái Bạn bè -->
@@ -193,9 +189,9 @@ $tabs = [
                                 <span>Nhắn tin</span>
                             </a>
 
-                            <!-- Nút chia sẻ -->
-                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Chia sẻ hồ sơ" aria-label="Chia sẻ hồ sơ">
-                                <i class="bi bi-share"></i>
+                            <!-- Nút sao chép liên kết hồ sơ -->
+                            <button type="button" class="profile-btn profile-btn-icon" data-profile-copy="<?= e($profileBase) ?>" title="Sao chép liên kết hồ sơ" aria-label="Sao chép liên kết hồ sơ">
+                                <i class="bi bi-link-45deg"></i>
                             </button>
                         <?php endif; ?>
                     </div>
@@ -216,47 +212,35 @@ $tabs = [
                     </div>
                 <?php endif; ?>
 
-                <!-- Thông tin meta: Ngày tham gia -->
+                <!-- Thông tin meta -->
                 <div class="profile-facts-row">
                     <span class="profile-fact-item">
                         <i class="bi bi-calendar3"></i>
                         Tham gia <?= e(format_date($user['created_at'], 'd/m/Y')) ?>
-                    </span>
-                    <span class="profile-fact-item">
-                        <i class="bi bi-heart-fill text-danger"></i>
-                        Nhận được <?= number_format((int) ($stats['likes'] ?? 0)) ?> lượt thích
                     </span>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- ================= 2. Dải số liệu nổi bật ================= -->
+    <!-- ================= 2. Dải số liệu gọn ================= -->
     <section class="profile-metrics-strip mp-metrics" aria-label="Thống kê hoạt động">
-        <a class="profile-metric-tile mp-metric<?= $tab === 'posts' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=posts">
+        <div class="profile-metric mp-metric">
             <strong><?= (int) ($stats['posts'] ?? 0) ?></strong>
             <span>Bài viết</span>
-        </a>
-        <a class="profile-metric-tile mp-metric<?= $tab === 'friends' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=friends">
-            <strong><?= (int) ($stats['friends'] ?? 0) ?></strong>
-            <span>Bạn bè</span>
-        </a>
-        <a class="profile-metric-tile mp-metric<?= $tab === 'followers' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=followers">
-            <strong><?= (int) ($stats['followers'] ?? 0) ?></strong>
-            <span>Người theo dõi</span>
-        </a>
-        <a class="profile-metric-tile mp-metric<?= $tab === 'following' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=following">
-            <strong><?= (int) ($stats['following'] ?? 0) ?></strong>
-            <span>Đang theo dõi</span>
-        </a>
-        <a class="profile-metric-tile mp-metric<?= $tab === 'photos' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=photos">
+        </div>
+        <div class="profile-metric mp-metric">
             <strong><?= (int) ($stats['photos'] ?? 0) ?></strong>
             <span>Ảnh</span>
-        </a>
-        <a class="profile-metric-tile mp-metric<?= $tab === 'shared' ? ' is-active' : '' ?>" href="<?= e($profileBase) ?>?tab=shared">
-            <strong><?= (int) ($stats['shares'] ?? 0) ?></strong>
-            <span>Chia sẻ</span>
-        </a>
+        </div>
+        <div class="profile-metric mp-metric">
+            <strong><?= (int) ($stats['comments'] ?? 0) ?></strong>
+            <span>Bình luận</span>
+        </div>
+        <div class="profile-metric mp-metric">
+            <strong><?= (int) ($stats['likes'] ?? 0) ?></strong>
+            <span>Lượt đã thích</span>
+        </div>
     </section>
 
     <!-- ================= 3. Thanh tab điều hướng ================= -->
@@ -268,9 +252,15 @@ $tabs = [
                    aria-current="<?= $tab === $key ? 'page' : 'false' ?>">
                     <i class="bi <?= e($meta['icon']) ?>"></i>
                     <span><?= e($meta['label']) ?></span>
-                    <em class="mp-tab-count"><?= (int) ($meta['count'] ?? 0) ?></em>
                 </a>
             <?php endforeach; ?>
+
+            <a class="mp-tab profile-tab-item nav-link<?= $isNetworkTab ? ' active is-active' : '' ?>"
+               href="<?= e($profileBase) ?>?tab=friends"
+               aria-current="<?= $isNetworkTab ? 'page' : 'false' ?>">
+                <i class="bi bi-people"></i>
+                <span>Kết nối</span>
+            </a>
         </nav>
     </div>
 
@@ -279,20 +269,6 @@ $tabs = [
 
         <!-- TAB: BÀI VIẾT -->
         <?php if ($tab === 'posts'): ?>
-            <?php if ($isSelf): ?>
-                <!-- Hộp tạo bài viết nhanh khi xem hồ sơ chính mình -->
-                <div class="profile-quick-composer">
-                    <img src="<?= e($avatarUrl) ?>" alt="" class="quick-composer-avatar">
-                    <a href="<?= url('/posts/create') ?>" class="quick-composer-input">
-                        <span><?= e($user['display_name']) ?>, bạn đang nghĩ gì thế?</span>
-                    </a>
-                    <a href="<?= url('/posts/create') ?>" class="quick-composer-btn" title="Đăng ảnh">
-                        <i class="bi bi-images text-success"></i>
-                        <span>Ảnh/Video</span>
-                    </a>
-                </div>
-            <?php endif; ?>
-
             <?php if ($posts === []): ?>
                 <div class="profile-empty-state mp-empty">
                     <div class="profile-empty-ambient" aria-hidden="true"></div>
@@ -380,10 +356,6 @@ $tabs = [
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="profile-photos-header">
-                    <h2>Bộ sưu tập ảnh</h2>
-                    <span class="profile-count-pill"><?= count($photos) ?> ảnh</span>
-                </div>
                 <div class="profile-photos-grid mp-grid-photos">
                     <?php foreach ($photos as $photo): ?>
                         <a class="profile-photo-card mp-photo" href="<?= url('/p/' . (int) $photo['post_id']) ?>" title="<?= e(excerpt($photo['content'] ?: 'Xem bài viết', 60)) ?>">
@@ -409,10 +381,6 @@ $tabs = [
                     <p><?= $isSelf ? 'Những cuộc trao đổi, bình luận của bạn sẽ được hiển thị tại đây.' : e($user['display_name']) . ' chưa để lại bình luận nào gần đây.' ?></p>
                 </div>
             <?php else: ?>
-                <div class="profile-activity-header">
-                    <h2>Bình luận gần đây</h2>
-                    <span class="profile-count-pill"><?= count($comments) ?></span>
-                </div>
                 <div class="profile-activity-list mp-activity">
                     <?php foreach ($comments as $comment): ?>
                         <article class="profile-activity-card mp-activity-item">
@@ -450,10 +418,6 @@ $tabs = [
                     <p><?= $isSelf ? 'Bạn có thể chia sẻ những bài viết thú vị về trang cá nhân của mình.' : e($user['display_name']) . ' chưa chia sẻ bài viết nào.' ?></p>
                 </div>
             <?php else: ?>
-                <div class="profile-activity-header">
-                    <h2>Bài viết đã chia sẻ</h2>
-                    <span class="profile-count-pill"><?= count($shared) ?></span>
-                </div>
                 <div class="profile-activity-list mp-activity">
                     <?php foreach ($shared as $share): ?>
                         <article class="profile-activity-card mp-activity-item">
@@ -487,26 +451,27 @@ $tabs = [
             <?php endif; ?>
 
         <!-- TAB: BẠN BÈ / NGƯỜI THEO DÕI / ĐANG THEO DÕI -->
-        <?php elseif ($tab === 'friends' || $tab === 'followers' || $tab === 'following'): ?>
+        <?php elseif ($isNetworkTab): ?>
             <?php
             $people = match ($tab) {
                 'friends'   => $friends,
                 'followers' => $followers,
                 default     => $following,
             };
-            $peopleMeta = [
-                'friends'   => ['title' => 'Danh sách bạn bè',     'icon' => 'bi-people',        'empty' => 'Chưa có bạn bè nào.'],
-                'followers' => ['title' => 'Người đang theo dõi',  'icon' => 'bi-person-heart',  'empty' => 'Chưa có người theo dõi nào.'],
-                'following' => ['title' => 'Đang theo dõi người khác', 'icon' => 'bi-person-check', 'empty' => 'Chưa theo dõi người dùng nào.'],
-            ][$tab];
+            $peopleMeta = $network[$tab];
             ?>
             <div class="profile-people-section mp-people">
-                <div class="profile-people-header mp-people-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi <?= e($peopleMeta['icon']) ?> fs-5"></i>
-                        <h2 class="profile-people-title mp-people-title"><?= e($peopleMeta['title']) ?></h2>
-                    </div>
-                    <span class="profile-count-pill mp-people-count"><?= count($people) ?></span>
+                <div class="profile-network-switch" role="tablist" aria-label="Nhóm kết nối">
+                    <?php foreach ($network as $key => $meta): ?>
+                        <a class="profile-network-chip<?= $tab === $key ? ' is-active' : '' ?>"
+                           href="<?= e($profileBase) ?>?tab=<?= e($key) ?>"
+                           role="tab"
+                           aria-selected="<?= $tab === $key ? 'true' : 'false' ?>">
+                            <i class="bi <?= e($meta['icon']) ?>"></i>
+                            <span><?= e($meta['label']) ?></span>
+                            <em><?= (int) $meta['count'] ?></em>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
 
                 <?php if ($people === []): ?>
@@ -531,17 +496,12 @@ $tabs = [
                                     </div>
                                 </a>
 
-                                <div class="user-card-action-bar">
-                                    <a href="<?= url('/u/' . $person['username']) ?>" class="user-card-btn user-card-btn-profile">
-                                        <i class="bi bi-person"></i>
-                                        <span>Xem hồ sơ</span>
+                                <?php $canChat = is_auth() && (int) $person['id'] !== (int) $viewerId; ?>
+                                <?php if ($canChat): ?>
+                                    <a href="<?= url('/chat/start/' . (int) $person['id']) ?>" class="user-card-chat" title="Nhắn tin với <?= e($person['display_name']) ?>" aria-label="Nhắn tin với <?= e($person['display_name']) ?>">
+                                        <i class="bi bi-chat-dots-fill"></i>
                                     </a>
-                                    <?php if (is_auth() && (int) $person['id'] !== (int) $viewerId): ?>
-                                        <a href="<?= url('/chat/start/' . (int) $person['id']) ?>" class="user-card-btn user-card-btn-chat" title="Nhắn tin với <?= e($person['display_name']) ?>" aria-label="Nhắn tin">
-                                            <i class="bi bi-chat-dots-fill"></i>
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>

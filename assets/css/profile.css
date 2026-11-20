@@ -518,45 +518,40 @@
 }
 
 /* =============================================================
-   2. Dải số liệu nổi bật (Metrics Showcase)
+   2. Dải số liệu gọn (Metrics Strip)
+   ------------------------------------------------------------
+   Một hàng số liệu dạng văn bản, không phải thẻ bấm được — giảm
+   nhiễu thị giác và tránh trùng lặp với số đếm trên tab.
    ============================================================= */
 .profile-metrics-strip,
 .mp-metrics {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    padding: 8px 12px;
-    margin: 0 0 20px;
-    border-radius: var(--mp-radius-xl);
-    background-color: var(--mp-surface-soft);
-    border: 1px solid var(--mp-hairline-soft);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 28px;
+    padding: 14px 4px;
+    margin: 0 0 8px;
+    border-bottom: 1px solid var(--mp-hairline-soft);
 }
 
 .profile-metric-tile,
 .mp-metric {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    padding: 12px 6px;
-    border-radius: var(--mp-radius-lg);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
     color: var(--mp-steel);
     text-decoration: none;
-    transition: all 180ms ease;
 }
 
 .profile-metric-tile:hover,
 .mp-metric:hover {
-    background-color: var(--mp-canvas);
     color: var(--mp-ink-deep);
-    box-shadow: var(--mp-shadow-sm);
     text-decoration: none;
 }
 
 .profile-metric-num,
 .mp-metric strong {
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1.2;
     color: var(--mp-ink-deep);
@@ -565,26 +560,8 @@
 
 .profile-metric-lbl,
 .mp-metric span {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
-}
-
-.profile-metric-tile.is-active,
-.mp-metric.is-active {
-    background-color: var(--mp-canvas);
-    border: 1px solid var(--mp-accent-soft);
-    box-shadow: var(--mp-shadow-sm);
-}
-
-.profile-metric-tile.is-active .profile-metric-num,
-.mp-metric.is-active strong {
-    color: var(--mp-accent);
-}
-
-.profile-metric-tile.is-active .profile-metric-lbl,
-.mp-metric.is-active span {
-    color: var(--mp-accent);
-    font-weight: 600;
 }
 
 /* =============================================================
@@ -603,10 +580,11 @@
 .mp-tabs {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     overflow-x: auto;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
     padding: 4px 0;
 }
 
@@ -620,18 +598,20 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    border-radius: var(--mp-radius-full);
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: var(--mp-radius-md);
     font-family: var(--mp-font-display);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--mp-steel);
     text-decoration: none;
     white-space: nowrap;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
     border: 0;
     background: transparent;
-    transition: all 180ms ease;
+    transition: color 180ms ease, background-color 180ms ease;
 }
 
 .profile-tab-item:hover,
@@ -653,7 +633,7 @@
     position: absolute;
     left: 12px;
     right: 12px;
-    bottom: -5px;
+    bottom: -4px;
     height: 3px;
     border-radius: var(--mp-radius-full);
     background-color: var(--mp-accent);
@@ -664,9 +644,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 2px 7px;
+    min-width: 22px;
+    padding: 1px 6px;
     border-radius: var(--mp-radius-full);
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 600;
     font-style: normal;
     background-color: var(--mp-surface-soft);
@@ -681,6 +662,50 @@
 }
 
 /* =============================================================
+   3b. Bộ chuyển nhóm kết nối (Bạn bè / Người theo dõi / Đang theo dõi)
+   ============================================================= */
+.profile-network-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.profile-network-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--mp-radius-full);
+    background-color: var(--mp-surface-soft);
+    border: 1px solid transparent;
+    color: var(--mp-steel);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 180ms ease;
+}
+
+.profile-network-chip:hover {
+    color: var(--mp-ink-deep);
+    background-color: var(--mp-canvas);
+    border-color: var(--mp-hairline);
+    text-decoration: none;
+}
+
+.profile-network-chip.is-active {
+    background-color: var(--mp-accent-soft);
+    border-color: var(--mp-accent);
+    color: var(--mp-accent);
+}
+
+.profile-network-chip em {
+    font-style: normal;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =============================================================
    4. Nội dung theo từng Tab
    ============================================================= */
 .profile-main-content,
@@ -688,68 +713,10 @@
     min-height: 320px;
 }
 
-/* Hộp tạo bài viết nhanh (dành cho chính mình) */
-.profile-quick-composer {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px;
-    margin-bottom: 24px;
-    border-radius: var(--mp-radius-xl);
-    background-color: var(--mp-surface-soft);
-    border: 1px solid var(--mp-hairline-soft);
-}
-
-.quick-composer-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex: 0 0 auto;
-}
-
-.quick-composer-input {
-    flex: 1 1 auto;
-    padding: 12px 18px;
-    border-radius: var(--mp-radius-full);
-    background-color: var(--mp-canvas);
-    border: 1px solid var(--mp-hairline);
-    color: var(--mp-steel);
-    font-size: 14.5px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 180ms ease;
-}
-
-.quick-composer-input:hover {
-    border-color: var(--mp-steel);
-    color: var(--mp-ink);
-    text-decoration: none;
-}
-
-.quick-composer-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: var(--mp-radius-full);
-    color: var(--mp-ink);
-    font-size: 13.5px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 180ms ease;
-    flex: 0 0 auto;
-}
-
-.quick-composer-btn:hover {
-    background-color: var(--mp-canvas);
-    text-decoration: none;
-}
-
 /* Danh sách bài viết */
 .profile-posts-list,
 .mp-post-list {
-    max-width: 720px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
@@ -877,40 +844,7 @@
     color: var(--mp-steel);
 }
 
-.profile-page-indicator strong {
-    color: var(--mp-ink-deep);
-}
-
 /* TAB: ẢNH */
-.profile-photos-header,
-.profile-activity-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-}
-
-.profile-photos-header h2,
-.profile-activity-header h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--mp-ink-deep);
-}
-
-.profile-count-pill,
-.mp-people-count {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 10px;
-    border-radius: var(--mp-radius-full);
-    background-color: var(--mp-surface-soft);
-    color: var(--mp-steel);
-    font-size: 12.5px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
 .profile-photos-grid,
 .mp-grid-photos {
     display: grid;
@@ -987,33 +921,18 @@
 /* TAB: BẠN BÈ / NGƯỜI THEO DÕI / ĐANG THEO DÕI */
 .profile-people-section,
 .mp-people {
-    max-width: 900px;
+    max-width: 100%;
     margin: 0 auto;
-}
-
-.profile-people-header,
-.mp-people-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
-
-.profile-people-title,
-.mp-people-title {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--mp-ink-deep);
 }
 
 .profile-users-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
 }
 
 .profile-user-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -1090,64 +1009,34 @@
     overflow: hidden;
 }
 
-.user-card-action-bar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--mp-hairline-soft);
-}
-
-.user-card-btn {
+/* Nút nhắn tin nổi trên thẻ người dùng — không cần thanh hành động riêng */
+.user-card-chat {
+    position: absolute;
+    top: 12px;
+    right: 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: var(--mp-radius-full);
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 160ms ease;
-}
-
-.user-card-btn:hover {
-    text-decoration: none;
-}
-
-.user-card-btn-profile {
-    background-color: var(--mp-surface-soft);
-    border: 1px solid var(--mp-hairline);
-    color: var(--mp-ink-deep);
-}
-
-.user-card-btn-profile:hover {
-    background-color: var(--mp-hairline);
-    color: var(--mp-ink-deep);
-}
-
-.user-card-btn-chat {
-    width: 34px;
-    height: 34px;
-    padding: 0;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background-color: var(--mp-accent-soft);
-    color: var(--mp-accent);
-    border: 0;
-    font-size: 15px;
+    background-color: var(--mp-surface-soft);
+    color: var(--mp-steel);
+    font-size: 14px;
+    text-decoration: none;
+    transition: background-color 180ms ease, color 180ms ease;
 }
 
-.user-card-btn-chat:hover {
+.user-card-chat:hover {
     background-color: var(--mp-accent);
     color: #ffffff;
+    text-decoration: none;
 }
 
 /* TAB: HOẠT ĐỘNG (BÌNH LUẬN & ĐÃ CHIA SẺ) */
 .profile-activity-list,
 .mp-activity {
-    max-width: 720px;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -1397,12 +1286,12 @@
 
     .profile-metrics-strip,
     .mp-metrics {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        gap: 6px 18px;
+        padding: 12px 2px;
     }
 
     .profile-users-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     }
 }
 
@@ -1472,23 +1361,18 @@
 
     .profile-metrics-strip,
     .mp-metrics {
-        grid-template-columns: repeat(3, 1fr);
-        padding: 6px;
-    }
-
-    .profile-metric-tile,
-    .mp-metric {
-        padding: 8px 4px;
+        gap: 5px 14px;
+        padding: 10px 2px;
     }
 
     .profile-metric-num,
     .mp-metric strong {
-        font-size: 17px;
+        font-size: 15.5px;
     }
 
     .profile-metric-lbl,
     .mp-metric span {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .profile-photos-grid,
@@ -1499,11 +1383,6 @@
 }
 
 @media (max-width: 479.98px) {
-    .profile-metrics-strip,
-    .mp-metrics {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
     .profile-display-name,
     .mp-name {
         font-size: 20px;
