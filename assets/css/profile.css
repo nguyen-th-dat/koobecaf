@@ -1334,6 +1334,9 @@
     .mp-id {
         padding-top: 0;
         width: 100%;
+        /* Bar đổi sang cột dọc ở breakpoint này, nên flex-basis của khối này
+           trở thành chiều cao. Giữ về 0 để khối co theo nội dung. */
+        flex: 0 0 auto;
     }
 
     .profile-head-row,
