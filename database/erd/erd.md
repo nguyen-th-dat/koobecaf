@@ -141,6 +141,7 @@ erDiagram
         bigint id PK
         bigint user_id FK
         char token_hash UK
+        char code_hash
         datetime expires_at
         datetime used_at
         datetime created_at
@@ -162,7 +163,7 @@ erDiagram
 | `conversations` – `conversation_members` | 1-n | UNIQUE `(conversation_id, user_id)` |
 | `conversations` – `messages` | 1-n | Chỉ thành viên mới đọc được tin nhắn |
 | `users` – `notifications` | 1-n | UNIQUE `(user_id, actor_id, type, entity_id)` chống thông báo lặp |
-| `users` – `password_resets` | 1-n | UNIQUE `token_hash`; token hết hạn sau 60 phút, đánh dấu `used_at` sau khi dùng |
+| `users` – `password_resets` | 1-n | UNIQUE `token_hash`; `code_hash` lưu mã 6 số để đặt lại mật khẩu; token hết hạn sau 60 phút, đánh dấu `used_at` sau khi dùng |
 
 ## Quyền riêng tư bài viết
 
