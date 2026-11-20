@@ -1,37 +1,36 @@
-# Dependencies
+# Thư viện phụ thuộc
 /vendor/
 /node_modules/
 
-# Environment (chứa thông tin kết nối database)
+# Biến môi trường và thông tin nhạy cảm
 .env
+!.env.example
 
-# IDE and editor
+# IDE và editor
 /.vscode/
+/.idea/
 
-# Project directories
+# Công cụ AI
+/.cursor/
+/.claude/
+
+# Công cụ phát triển và thư mục tạm
 /tools/
-/test/
 /temp/
 /tmp/
+/.tmp/
 
-# Log ứng dụng
+# Nhật ký ứng dụng
 /storage/logs/*.log
 
-# File tạm sinh ra lúc chạy (không commit)
-/storage/logs/_*.php
-
-# File người dùng tải lên (giữ lại .htaccess và cấu trúc thư mục)
+# Tệp người dùng tải lên
 /uploads/*
 !/uploads/.htaccess
 !/uploads/avatars/
 !/uploads/covers/
 !/uploads/posts/
+
 /uploads/avatars/*
 !/uploads/avatars/default-avatar.png
 /uploads/covers/*
 /uploads/posts/*
-
-
-/.cursor
-
-/.tmp
