@@ -119,6 +119,7 @@ function makeContext(form, storage) {
         body: { dataset: {} },
         querySelectorAll: () => (form ? [form] : []),
         querySelector: () => null,
+        getElementById: () => null,
         createElement: () => ({
             className: '',
             dataset: {},
