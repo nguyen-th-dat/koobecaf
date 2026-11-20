@@ -443,6 +443,97 @@ document.addEventListener('click', (event) => {
 });
 
 /* =============================================================
+   Quên mật khẩu — kiểm tra tài khoản rồi mới gửi email
+   ============================================================= */
+const forgotForm = document.querySelector('[data-forgot-form]');
+if (forgotForm) {
+    const submitBtn = forgotForm.querySelector('[data-forgot-submit]');
+    const sendBtn = forgotForm.querySelector('[data-forgot-send]');
+    const cancelBtn = forgotForm.querySelector('[data-forgot-cancel]');
+    const steps = forgotForm.querySelectorAll('[data-forgot-step]');
+
+    /** Bật/tắt một bước của form. */
+    function showStep(step) {
+        steps.forEach((el) => {
+            el.classList.toggle('d-none', el.dataset.forgotStep !== String(step));
+        });
+        if (submitBtn) submitBtn.classList.toggle('d-none', step !== 1);
+    }
+
+    /** Khoá nút trong lúc chờ server trả lời. */
+    function setBusy(button, busy, busyLabel) {
+        if (!button) return;
+        if (busy) {
+            button.dataset.forgotLabel = button.innerHTML;
+            button.innerHTML = `<span class="share-spinner"></span>${busyLabel}`;
+            button.disabled = true;
+        } else {
+            button.innerHTML = button.dataset.forgotLabel ?? button.innerHTML;
+            button.disabled = false;
+        }
+    }
+
+    forgotForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setBusy(submitBtn, true, 'Đang kiểm tra...');
+
+        const payload = await request(apiUrl('/forgot-password/check'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ email: forgotForm.querySelector('[name="email"]')?.value ?? '' }),
+        });
+
+        setBusy(submitBtn, false);
+
+        if (!payload.success) {
+            showToast('error', payload.message ?? 'Không tìm thấy tài khoản.');
+            return;
+        }
+
+        const name = forgotForm.querySelector('[data-forgot-name]');
+        const email = forgotForm.querySelector('[data-forgot-email]');
+        if (name) name.textContent = payload.data.name ?? '';
+        if (email) email.textContent = payload.data.email ?? '';
+
+        showStep(2);
+        showToast('success', 'Đã tìm thấy tài khoản.');
+    });
+
+    sendBtn?.addEventListener('click', async () => {
+        setBusy(sendBtn, true, 'Đang gửi...');
+
+        const payload = await request(apiUrl('/forgot-password/send'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({}),
+        });
+
+        setBusy(sendBtn, false);
+
+        if (!payload.success) {
+            showToast('error', payload.message ?? 'Không gửi được email.');
+            return;
+        }
+
+        showToast('success', 'Đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.');
+        showStep(1);
+        forgotForm.querySelector('[name="email"]').value = '';
+        clearFormDraft(forgotForm);
+    });
+
+    cancelBtn?.addEventListener('click', async () => {
+        await request(apiUrl('/forgot-password/cancel'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({}),
+        });
+
+        showStep(1);
+        showToast('info', 'Đã huỷ yêu cầu đặt lại mật khẩu.');
+    });
+}
+
+/* =============================================================
    Xem trước ảnh trước khi đăng
    ============================================================= */
 const imageInput = document.getElementById('postImages');

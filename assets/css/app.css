@@ -4370,6 +4370,36 @@
         color: var(--kb-muted);
     }
 
+    /* Bước xác nhận tài khoản trong luồng quên mật khẩu */
+    .forgot-confirm {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--kb-space-sm);
+        padding: var(--kb-space-sm) var(--kb-space-md);
+        margin-bottom: var(--kb-space-sm);
+        background-color: var(--kb-surface-soft);
+        border-radius: var(--kb-radius-lg);
+    }
+
+    .forgot-confirm i {
+        font-size: 1.15rem;
+        color: var(--kb-primary);
+        flex: 0 0 auto;
+    }
+
+    .forgot-confirm strong {
+        display: block;
+        font-size: 14px;
+        color: var(--kb-ink);
+        margin-bottom: 2px;
+    }
+
+    .forgot-confirm p {
+        font-size: 13px;
+        color: var(--kb-muted);
+        word-break: break-word;
+    }
+
     /* ---------------- Trang lỗi ---------------- */
     .error-page {
         display: flex;

@@ -23,6 +23,20 @@ final class User
         return Database::fetchOne('SELECT * FROM users WHERE username = ? LIMIT 1', [$username]);
     }
 
+    /**
+     * Tìm user theo email hoặc username.
+     *
+     * Dùng cho luồng quên mật khẩu — người dùng có thể nhập tài khoản
+     * thay vì email đã đăng ký.
+     */
+    public static function findByIdentifier(string $identifier): ?array
+    {
+        $identifier = trim($identifier);
+
+        return self::findByEmail($identifier)
+            ?? self::findByUsername($identifier);
+    }
+
     public static function emailExists(string $email, ?int $exceptId = null): bool
     {
         $sql = 'SELECT COUNT(*) FROM users WHERE email = ?';
