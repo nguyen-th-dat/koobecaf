@@ -76,6 +76,11 @@ $isSelf = $viewerId !== null && $viewerId === (int) $post['user_id'];
                 </button>
                 <ul class="menu">
                     <li><a class="menu-item" href="<?= url('/posts/' . $postId . '/edit') ?>"><i class="bi bi-pencil me-2"></i>Chỉnh sửa</a></li>
+                    <li>
+                        <button type="button" class="menu-item" data-action="copy-link" data-url="<?= e($data['permalink']) ?>">
+                            <i class="bi bi-link-45deg me-2"></i>Sao chép link
+                        </button>
+                    </li>
                     <li><hr class="menu-divider"></li>
                     <li>
                         <form action="<?= url('/posts/' . $postId . '/delete') ?>" method="post" data-confirm="Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác." data-confirm-title="Xóa bài viết" data-confirm-accept="Xóa bài viết">

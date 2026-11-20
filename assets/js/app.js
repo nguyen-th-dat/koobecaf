@@ -46,8 +46,55 @@ async function request(url, options = {}) {
 
 /* =============================================================
    Menu thả xuống
+
+   Menu được gỡ khỏi vị trí gốc và gắn vào <body> khi mở. Lý do:
+   nhiều khối cha có `transform` (ví dụ thẻ bài viết nổi lên khi rê chuột),
+   mà `transform` biến khối cha thành gốc toạ độ của phần tử
+   `position: fixed` — menu sẽ định vị theo khối cha thay vì theo khung
+   nhìn, rơi ra ngoài màn hình và không bấm được. Ở <body> không có
+   `transform` nên `position: fixed` luôn bám đúng khung nhìn.
    ============================================================= */
 const openMenus = [];
+
+/** Gỡ menu ra khỏi vị trí gốc, nhớ lại để trả về khi đóng. */
+function detachMenu(menu) {
+    if (menu.parentElement === document.body) {
+        return;
+    }
+    menu._kbHome = { parent: menu.parentElement, next: menu.nextElementSibling };
+    document.body.appendChild(menu);
+}
+
+/** Trả menu về vị trí gốc để DOM giữ nguyên cấu trúc khi không mở. */
+function restoreMenu(menu) {
+    const home = menu._kbHome;
+    if (!home) {
+        return;
+    }
+    menu._kbHome = null;
+    // Khối cha đã bị gỡ khỏi trang (ví dụ bài viết bị xoá) → bỏ luôn menu.
+    if (!home.parent.isConnected) {
+        menu.remove();
+        return;
+    }
+    if (home.next && home.next.parentElement === home.parent) {
+        home.parent.insertBefore(menu, home.next);
+    } else {
+        home.parent.appendChild(menu);
+    }
+}
+
+/** Menu đi kèm một nút bấm — nhớ lại để tìm được khi menu đang gỡ ra body. */
+function findMenu(toggle) {
+    if (toggle._kbMenu) {
+        return toggle._kbMenu;
+    }
+    const menu = toggle.parentElement.querySelector('.menu');
+    if (menu) {
+        toggle._kbMenu = menu;
+    }
+    return menu;
+}
 
 function positionMenu(menu, toggle, placement) {
     const rect = toggle.getBoundingClientRect();
@@ -71,6 +118,7 @@ function positionMenu(menu, toggle, placement) {
 
 function openMenu(menu, toggle, placement) {
     closeMenus();
+    detachMenu(menu);
     menu.classList.add('is-open');
     toggle.setAttribute('aria-expanded', 'true');
     // Ẩn tạm thời để tránh nháy menu ở góc trước khi định vị
@@ -83,7 +131,10 @@ function openMenu(menu, toggle, placement) {
 function closeMenus() {
     openMenus.splice(0).forEach(({ menu, toggle }) => {
         menu.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+        if (toggle.isConnected) {
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+        restoreMenu(menu);
     });
 }
 
@@ -93,7 +144,7 @@ document.addEventListener('click', (event) => {
         const target = toggle.dataset.menuTarget;
         const menu = target
             ? document.querySelector(target)
-            : toggle.parentElement.querySelector('.menu');
+            : findMenu(toggle);
         if (!menu) return;
         event.preventDefault();
         event.stopPropagation();
@@ -102,6 +153,12 @@ document.addEventListener('click', (event) => {
         } else {
             openMenu(menu, toggle, toggle.dataset.menuPlacement || 'bottom-start');
         }
+        return;
+    }
+
+    // Chọn một mục trong menu → đóng menu lại.
+    if (event.target.closest('.menu-item')) {
+        closeMenus();
         return;
     }
 
@@ -116,9 +173,21 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
-window.addEventListener('resize', () => {
-    openMenus.forEach(({ menu, toggle, placement }) => positionMenu(menu, toggle, placement));
-});
+/** Bám lại vị trí menu theo nút đã mở; nút biến mất thì đóng menu. */
+function repositionMenus() {
+    openMenus.slice().forEach(({ menu, toggle, placement }) => {
+        if (!toggle.isConnected) {
+            closeMenus();
+            return;
+        }
+        positionMenu(menu, toggle, placement);
+    });
+}
+
+window.addEventListener('resize', repositionMenus);
+
+// Menu neo theo khung nhìn nên phải bám lại nút khi trang cuộn.
+window.addEventListener('scroll', repositionMenus, true);
 
 /* =============================================================
    Ngăn kéo (drawer)
@@ -538,11 +607,14 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'copy-link') {
+        // Mục này có thể nằm trong menu hoặc ở thanh hành động — chặn điều hướng mặc định.
+        event.preventDefault();
         const link = new URL(button.dataset.url, window.location.origin).href;
         try {
             await navigator.clipboard.writeText(link);
             showToast('success', 'Đã sao chép liên kết bài viết.');
         } catch (e) {
+            // Trình duyệt chặn clipboard (http, thiếu quyền) → đưa link ra prompt để copy tay.
             window.prompt('Sao chép liên kết:', link);
         }
     }

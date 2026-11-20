@@ -61,13 +61,13 @@ $originalImages = $meta['originalImages'];
 
                             <!-- Sao chép link -->
                             <li>
-                                <a
+                                <button
+                                    type="button"
                                     class="menu-item"
-                                    href="#"
                                     data-action="copy-link"
                                     data-url="<?= e($meta['permalink']) ?>">
                                     <i class="bi bi-link-45deg me-2"></i>Sao chép link
-                                </a>
+                                </button>
                             </li>
 
                             <li>

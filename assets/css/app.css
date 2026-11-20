@@ -657,19 +657,26 @@
     }
 
     /* ---------------- Menu thả xuống ---------------- */
+    /* Menu được JS gỡ ra <body> khi mở — `position: fixed` ở đó luôn bám
+       khung nhìn, không bị khối cha có `transform` (thẻ bài viết nổi lên khi
+       rê chuột) kéo lệch vị trí. */
     .menu {
         list-style: none;
         margin: 0;
-        padding: 8px;
+        padding: 6px;
         position: fixed;
+        top: 0;
+        left: 0;
         z-index: 1090;
-        min-width: 220px;
+        min-width: 224px;
+        max-width: min(280px, calc(100vw - 24px));
         max-height: 70vh;
         overflow-y: auto;
-        background-color: var(--kb-canvas);
+        overscroll-behavior: contain;
+        background-color: var(--kb-surface-card);
         color: var(--kb-body);
         border: 1px solid var(--kb-hairline);
-        border-radius: var(--kb-radius-xl);
+        border-radius: var(--kb-radius-lg);
         box-shadow: var(--kb-shadow-pop);
         display: none;
         visibility: hidden;
@@ -681,7 +688,7 @@
     }
 
     .menu-header {
-        padding: 8px 12px;
+        padding: 10px 12px 8px;
         color: var(--kb-body);
     }
 
@@ -690,7 +697,7 @@
         align-items: center;
         gap: .6rem;
         width: 100%;
-        padding: 10px 12px;
+        padding: 9px 12px;
         font-family: var(--kb-font-body);
         font-size: 14px;
         font-weight: 500;
@@ -700,12 +707,13 @@
         text-decoration: none;
         background: transparent;
         border: 0;
-        border-radius: var(--kb-radius-lg);
+        border-radius: var(--kb-radius-md);
         cursor: pointer;
         transition: background-color var(--kb-dur-fast) var(--kb-ease), color var(--kb-dur-fast) var(--kb-ease);
     }
 
-    .menu-item:hover {
+    .menu-item:hover,
+    .menu-item:focus-visible {
         background-color: var(--kb-surface-soft);
         color: var(--kb-ink);
         text-decoration: none;
@@ -714,23 +722,27 @@
     .menu-item i {
         font-size: 1rem;
         color: var(--kb-muted);
+        flex: 0 0 auto;
     }
 
-    .menu-item:hover i {
+    .menu-item:hover i,
+    .menu-item:focus-visible i {
         color: var(--kb-ink);
     }
 
-    .menu-item.fg-danger:hover {
+    .menu-item.fg-danger:hover,
+    .menu-item.fg-danger:focus-visible {
         background-color: var(--kb-error-soft);
         color: var(--kb-error);
     }
 
-    .menu-item.fg-danger:hover i {
+    .menu-item.fg-danger:hover i,
+    .menu-item.fg-danger:focus-visible i {
         color: var(--kb-error);
     }
 
     .menu-divider {
-        margin: 6px 0;
+        margin: 5px 0;
         border: 0;
         border-top: 1px solid var(--kb-hairline-soft);
     }
