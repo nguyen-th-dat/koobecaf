@@ -1796,7 +1796,7 @@ CREATE TABLE `password_resets` (
 --
 -- Dumping data for table `password_resets`
 --
-
+-- Password hash của "Password@123" (bcrypt, cost 10)
 INSERT INTO `password_resets` (`id`, `user_id`, `token_hash`, `code_hash`, `expires_at`, `used_at`, `created_at`) VALUES
 (1, 8, 'd5f00691a6afa962a93714e90423b934b815c6565309d79af30d44e120f00c58', NULL, '2026-11-18 09:27:31', '2026-11-18 08:27:31', '2026-11-18 08:27:31'),
 (2, 11, 'aba21cc688da8c51cebec63fe8488204919b3161e7a48ff412599508c91b6722', NULL, '2026-11-18 09:29:27', '2026-11-18 08:29:27', '2026-11-18 08:29:27'),
