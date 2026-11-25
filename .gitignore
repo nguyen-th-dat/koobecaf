@@ -14,11 +14,12 @@
 /.cursor/
 /.claude/
 
-# Công cụ phát triển và thư mục tạm
+# Công cụ phát triển và thư mục tạm, test
 /tools/
 /temp/
 /tmp/
 /.tmp/
+/test/
 
 # Nhật ký ứng dụng
 /storage/logs/*.log
